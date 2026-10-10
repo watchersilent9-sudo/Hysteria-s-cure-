@@ -97,4 +97,4 @@ function showNotice(message) {
     showNotice.timeout = setTimeout(() => {
         notice.hidden = true;
     }, 3000);
-              }
+            }
