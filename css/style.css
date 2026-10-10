@@ -1,0 +1,62 @@
+/* =========================================
+   HYSTERIA'S CURE
+   Main stylesheet
+========================================= */
+
+/* 1. Design System */
+
+:root {
+    --bg-primary: #0e0e16;
+    --bg-secondary: #151521;
+    --bg-card: #1b1b2a;
+
+    --text-primary: #f4f2ff;
+    --text-secondary: #aaa9c0;
+
+    --accent: #a78bfa;
+    --accent-bright: #c4b5fd;
+    --accent-dark: #7c3aed;
+
+    --border: rgba(255, 255, 255, 0.09);
+
+    --radius-small: 10px;
+    --radius-medium: 16px;
+    --radius-large: 24px;
+
+    --container-width: 1180px;
+}
+
+/* 2. Reset */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 90px;
+}
+
+body {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: Arial, Helvetica, sans-serif;
+    line-height: 1.6;
+    overflow-x: hidden;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+button,
+a {
+    -webkit-tap-highlight-color: transparent;
+}
+
+button,
+input,
+textarea
