@@ -1,9 +1,12 @@
 /* =========================================
    HYSTERIA'S CURE
-   Main stylesheet
+   Complete Main Stylesheet
 ========================================= */
 
-/* 1. Design System */
+
+/* =========================================
+   1. DESIGN SYSTEM
+========================================= */
 
 :root {
     --bg-primary: #0e0e16;
@@ -26,7 +29,10 @@
     --container-width: 1180px;
 }
 
-/* 2. Reset */
+
+/* =========================================
+   2. RESET AND BASE STYLES
+========================================= */
 
 * {
     margin: 0;
@@ -40,6 +46,7 @@ html {
 }
 
 body {
+    min-height: 100vh;
     background: var(--bg-primary);
     color: var(--text-primary);
     font-family: Arial, Helvetica, sans-serif;
@@ -53,10 +60,589 @@ a {
 }
 
 button,
+input,
+textarea,
+select {
+    font: inherit;
+}
+
+button,
 a {
     -webkit-tap-highlight-color: transparent;
 }
 
-button,
-input,
-textarea
+img {
+    display: block;
+    max-width: 100%;
+}
+
+::selection {
+    background: var(--accent);
+    color: var(--bg-primary);
+}
+
+
+/* =========================================
+   3. SHARED LAYOUT
+========================================= */
+
+.section {
+    width: min(100% - 40px, var(--container-width));
+    margin-inline: auto;
+    padding-block: 100px;
+}
+
+.eyebrow {
+    margin-bottom: 12px;
+    color: var(--accent-bright);
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+}
+
+.section-heading {
+    max-width: 680px;
+    margin: 0 auto 48px;
+    text-align: center;
+}
+
+.section-heading h2,
+.about-content h2,
+.get-started h2 {
+    margin-bottom: 20px;
+    font-size: clamp(2rem, 4vw, 3rem);
+    line-height: 1.2;
+    letter-spacing: -0.04em;
+}
+
+.section-heading > p:last-child,
+.about-content > p:last-child {
+    color: var(--text-secondary);
+}
+
+
+/* =========================================
+   4. BUTTONS
+========================================= */
+
+.button {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+
+    min-height: 46px;
+    padding: 12px 20px;
+
+    border: 1px solid transparent;
+    border-radius: var(--radius-small);
+
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-align: center;
+
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.button:hover {
+    transform: translateY(-2px);
+}
+
+.button:focus-visible,
+a:focus-visible {
+    outline: 2px solid var(--accent-bright);
+    outline-offset: 4px;
+}
+
+.button-primary {
+    background: var(--accent);
+    color: #171322;
+}
+
+.button-primary:hover {
+    background: var(--accent-bright);
+}
+
+.button-secondary {
+    background: transparent;
+    border-color: var(--border);
+    color: var(--text-primary);
+}
+
+.button-secondary:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+
+/* =========================================
+   5. HEADER AND NAVIGATION
+========================================= */
+
+.site-header {
+    position: relative;
+    z-index: 10;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+
+    width: 100%;
+    min-height: 78px;
+
+    padding: 16px max(
+        20px,
+        calc((100% - var(--container-width)) / 2)
+    );
+
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-primary);
+}
+
+.brand-name,
+.footer-brand {
+    font-size: 0.95rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+}
+
+.main-navigation,
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+.main-navigation a {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    transition: color 0.2s ease;
+}
+
+.main-navigation a:hover {
+    color: var(--text-primary);
+}
+
+
+/* =========================================
+   6. HERO SECTION
+========================================= */
+
+.hero {
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    align-items: center;
+    gap: 60px;
+
+    width: min(100% - 40px, var(--container-width));
+    min-height: 570px;
+
+    margin-inline: auto;
+    padding-block: 90px;
+}
+
+.hero h1 {
+    max-width: 700px;
+
+    font-size: clamp(2.7rem, 6vw, 4.8rem);
+    line-height: 1.08;
+    letter-spacing: -0.055em;
+}
+
+.hero h1 span {
+    display: block;
+    color: var(--accent-bright);
+}
+
+.hero-description {
+    max-width: 570px;
+    margin-top: 24px;
+
+    color: var(--text-secondary);
+    font-size: 1.05rem;
+}
+
+.hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-top: 30px;
+}
+
+.hero-note {
+    margin-top: 22px;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+
+/* Hero Visual */
+
+.hero-visual {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    min-height: 300px;
+}
+
+.visual-card {
+    width: 100%;
+    max-width: 360px;
+
+    padding: 38px 28px;
+
+    border: 1px solid var(--border);
+    border-radius: var(--radius-large);
+
+    background:
+        radial-gradient(
+            circle at top right,
+            #342451 0,
+            transparent 60%
+        ),
+        var(--bg-card);
+
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.25);
+
+    text-align: center;
+}
+
+.visual-label {
+    color: var(--text-secondary);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+}
+
+.visual-symbol {
+    margin: 28px 0;
+    color: var(--accent-bright);
+    font-size: 5rem;
+}
+
+.visual-card h2 {
+    font-size: 1.8rem;
+}
+
+.visual-card p {
+    margin-top: 8px;
+    color: var(--text-secondary);
+}
+
+
+/* =========================================
+   7. FEATURES SECTION
+========================================= */
+
+.feature-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.feature-card {
+    padding: 28px;
+
+    border: 1px solid var(--border);
+    border-radius: var(--radius-medium);
+
+    background: var(--bg-secondary);
+
+    transition:
+        border-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--accent);
+}
+
+.feature-number {
+    color: var(--accent-bright);
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.feature-card h3 {
+    margin-top: 18px;
+    font-size: 1.25rem;
+}
+
+.feature-card p {
+    margin-top: 10px;
+    color: var(--text-secondary);
+}
+
+
+/* =========================================
+   8. FIVE LEARNING LEVELS
+========================================= */
+
+.level-list {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.level-card {
+    min-width: 0;
+    padding: 22px 16px;
+
+    border: 1px solid var(--border);
+    border-radius: var(--radius-medium);
+
+    background: var(--bg-secondary);
+
+    transition:
+        border-color 0.2s ease,
+        background 0.2s ease;
+}
+
+.level-card:hover {
+    border-color: var(--accent);
+    background: var(--bg-card);
+}
+
+.level-number {
+    color: var(--accent-bright);
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.level-card h3 {
+    margin-top: 18px;
+    font-size: 1.05rem;
+    overflow-wrap: anywhere;
+}
+
+.level-card p {
+    margin-top: 8px;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+.levels-note {
+    margin-top: 28px;
+
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+
+/* =========================================
+   9. ABOUT SECTION
+========================================= */
+
+.about {
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+}
+
+.about-content {
+    max-width: 760px;
+    margin-inline: auto;
+    text-align: center;
+}
+
+.about-content > p:last-child {
+    max-width: 680px;
+    margin-inline: auto;
+}
+
+
+/* =========================================
+   10. GET STARTED SECTION
+========================================= */
+
+.get-started {
+    text-align: center;
+}
+
+.get-started > p:not(.eyebrow) {
+    max-width: 580px;
+    margin: 0 auto 24px;
+    color: var(--text-secondary);
+}
+
+.get-started .account-note {
+    margin-top: 18px;
+    margin-bottom: 0;
+    font-size: 0.85rem;
+}
+
+
+/* =========================================
+   11. FOOTER
+========================================= */
+
+.site-footer {
+    padding: 38px 20px;
+    border-top: 1px solid var(--border);
+    text-align: center;
+}
+
+.site-footer > p {
+    margin-top: 10px;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+.site-footer .copyright {
+    margin-top: 24px;
+    font-size: 0.8rem;
+}
+
+
+/* =========================================
+   12. TABLET RESPONSIVENESS
+========================================= */
+
+@media (max-width: 900px) {
+
+    .site-header {
+        flex-wrap: wrap;
+    }
+
+    .main-navigation {
+        order: 3;
+
+        justify-content: center;
+        width: 100%;
+
+        padding-top: 10px;
+    }
+
+    .hero {
+        grid-template-columns: 1fr;
+        gap: 40px;
+
+        padding-block: 70px;
+        text-align: center;
+    }
+
+    .hero-content {
+        width: 100%;
+    }
+
+    .hero-description {
+        margin-inline: auto;
+    }
+
+    .hero-actions {
+        justify-content: center;
+    }
+
+    .level-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+
+/* =========================================
+   13. MOBILE RESPONSIVENESS
+========================================= */
+
+@media (max-width: 560px) {
+
+    .section {
+        padding-block: 65px;
+    }
+
+    .site-header {
+        gap: 16px;
+        padding-inline: 20px;
+    }
+
+    .brand-name {
+        font-size: 0.8rem;
+    }
+
+    .header-actions {
+        gap: 8px;
+    }
+
+    .header-actions .button {
+        padding: 10px 12px;
+        font-size: 0.8rem;
+    }
+
+    .main-navigation {
+        gap: 18px;
+    }
+
+    .main-navigation a {
+        font-size: 0.82rem;
+    }
+
+    .hero {
+        padding-block: 55px;
+    }
+
+    .hero h1 {
+        font-size: clamp(2.35rem, 10vw, 3.5rem);
+    }
+
+    .hero-description {
+        font-size: 0.98rem;
+    }
+
+    .hero-actions {
+        flex-direction: column;
+    }
+
+    .hero-actions .button {
+        width: 100%;
+    }
+
+    .visual-card {
+        padding: 32px 22px;
+    }
+
+    .feature-grid,
+    .level-list {
+        grid-template-columns: 1fr;
+    }
+
+    .feature-card,
+    .level-card {
+        padding: 24px;
+    }
+
+    .section-heading {
+        margin-bottom: 34px;
+    }
+
+    .section-heading h2,
+    .about-content h2,
+    .get-started h2 {
+        font-size: 2rem;
+    }
+}
+
+
+/* =========================================
+   14. REDUCED MOTION ACCESSIBILITY
+========================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+    html {
+        scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+    }
+}
