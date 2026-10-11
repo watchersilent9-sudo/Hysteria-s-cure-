@@ -1,0 +1,194 @@
+<!DOCTYPE html><html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="theme-color" content="#11111b">
+<meta name="description" content="Log in to your Hysteria's Cure student account and continue your learning journey.">
+
+<title>Log In | Hysteria's Cure</title>
+
+<link rel="stylesheet" href="css/style.css">
+
+<style>
+    .auth-section {
+        width: min(440px, calc(100% - 32px));
+        margin: 64px auto;
+    }
+
+    .auth-card {
+        padding: 32px;
+        border: 1px solid rgba(196, 181, 253, 0.2);
+        border-radius: 18px;
+        background: #151521;
+    }
+
+    .auth-card h1 {
+        margin-bottom: 12px;
+    }
+
+    .auth-description {
+        margin-bottom: 28px;
+        color: #b8b8ca;
+        line-height: 1.6;
+    }
+
+    .auth-form {
+        display: grid;
+        gap: 18px;
+    }
+
+    .auth-field {
+        display: grid;
+        gap: 8px;
+    }
+
+    .auth-field label {
+        font-weight: 600;
+    }
+
+    .auth-field input {
+        width: 100%;
+        min-height: 46px;
+        padding: 12px;
+        border: 1px solid #39394d;
+        border-radius: 8px;
+        background: #0e0e16;
+        color: #ffffff;
+        font: inherit;
+    }
+
+    .auth-field input:focus {
+        outline: 2px solid #a78bfa;
+        outline-offset: 2px;
+    }
+
+    .auth-submit {
+        width: 100%;
+        margin-top: 6px;
+    }
+
+    .auth-message {
+        margin-top: 18px;
+        line-height: 1.6;
+        overflow-wrap: anywhere;
+    }
+
+    .auth-message:empty {
+        display: none;
+    }
+
+    .auth-switch {
+        margin-top: 24px;
+        text-align: center;
+        color: #b8b8ca;
+    }
+
+    .auth-switch a,
+    .auth-home a {
+        color: #c4b5fd;
+    }
+
+    .auth-home {
+        text-align: center;
+        margin-top: 24px;
+    }
+
+    @media (max-width: 480px) {
+        .auth-card {
+            padding: 24px 20px;
+        }
+
+        .auth-section {
+            margin-top: 36px;
+        }
+    }
+</style>
+
+</head><body>
+    <header class="site-header">
+        <a href="index.html" class="brand" aria-label="Hysteria's Cure home">
+            <span class="brand-name">HYSTERIA'S CURE</span>
+        </a>    <nav class="main-navigation" aria-label="Main navigation">
+        <a href="index.html#features">Features</a>
+        <a href="index.html#levels">Learning Levels</a>
+        <a href="index.html#about">About</a>
+    </nav>
+</header>
+
+<main>
+    <section class="auth-section">
+        <div class="auth-card">
+            <p class="eyebrow">WELCOME BACK</p>
+
+            <h1>Log in to your account</h1>
+
+            <p class="auth-description">
+                Continue your learning journey, improve your skills,
+                and work towards your next milestone.
+            </p>
+
+            <form id="login-form" class="auth-form">
+                <div class="auth-field">
+                    <label for="email">Email address</label>
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        autocomplete="email"
+                        required
+                    >
+                </div>
+
+                <div class="auth-field">
+                    <label for="password">Password</label>
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        autocomplete="current-password"
+                        required
+                    >
+                </div>
+
+                <button
+                    type="submit"
+                    class="button button-primary auth-submit"
+                    id="login-button"
+                >
+                    Log In
+                </button>
+            </form>
+
+            <p
+                id="login-message"
+                class="auth-message"
+                role="status"
+                aria-live="polite"
+            ></p>
+
+            <p class="auth-switch">
+                Don't have an account?
+                <a href="signup.html">Create an account</a>
+            </p>
+
+            <p class="auth-home">
+                <a href="index.html">Return to home</a>
+            </p>
+        </div>
+    </section>
+</main>
+
+<footer class="site-footer">
+    <p>Failure is the disease. Learning is the cure.</p>
+
+    <p>
+        &copy; <span id="current-year">2026</span>
+        Hysteria's Cure.
+    </p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/login.js"></script>
+
+</body>
+</html>
