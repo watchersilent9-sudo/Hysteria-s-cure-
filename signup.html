@@ -69,6 +69,11 @@
             margin-top: 6px;
         }
 
+        .auth-submit:disabled {
+            opacity: 0.65;
+            cursor: wait;
+        }
+
         .auth-message {
             margin-top: 18px;
             line-height: 1.6;
@@ -218,8 +223,6 @@
         </p>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/supabase-client.js"></script>
-    <script src="js/signup.js"></script>
+    <script type="module" src="js/signup.js"></script>
 </body>
 </html>
