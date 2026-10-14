@@ -1,113 +1,73 @@
-"use strict";
+import { auth } from "./firebase-client.js";
+import {
+createUserWithEmailAndPassword,
+updateProfile,
+sendEmailVerification
+} from "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
 
-document.addEventListener("DOMContentLoaded", () => {
-const signupForm = document.getElementById("signup-form");
-
-if (!signupForm) return;
-
-const displayNameInput = document.getElementById("display-name");
+const form = document.getElementById("signup-form");
+const nameInput = document.getElementById("display-name");
 const emailInput = document.getElementById("email");
 const passwordInput = document.getElementById("password");
 const confirmPasswordInput = document.getElementById("confirm-password");
+const message = document.getElementById("signup-message");
 const signupButton = document.getElementById("signup-button");
-const messageElement = document.getElementById("signup-message");
 
-function showMessage(message) {
-    messageElement.textContent = message;
+form.addEventListener("submit", async (event) => {
+event.preventDefault();
+
+const displayName = nameInput.value.trim();
+const email = emailInput.value.trim();
+const password = passwordInput.value;
+const confirmPassword = confirmPasswordInput.value;
+
+if (!displayName) {
+message.textContent = "Please enter your name.";
+return;
 }
 
-signupForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
+if (password.length < 8) {
+message.textContent = "Your password must be at least 8 characters.";
+return;
+}
 
-    const displayName = displayNameInput.value.trim();
-    const email = emailInput.value.trim();
-    const password = passwordInput.value;
-    const confirmPassword = confirmPasswordInput.value;
+if (password !== confirmPassword) {
+message.textContent = "Your passwords do not match.";
+return;
+}
 
-    if (displayName.length < 2) {
-        showMessage("Your display name must contain at least 2 characters.");
-        displayNameInput.focus();
-        return;
-    }
+signupButton.disabled = true;
+message.textContent = "Creating your account...";
 
-    if (password.length < 8) {
-        showMessage("Your password must contain at least 8 characters.");
-        passwordInput.focus();
-        return;
-    }
+try {
+const result = await createUserWithEmailAndPassword(
+auth,
+email,
+password
+);
 
-    if (password !== confirmPassword) {
-        showMessage("Your passwords do not match.");
-        confirmPasswordInput.focus();
-        return;
-    }
-
-    if (
-        typeof supabaseClient === "undefined" ||
-        !supabaseClient.auth
-    ) {
-        showMessage(
-            "The registration service could not load. Please refresh the page."
-        );
-        return;
-    }
-
-    signupButton.disabled = true;
-    signupButton.textContent = "Creating account...";
-    showMessage("");
-
-    try {
-        const { data, error } = await supabaseClient.auth.signUp({
-            email,
-            password,
-            options: {
-                data: {
-                    display_name: displayName
-                },
-                emailRedirectTo: new URL(
-                    "./",
-                    window.location.href
-                ).href
-            }
-        });
-
-        if (error) throw error;
-
-        if (
-            data.user &&
-            data.user.identities &&
-            data.user.identities.length === 0
-        ) {
-            showMessage(
-                "An account may already exist with this email. Try logging in."
-            );
-            return;
-        }
-
-        signupForm.reset();
-
-        if (data.session) {
-            showMessage(
-                "Your account has been created successfully! Registration is complete."
-            );
-        } else {
-            showMessage(
-                "Registration received! Check your email for a confirmation link before logging in."
-            );
-        }
-
-    } catch (error) {
-        console.error("Signup error:", error);
-
-        showMessage(
-            error.message ||
-            "We couldn't create your account. Please try again."
-        );
-
-    } finally {
-        signupButton.disabled = false;
-        signupButton.textContent = "Create Account";
-    }
+await updateProfile(result.user, {
+  displayName: displayName
 });
 
+await sendEmailVerification(result.user);
+
+message.textContent =
+  "Account created! Check your email for a verification link.";
+
+} catch (error) {
+const messages = {
+"auth/email-already-in-use": "This email already has an account. Please log in.",
+"auth/invalid-email": "Please enter a valid email address.",
+"auth/weak-password": "Please choose a stronger password.",
+"auth/network-request-failed": "Network error. Check your connection and try again.",
+"auth/operation-not-allowed": "Email/password sign-up is not enabled in Firebase."
+};
+
+message.textContent =
+  messages[error.code] || "Registration failed. Please try again.";
+
+} finally {
+signupButton.disabled = false;
+}
 });
