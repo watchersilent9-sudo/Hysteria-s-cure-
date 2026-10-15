@@ -56,6 +56,7 @@ function formatSize(bytes) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+
 function renderResults(questions) {
   const oldResults = document.getElementById("search-results");
   if (oldResults) oldResults.remove();
@@ -65,49 +66,107 @@ function renderResults(questions) {
   container.className = "panel";
 
   const heading = document.createElement("h2");
-  heading.textContent = `Search Results (${questions.length})`;
-  container.appendChild(heading);
+  heading.textContent = `Practice Questions (${questions.length})`;
+
+  const scoreDisplay = document.createElement("p");
+  scoreDisplay.textContent = "Session points: 0";
+
+  container.append(heading, scoreDisplay);
 
   if (questions.length === 0) {
     const empty = document.createElement("p");
     empty.textContent =
-      "No matching questions found in the current catalogue. " +
-      "Try another topic or difficulty, or add more questions.";
+      "No matching questions found. Try another topic or difficulty.";
     container.appendChild(empty);
   }
 
-  questions.forEach(question => {
+  let score = 0;
+
+  questions.forEach((question, index) => {
     const card = document.createElement("article");
     card.className = "panel";
 
     const title = document.createElement("h3");
-    title.textContent = question.question;
+    title.textContent = `${index + 1}. ${question.question}`;
 
     const meta = document.createElement("p");
     meta.textContent =
       `${question.subject} • ${question.topic} • ` +
       `${"★".repeat(question.difficulty)}`;
 
-    const list = document.createElement("ol");
-    list.type = "A";
+    const optionsBox = document.createElement("div");
+    optionsBox.className = "answer-options";
 
-    question.options.forEach(option => {
-      const item = document.createElement("li");
-      item.textContent = option;
-      list.appendChild(item);
+    const feedback = document.createElement("p");
+    feedback.setAttribute("aria-live", "polite");
+
+    const checkButton = document.createElement("button");
+    checkButton.type = "button";
+    checkButton.textContent = "Check Answer";
+
+    let selectedIndex = null;
+    let answered = false;
+
+    question.options.forEach((option, optionIndex) => {
+      const label = document.createElement("label");
+      label.style.display = "block";
+      label.style.margin = "10px 0";
+
+      const radio = document.createElement("input");
+      radio.type = "radio";
+      radio.name = `question-${index}`;
+      radio.value = optionIndex;
+
+      radio.addEventListener("change", () => {
+        selectedIndex = optionIndex;
+      });
+
+      label.append(radio, document.createTextNode(` ${option}`));
+      optionsBox.appendChild(label);
     });
 
-    const answer = document.createElement("details");
-    const summary = document.createElement("summary");
-    summary.textContent = "Show answer and explanation";
+    checkButton.addEventListener("click", () => {
+      if (answered) return;
 
-    const explanation = document.createElement("p");
-    explanation.textContent =
-      `Answer: ${question.options[question.answerIndex]}. ` +
-      question.explanation;
+      if (selectedIndex === null) {
+        feedback.textContent = "Choose an answer first.";
+        return;
+      }
 
-    answer.append(summary, explanation);
-    card.append(title, meta, list, answer);
+      answered = true;
+
+      const correct = selectedIndex === question.answerIndex;
+
+      if (correct) {
+        score += 2;
+        feedback.textContent =
+          `Correct! +2 points. ${question.explanation}`;
+      } else {
+        score = Math.max(0, score - 2);
+        feedback.textContent =
+          `Not quite. -2 points. Correct answer: ` +
+          `${question.options[question.answerIndex]}. ` +
+          question.explanation;
+      }
+
+      scoreDisplay.textContent = `Session points: ${score}`;
+
+      optionsBox.querySelectorAll("input").forEach(input => {
+        input.disabled = true;
+      });
+
+      checkButton.disabled = true;
+      checkButton.textContent = "Answer Checked";
+    });
+
+    card.append(
+      title,
+      meta,
+      optionsBox,
+      checkButton,
+      feedback
+    );
+
     container.appendChild(card);
   });
 
