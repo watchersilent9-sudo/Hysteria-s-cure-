@@ -132,24 +132,39 @@ function renderResults(questions) {
 
       answered = true;
 
-      const correct = selectedIndex === question.answerIndex;
+      
+const correct = selectedIndex === question.answerIndex;
 
-      if (correct) {
-        score += 2;
+const rewardTiers = {
+  1: { name: "Easy", points: 2 },
+  2: { name: "Medium", points: 5 },
+  3: { name: "Hard", points: 10 },
+  4: { name: "Very Hard", points: 15 },
+  5: { name: "Expert", points: 20 },
+  6: { name: "Expert", points: 20 },
+  7: { name: "Expert", points: 20 }
+};
 
-        feedback.textContent =
-          `Correct! +2 points. ${question.explanation}`;
-      } else {
-        const previousScore = score;
-        score = Math.max(0, score - 2);
+const reward = rewardTiers[question.difficulty] ||
+  rewardTiers[1];
 
-        const pointsLost = previousScore - score;
+if (correct) {
+  score += reward.points;
 
-        feedback.textContent =
-          `Not quite. ${pointsLost > 0 ? `-${pointsLost}` : "0"} points. ` +
-          `Correct answer: ${question.options[question.answerIndex]}. ` +
-          question.explanation;
-      }
+  feedback.textContent =
+    `Correct! +${reward.points} points (${reward.name}). ` +
+    question.explanation;
+} else {
+  const previousScore = score;
+  score = Math.max(0, score - 2);
+
+  const pointsLost = previousScore - score;
+
+  feedback.textContent =
+    `Not quite. ${pointsLost > 0 ? `-${pointsLost}` : "0"} points. ` +
+    `Correct answer: ${question.options[question.answerIndex]}. ` +
+    question.explanation;
+  }
 
       scoreDisplay.textContent = `Session points: ${score}`;
 
