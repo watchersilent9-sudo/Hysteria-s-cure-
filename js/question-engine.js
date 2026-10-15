@@ -43,11 +43,9 @@ starSelector.addEventListener("click", event => {
 materialsInput.addEventListener("change", () => {
   const files = Array.from(materialsInput.files);
 
-  
-fileList.textContent = files.length
-  ? files.map(file => `${file.name} (${formatSize(file.size)})`).join("\n")
-  : "No files selected.";
-
+  fileList.textContent = files.length
+    ? files.map(file => `${file.name} (${formatSize(file.size)}`).join("\n")
+    : "No files selected.";
 });
 
 function formatSize(bytes) {
@@ -55,7 +53,6 @@ function formatSize(bytes) {
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
-
 
 function renderResults(questions) {
   const oldResults = document.getElementById("search-results");
@@ -139,15 +136,19 @@ function renderResults(questions) {
 
       if (correct) {
         score += 2;
+
+        feedback.textContent =
+          `Correct! +2 points. ${question.explanation}`;
+      } else {
         const previousScore = score;
-score = Math.max(0, score - 2);
+        score = Math.max(0, score - 2);
 
-const pointsLost = previousScore - score;
+        const pointsLost = previousScore - score;
 
-feedback.textContent =
-  `Not quite. ${pointsLost > 0 ? `-${pointsLost}` : "0"} points. ` +
-  `Correct answer: ${question.options[question.answerIndex]}. ` +
-  question.explanation;
+        feedback.textContent =
+          `Not quite. ${pointsLost > 0 ? `-${pointsLost}` : "0"} points. ` +
+          `Correct answer: ${question.options[question.answerIndex]}. ` +
+          question.explanation;
       }
 
       scoreDisplay.textContent = `Session points: ${score}`;
@@ -160,14 +161,7 @@ feedback.textContent =
       checkButton.textContent = "Answer Checked";
     });
 
-    card.append(
-      title,
-      meta,
-      optionsBox,
-      checkButton,
-      feedback
-    );
-
+    card.append(title, meta, optionsBox, checkButton, feedback);
     container.appendChild(card);
   });
 
@@ -197,3 +191,4 @@ findButton.addEventListener("click", () => {
 });
 
 updateDifficulty(1);
+                          
