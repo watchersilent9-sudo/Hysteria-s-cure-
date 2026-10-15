@@ -139,14 +139,15 @@ function renderResults(questions) {
 
       if (correct) {
         score += 2;
-        feedback.textContent =
-          `Correct! +2 points. ${question.explanation}`;
-      } else {
-        score = Math.max(0, score - 2);
-        feedback.textContent =
-          `Not quite. -2 points. Correct answer: ` +
-          `${question.options[question.answerIndex]}. ` +
-          question.explanation;
+        const previousScore = score;
+score = Math.max(0, score - 2);
+
+const pointsLost = previousScore - score;
+
+feedback.textContent =
+  `Not quite. ${pointsLost > 0 ? `-${pointsLost}` : "0"} points. ` +
+  `Correct answer: ${question.options[question.answerIndex]}. ` +
+  question.explanation;
       }
 
       scoreDisplay.textContent = `Session points: ${score}`;
