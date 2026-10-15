@@ -1,0 +1,142 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#171321">
+  <title>Question Engine | Hysteria's Cure</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .engine {
+      width: min(92%, 760px);
+      margin: 32px auto;
+    }
+
+    .engine-panel {
+      padding: 22px;
+      margin: 18px 0;
+      border: 1px solid #ded8e8;
+      border-radius: 16px;
+    }
+
+    .engine select,
+    .engine button {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      border-radius: 9px;
+      font: inherit;
+    }
+
+    .star-options {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 6px;
+      margin: 12px 0;
+    }
+
+    .star-options button {
+      padding: 10px 0;
+      margin: 0;
+    }
+
+    .star-options button.selected {
+      background: #6d4aff;
+      color: white;
+    }
+
+    .answer-option {
+      display: block;
+      width: 100%;
+      text-align: left;
+      padding: 13px;
+      margin: 9px 0;
+      border: 1px solid #ded8e8;
+      border-radius: 9px;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .answer-option:disabled {
+      cursor: default;
+      opacity: 0.85;
+    }
+
+    #feedback {
+      white-space: pre-wrap;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 420px) {
+      .engine-panel { padding: 15px; }
+      .star-options { gap: 3px; }
+      .star-options button { font-size: 13px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="engine">
+    <p><a href="index.html">← Back to Home</a></p>
+
+    <h1>Question Engine</h1>
+    <p>Failure is the disease. Learning is the cure.</p>
+    <p>Practise beyond past questions. Build real understanding.</p>
+
+    <section class="engine-panel">
+      <h2>Choose your challenge</h2>
+
+      <label for="subject">Subject</label>
+      <select id="subject">
+        <option value="Biology">Biology</option>
+        <option value="Chemistry">Chemistry</option>
+        <option value="Physics">Physics</option>
+        <option value="Mathematics">Mathematics</option>
+      </select>
+
+      <label for="topic">Topic</label>
+      <select id="topic">
+        <option value="Excretion">Excretion</option>
+        <option value="Nutrition">Nutrition</option>
+        <option value="Ecology">Ecology</option>
+      </select>
+
+      <h3>Difficulty</h3>
+      <p>Choose from foundation to mastery.</p>
+
+      <div class="star-options" id="difficulty-options">
+        <button type="button" data-level="1" class="selected">1★</button>
+        <button type="button" data-level="2">2★</button>
+        <button type="button" data-level="3">3★</button>
+        <button type="button" data-level="4">4★</button>
+        <button type="button" data-level="5">5★</button>
+        <button type="button" data-level="6">6★</button>
+        <button type="button" data-level="7">7★</button>
+      </div>
+
+      <p id="difficulty-description">
+        Foundation — recall important facts.
+      </p>
+
+      <button type="button" id="start-button">Start Practice</button>
+    </section>
+
+    <section class="engine-panel" id="question-panel" hidden>
+      <p id="question-progress"></p>
+      <p id="question-difficulty"></p>
+      <h2 id="question-text"></h2>
+      <div id="answer-options"></div>
+      <p id="feedback" aria-live="polite"></p>
+      <button type="button" id="next-button" hidden>Next Question</button>
+    </section>
+
+    <section class="engine-panel" id="results-panel" hidden>
+      <h2>Practice complete</h2>
+      <p id="results-text"></p>
+      <button type="button" id="restart-button">Practise Again</button>
+    </section>
+  </main>
+
+  <script type="module" src="js/question-engine.js"></script>
+</body>
+</html>
