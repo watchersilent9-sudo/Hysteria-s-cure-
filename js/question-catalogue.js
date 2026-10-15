@@ -1,7 +1,9 @@
 
 /*
  * Hysteria's Cure — Question Catalogue
- * Sample questions for developing the practice engine.
+ *
+ * Each question is independent of the interface.
+ * Add questions from any subject using this structure.
  */
 
 export const questionCatalogue = [
@@ -170,7 +172,7 @@ export const questionCatalogue = [
 
 /*
  * Search by subject, topic, keywords, and difficulty.
- * Empty subject or topic means no restriction for that field.
+ * An empty subject or topic means no restriction for that field.
  */
 
 export function searchQuestions({
