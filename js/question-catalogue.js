@@ -1,9 +1,6 @@
-
 /*
  * Hysteria's Cure — Question Catalogue
- *
- * Each question is independent of the interface.
- * Add questions from any subject using this structure.
+ * Cleaned foundation for the future intelligent question engine.
  */
 
 export const questionCatalogue = [
@@ -18,7 +15,8 @@ export const questionCatalogue = [
     answerIndex: 1,
     explanation: "The kidneys filter the blood and remove urea to help form urine.",
     sourceType: "sample",
-    verified: false
+    verified: false,
+    syllabusObjective: "Explain the role of the kidney in excretion."
   },
   {
     id: "bio-excretion-002",
@@ -31,7 +29,8 @@ export const questionCatalogue = [
     answerIndex: 1,
     explanation: "The glomerulus is a network of capillaries where ultrafiltration begins.",
     sourceType: "sample",
-    verified: false
+    verified: false,
+    syllabusObjective: "Describe ultrafiltration in the nephron."
   },
   {
     id: "bio-excretion-003",
@@ -49,243 +48,9 @@ export const questionCatalogue = [
     answerIndex: 1,
     explanation: "The body conserves water by increasing its reabsorption in the kidneys.",
     sourceType: "sample",
-    verified: false
+    verified: false,
+    syllabusObjective: "Explain how the kidneys regulate water balance."
   },
-  {
-    id: "physics-electricity-001",
-    subject: "Physics",
-    topic: "Electricity",
-    difficulty: 1,
-    type: "multiple-choice",
-    question: "What is the SI unit of electric current?",
-    options: ["Volt", "Ohm", "Ampere", "Watt"],
-    answerIndex: 2,
-    explanation: "Electric current is measured in amperes (A).",
-    sourceType: "sample",
-    verified: false
-  },
-  {
-    id: "physics-electricity-002",
-    subject: "Physics",
-    topic: "Electricity",
-    difficulty: 2,
-    type: "multiple-choice",
-    question: "A current of 3 A flows through a 4 Ω resistor. What is the potential difference?",
-    options: ["0.75 V", "7 V", "12 V", "16 V"],
-    answerIndex: 2,
-    explanation: "Ohm's law gives V = IR = 3 × 4 = 12 V.",
-    sourceType: "sample",
-    verified: false
-  },
-  {
-    id: "physics-electricity-003",
-    subject: "Physics",
-    topic: "Electricity",
-    difficulty: 3,
-    type: "multiple-choice",
-    question: "A 6 Ω resistor is connected across a 12 V supply. How much energy is transferred in 10 seconds?",
-    options: ["20 J", "120 J", "240 J", "720 J"],
-    answerIndex: 2,
-    explanation: "P = V²/R = 24 W. Energy E = Pt = 24 × 10 = 240 J.",
-    sourceType: "sample",
-    verified: false
-  },
-  {
-    id: "chemistry-atoms-001",
-    subject: "Chemistry",
-    topic: "Atomic Structure",
-    difficulty: 1,
-    type: "multiple-choice",
-    question: "Which subatomic particle has a negative charge?",
-    options: ["Proton", "Neutron", "Electron", "Nucleus"],
-    answerIndex: 2,
-    explanation: "Electrons carry a negative electric charge.",
-    sourceType: "sample",
-    verified: false
-  },
-  {
-    id: "chemistry-atoms-002",
-    subject: "Chemistry",
-    topic: "Atomic Structure",
-    difficulty: 2,
-    type: "multiple-choice",
-    question: "An atom has 11 protons and 12 neutrons. What is its mass number?",
-    options: ["11", "12", "23", "24"],
-    answerIndex: 2,
-    explanation: "Mass number = protons + neutrons = 11 + 12 = 23.",
-    sourceType: "sample",
-    verified: false
-  },
-  {
-    id: "chemistry-atoms-003",
-    subject: "Chemistry",
-    topic: "Atomic Structure",
-    difficulty: 3,
-    type: "multiple-choice",
-    question: "A neutral atom has atomic number 17 and mass number 35. How many neutrons does it contain?",
-    options: ["17", "18", "35", "52"],
-    answerIndex: 1,
-    explanation: "Neutrons = mass number − atomic number = 35 − 17 = 18.",
-    sourceType: "sample",
-    verified: false
-  },
-  {
-    id: "math-algebra-001",
-    subject: "Mathematics",
-    topic: "Algebra",
-    difficulty: 1,
-    type: "multiple-choice",
-    question: "Solve: x + 7 = 12.",
-    options: ["3", "4", "5", "19"],
-    answerIndex: 2,
-    explanation: "Subtract 7 from both sides: x = 12 − 7 = 5.",
-    sourceType: "sample",
-    verified: false
-  },
-  {
-    id: "math-algebra-002",
-    subject: "Mathematics",
-    topic: "Algebra",
-    difficulty: 2,
-    type: "multiple-choice",
-    question: "Solve: 3x − 4 = 11.",
-    options: ["3", "4", "5", "7"],
-    answerIndex: 2,
-    explanation: "Add 4 to both sides: 3x = 15. Divide by 3 to get x = 5.",
-    sourceType: "sample",
-    verified: false
-  },
-  {
-    id: "math-algebra-003",
-    subject: "Mathematics",
-    topic: "Algebra",
-    difficulty: 3,
-    type: "multiple-choice",
-    question: "If x + y = 10 and x − y = 4, what is the value of x?",
-    options: ["3", "5", "7", "14"],
-    answerIndex: 2,
-    explanation: "Adding the equations gives 2x = 14, so x = 7.",
-    sourceType: "sample",
-    verified: false
-  },
-  
-  {
-    id: "bio-excretion-002",
-    subject: "Biology",
-    topic: "Excretion",
-    difficulty: 2,
-    type: "multiple-choice",
-    question: "Which structure in the kidney filters blood under pressure?",
-    options: ["Ureter", "Glomerulus", "Collecting duct", "Urinary bladder"],
-    answerIndex: 1,
-    explanation: "The glomerulus is a network of capillaries where ultrafiltration of blood begins.",
-    sourceType: "sample",
-    verified: false
-  },
-
-  {
-    id: "bio-excretion-003",
-    subject: "Biology",
-    topic: "Excretion",
-    difficulty: 3,
-    type: "multiple-choice",
-    question: "A person produces very little urine on a hot day after sweating heavily. What best explains this?",
-    options: [
-      "The kidneys have stopped filtering blood",
-      "More water is reabsorbed by the kidney tubules",
-      "The bladder has absorbed all the water",
-      "The body has stopped producing urea"
-    ],
-    answerIndex: 1,
-    explanation: "Heavy sweating causes water loss, so the body conserves water by increasing its reabsorption in the kidneys.",
-    sourceType: "sample",
-    verified: false
-  },
-
-  {
-    id: "physics-electricity-002",
-    subject: "Physics",
-    topic: "Electricity",
-    difficulty: 2,
-    type: "multiple-choice",
-    question: "A current of 3 A flows through a resistor of 4 Ω. What is the potential difference across it?",
-    options: ["0.75 V", "7 V", "12 V", "16 V"],
-    answerIndex: 2,
-    explanation: "Using Ohm's law, V = IR = 3 × 4 = 12 V.",
-    sourceType: "sample",
-    verified: false
-  },
-
-  {
-    id: "physics-electricity-003",
-    subject: "Physics",
-    topic: "Electricity",
-    difficulty: 3,
-    type: "multiple-choice",
-    question: "A 6 Ω resistor is connected across a 12 V supply. How much electrical energy does it transfer in 10 seconds?",
-    options: ["20 J", "120 J", "240 J", "720 J"],
-    answerIndex: 2,
-    explanation: "Power P = V²/R = 12²/6 = 24 W. Energy E = Pt = 24 × 10 = 240 J.",
-    sourceType: "sample",
-    verified: false
-  },
-
-  {
-    id: "chemistry-atoms-002",
-    subject: "Chemistry",
-    topic: "Atomic Structure",
-    difficulty: 2,
-    type: "multiple-choice",
-    question: "An atom has 11 protons and 12 neutrons. What is its mass number?",
-    options: ["11", "12", "23", "24"],
-    answerIndex: 2,
-    explanation: "Mass number = number of protons + number of neutrons = 11 + 12 = 23.",
-    sourceType: "sample",
-    verified: false
-  },
-
-  {
-    id: "chemistry-atoms-003",
-    subject: "Chemistry",
-    topic: "Atomic Structure",
-    difficulty: 3,
-    type: "multiple-choice",
-    question: "A neutral atom has atomic number 17 and mass number 35. How many neutrons does it contain?",
-    options: ["17", "18", "35", "52"],
-    answerIndex: 1,
-    explanation: "Number of neutrons = mass number − atomic number = 35 − 17 = 18.",
-    sourceType: "sample",
-    verified: false
-  },
-
-  {
-    id: "math-algebra-002",
-    subject: "Mathematics",
-    topic: "Algebra",
-    difficulty: 2,
-    type: "multiple-choice",
-    question: "Solve: 3x − 4 = 11.",
-    options: ["3", "4", "5", "7"],
-    answerIndex: 2,
-    explanation: "Add 4 to both sides: 3x = 15. Divide by 3 to get x = 5.",
-    sourceType: "sample",
-    verified: false
-  },
-
-  {
-    id: "math-algebra-003",
-    subject: "Mathematics",
-    topic: "Algebra",
-    difficulty: 3,
-    type: "multiple-choice",
-    question: "If x + y = 10 and x − y = 4, what is the value of x?",
-    options: ["3", "5", "7", "14"],
-    answerIndex: 2,
-    explanation: "Adding the equations gives 2x = 14, so x = 7.",
-    sourceType: "sample",
-    verified: false
-  },
-  
   {
     id: "bio-excretion-004",
     subject: "Biology",
@@ -302,7 +67,8 @@ export const questionCatalogue = [
     answerIndex: 1,
     explanation: "Water conservation increases water reabsorption, producing a smaller volume of more concentrated urine.",
     sourceType: "sample",
-    verified: false
+    verified: false,
+    syllabusObjective: "Apply kidney function to water balance."
   },
   {
     id: "bio-excretion-005",
@@ -310,7 +76,7 @@ export const questionCatalogue = [
     topic: "Excretion",
     difficulty: 5,
     type: "multiple-choice",
-    question: "A student compares two people. Person A drinks little water and produces a small volume of concentrated urine. Person B drinks plenty of water and produces a larger volume of dilute urine. Which conclusion is best?",
+    question: "Person A drinks little water and produces a small volume of concentrated urine. Person B drinks plenty of water and produces a larger volume of dilute urine. Which conclusion is best?",
     options: [
       "Person A's kidneys have stopped working",
       "Person B is unable to excrete waste",
@@ -320,7 +86,8 @@ export const questionCatalogue = [
     answerIndex: 2,
     explanation: "The kidneys regulate water balance by changing how much water is reabsorbed.",
     sourceType: "sample",
-    verified: false
+    verified: false,
+    syllabusObjective: "Interpret observations about kidney water regulation."
   },
   {
     id: "bio-excretion-006",
@@ -338,7 +105,8 @@ export const questionCatalogue = [
     answerIndex: 1,
     explanation: "A filtered substance that is not reabsorbed remains in the tubular fluid and can be excreted.",
     sourceType: "sample",
-    verified: false
+    verified: false,
+    syllabusObjective: "Analyse the effect of impaired tubular reabsorption."
   },
   {
     id: "bio-excretion-007",
@@ -356,7 +124,51 @@ export const questionCatalogue = [
     answerIndex: 2,
     explanation: "Poor water reabsorption leads to excessive water loss in urine, which can cause dehydration.",
     sourceType: "sample",
-    verified: false
+    verified: false,
+    syllabusObjective: "Predict the consequences of impaired water reabsorption."
+  },
+
+  {
+    id: "physics-electricity-001",
+    subject: "Physics",
+    topic: "Electricity",
+    difficulty: 1,
+    type: "multiple-choice",
+    question: "What is the SI unit of electric current?",
+    options: ["Volt", "Ohm", "Ampere", "Watt"],
+    answerIndex: 2,
+    explanation: "Electric current is measured in amperes (A).",
+    sourceType: "sample",
+    verified: false,
+    syllabusObjective: "Identify electrical quantities and their SI units."
+  },
+  {
+    id: "physics-electricity-002",
+    subject: "Physics",
+    topic: "Electricity",
+    difficulty: 2,
+    type: "multiple-choice",
+    question: "A current of 3 A flows through a 4 Ω resistor. What is the potential difference?",
+    options: ["0.75 V", "7 V", "12 V", "16 V"],
+    answerIndex: 2,
+    explanation: "Ohm's law gives V = IR = 3 × 4 = 12 V.",
+    sourceType: "sample",
+    verified: false,
+    syllabusObjective: "Apply Ohm's law."
+  },
+  {
+    id: "physics-electricity-003",
+    subject: "Physics",
+    topic: "Electricity",
+    difficulty: 3,
+    type: "multiple-choice",
+    question: "A 6 Ω resistor is connected across a 12 V supply. How much energy is transferred in 10 seconds?",
+    options: ["20 J", "120 J", "240 J", "720 J"],
+    answerIndex: 2,
+    explanation: "P = V²/R = 24 W. Energy E = Pt = 24 × 10 = 240 J.",
+    sourceType: "sample",
+    verified: false,
+    syllabusObjective: "Calculate electrical energy using power and time."
   },
   {
     id: "physics-electricity-004",
@@ -369,7 +181,8 @@ export const questionCatalogue = [
     answerIndex: 0,
     explanation: "Using Ohm's law, R = V/I = 12/2 = 6 Ω.",
     sourceType: "sample",
-    verified: false
+    verified: false,
+    syllabusObjective: "Rearrange Ohm's law to find resistance."
   },
   {
     id: "physics-electricity-005",
@@ -380,9 +193,10 @@ export const questionCatalogue = [
     question: "Two resistors of 4 Ω and 8 Ω are connected in series to a 24 V supply. What is the current in the circuit?",
     options: ["0.5 A", "2 A", "3 A", "6 A"],
     answerIndex: 1,
-    explanation: "The total resistance is 4 + 8 = 12 Ω. Therefore, I = V/R = 24/12 = 2 A.",
+    explanation: "Total resistance = 4 + 8 = 12 Ω. Current = 24/12 = 2 A.",
     sourceType: "sample",
-    verified: false
+    verified: false,
+    syllabusObjective: "Solve series-resistance circuit problems."
   },
   {
     id: "physics-electricity-006",
@@ -395,7 +209,8 @@ export const questionCatalogue = [
     answerIndex: 2,
     explanation: "The branch currents are 12/6 = 2 A and 12/3 = 4 A. Total current = 6 A.",
     sourceType: "sample",
-    verified: false
+    verified: false,
+    syllabusObjective: "Analyse current in parallel circuits."
   },
   {
     id: "physics-electricity-007",
@@ -406,9 +221,53 @@ export const questionCatalogue = [
     question: "A 4 Ω resistor and an 8 Ω resistor are connected in parallel across a 12 V supply. How much electrical energy is transferred in 60 seconds?",
     options: ["1,080 J", "2,160 J", "3,240 J", "4,320 J"],
     answerIndex: 2,
-    explanation: "The total power is V²/Rₑq. The equivalent resistance is 8/3 Ω, so power = 144 ÷ (8/3) = 54 W. Energy = 54 × 60 = 3,240 J.",
+    explanation: "Equivalent resistance = 8/3 Ω. Power = 144 ÷ (8/3) = 54 W. Energy = 54 × 60 = 3,240 J.",
     sourceType: "sample",
-    verified: false
+    verified: false,
+    syllabusObjective: "Combine parallel resistance, power and energy calculations."
+  },
+
+  {
+    id: "chemistry-atoms-001",
+    subject: "Chemistry",
+    topic: "Atomic Structure",
+    difficulty: 1,
+    type: "multiple-choice",
+    question: "Which subatomic particle has a negative charge?",
+    options: ["Proton", "Neutron", "Electron", "Nucleus"],
+    answerIndex: 2,
+    explanation: "Electrons carry a negative electric charge.",
+    sourceType: "sample",
+    verified: false,
+    syllabusObjective: "Identify the charges of subatomic particles."
+  },
+  {
+    id: "chemistry-atoms-002",
+    subject: "Chemistry",
+    topic: "Atomic Structure",
+    difficulty: 2,
+    type: "multiple-choice",
+    question: "An atom has 11 protons and 12 neutrons. What is its mass number?",
+    options: ["11", "12", "23", "24"],
+    answerIndex: 2,
+    explanation: "Mass number = protons + neutrons = 11 + 12 = 23.",
+    sourceType: "sample",
+    verified: false,
+    syllabusObjective: "Calculate mass number."
+  },
+  {
+    id: "chemistry-atoms-003",
+    subject: "Chemistry",
+    topic: "Atomic Structure",
+    difficulty: 3,
+    type: "multiple-choice",
+    question: "A neutral atom has atomic number 17 and mass number 35. How many neutrons does it contain?",
+    options: ["17", "18", "35", "52"],
+    answerIndex: 1,
+    explanation: "Neutrons = mass number − atomic number = 35 − 17 = 18.",
+    sourceType: "sample",
+    verified: false,
+    syllabusObjective: "Calculate neutron number from atomic and mass numbers."
   },
   {
     id: "chemistry-atoms-004",
@@ -421,7 +280,8 @@ export const questionCatalogue = [
     answerIndex: 0,
     explanation: "There are two more protons than electrons, giving the particle a charge of 2+.",
     sourceType: "sample",
-    verified: false
+    verified: false,
+    syllabusObjective: "Determine ionic charge from proton and electron counts."
   },
   {
     id: "chemistry-atoms-005",
@@ -439,7 +299,8 @@ export const questionCatalogue = [
     answerIndex: 1,
     explanation: "Isotopes have the same number of protons but different numbers of neutrons.",
     sourceType: "sample",
-    verified: false
+    verified: false,
+    syllabusObjective: "Explain isotopy."
   },
   {
     id: "chemistry-atoms-006",
@@ -457,7 +318,8 @@ export const questionCatalogue = [
     answerIndex: 2,
     explanation: "Atomic number 16 identifies sulfur. Two extra electrons give it a 2− charge.",
     sourceType: "sample",
-    verified: false
+    verified: false,
+    syllabusObjective: "Determine the identity and charge of an ion."
   },
   {
     id: "chemistry-atoms-007",
@@ -470,7 +332,51 @@ export const questionCatalogue = [
     answerIndex: 1,
     explanation: "The weighted mean is (35 × 3 + 37 × 1) ÷ 4 = 35.5.",
     sourceType: "sample",
-    verified: false
+    verified: false,
+    syllabusObjective: "Calculate relative atomic mass from isotopic abundances."
+  },
+
+  {
+    id: "math-algebra-001",
+    subject: "Mathematics",
+    topic: "Algebra",
+    difficulty: 1,
+    type: "multiple-choice",
+    question: "Solve: x + 7 = 12.",
+    options: ["3", "4", "5", "19"],
+    answerIndex: 2,
+    explanation: "Subtract 7 from both sides: x = 12 − 7 = 5.",
+    sourceType: "sample",
+    verified: false,
+    syllabusObjective: "Solve simple linear equations."
+  },
+  {
+    id: "math-algebra-002",
+    subject: "Mathematics",
+    topic: "Algebra",
+    difficulty: 2,
+    type: "multiple-choice",
+    question: "Solve: 3x − 4 = 11.",
+    options: ["3", "4", "5", "7"],
+    answerIndex: 2,
+    explanation: "Add 4 to both sides: 3x = 15. Divide by 3 to get x = 5.",
+    sourceType: "sample",
+    verified: false,
+    syllabusObjective: "Solve linear equations involving multiplication and subtraction."
+  },
+  {
+    id: "math-algebra-003",
+    subject: "Mathematics",
+    topic: "Algebra",
+    difficulty: 3,
+    type: "multiple-choice",
+    question: "If x + y = 10 and x − y = 4, what is the value of x?",
+    options: ["3", "5", "7", "14"],
+    answerIndex: 2,
+    explanation: "Adding the equations gives 2x = 14, so x = 7.",
+    sourceType: "sample",
+    verified: false,
+    syllabusObjective: "Solve simultaneous linear equations."
   },
   {
     id: "math-algebra-004",
@@ -483,7 +389,8 @@ export const questionCatalogue = [
     answerIndex: 1,
     explanation: "Three consecutive integers centred on n sum to 3n. Thus 3n = 72 and n = 24.",
     sourceType: "sample",
-    verified: false
+    verified: false,
+    syllabusObjective: "Form and solve equations from word problems."
   },
   {
     id: "math-algebra-005",
@@ -494,9 +401,10 @@ export const questionCatalogue = [
     question: "The length of a rectangle is 3 cm more than its width. Its perimeter is 30 cm. What is its area?",
     options: ["36 cm²", "45 cm²", "54 cm²", "60 cm²"],
     answerIndex: 2,
-    explanation: "If the width is w, the length is w + 3. Then 2w + 2(w + 3) = 30, so w = 6 and length = 9. Area = 54 cm².",
+    explanation: "If width = w, length = w + 3. Then 2w + 2(w + 3) = 30, so w = 6 and length = 9. Area = 54 cm².",
     sourceType: "sample",
-    verified: false
+    verified: false,
+    syllabusObjective: "Translate geometric word problems into algebraic equations."
   },
   {
     id: "math-algebra-006",
@@ -507,9 +415,10 @@ export const questionCatalogue = [
     question: "The equation x² − 5x + k = 0 has equal roots. What is the value of k?",
     options: ["5", "6", "25/4", "10"],
     answerIndex: 2,
-    explanation: "Equal roots require a zero discriminant: b² − 4ac = 0. Therefore, 25 − 4k = 0 and k = 25/4.",
+    explanation: "Equal roots require a zero discriminant: 25 − 4k = 0, so k = 25/4.",
     sourceType: "sample",
-    verified: false
+    verified: false,
+    syllabusObjective: "Apply the discriminant of a quadratic equation."
   },
   {
     id: "math-algebra-007",
@@ -522,23 +431,65 @@ export const questionCatalogue = [
     answerIndex: 1,
     explanation: "Squaring gives x² + 2 + 1/x² = 9. Therefore, x² + 1/x² = 7.",
     sourceType: "sample",
-    verified: false
+    verified: false,
+    syllabusObjective: "Apply algebraic identities to simplify expressions."
   }
-
 ];
 
 /*
- * Search by subject, topic, keywords, and difficulty.
- * An empty subject or topic means no restriction for that field.
+ * Basic catalogue validation.
+ * Run validateQuestionCatalogue() during development.
  */
+export function validateQuestionCatalogue() {
+  const errors = [];
+  const seenIds = new Set();
 
+  questionCatalogue.forEach((item, index) => {
+    const label = `Question ${index + 1} (${item.id || "missing ID"})`;
+
+    if (!item.id || seenIds.has(item.id)) {
+      errors.push(`${label}: missing or duplicate ID.`);
+    }
+    seenIds.add(item.id);
+
+    if (!item.subject || !item.topic || !item.question) {
+      errors.push(`${label}: subject, topic and question are required.`);
+    }
+
+    if (!Number.isInteger(item.difficulty) ||
+        item.difficulty < 1 || item.difficulty > 7) {
+      errors.push(`${label}: difficulty must be an integer from 1 to 7.`);
+    }
+
+    if (item.type === "multiple-choice") {
+      if (!Array.isArray(item.options) || item.options.length < 2) {
+        errors.push(`${label}: multiple-choice questions need at least two options.`);
+      } else if (!Number.isInteger(item.answerIndex) ||
+                 item.answerIndex < 0 ||
+                 item.answerIndex >= item.options.length) {
+        errors.push(`${label}: answerIndex does not match the options.`);
+      }
+    }
+  });
+
+  return {
+    valid: errors.length === 0,
+    total: questionCatalogue.length,
+    errors
+  };
+}
+
+/*
+ * Search by subject, topic, keywords and difficulty.
+ * An empty subject or topic means no restriction.
+ */
 export function searchQuestions({
   subject = "",
   topic = "",
   query = "",
   difficulty = null
 } = {}) {
-  const normalize = value => value.trim().toLowerCase();
+  const normalize = value => String(value ?? "").trim().toLowerCase();
 
   const wantedSubject = normalize(subject);
   const wantedTopic = normalize(topic);
@@ -555,7 +506,8 @@ export function searchQuestions({
 
     const text = normalize(
       `${item.subject} ${item.topic} ${item.question} ` +
-      `${item.options.join(" ")} ${item.explanation}`
+      `${(item.options || []).join(" ")} ${item.explanation || ""} ` +
+      `${item.syllabusObjective || ""}`
     );
 
     const queryMatches =
