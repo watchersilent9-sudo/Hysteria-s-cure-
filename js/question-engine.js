@@ -33,10 +33,8 @@ let incorrectQuestions = [];
 
 function createElement(tag, className, text = "") {
   const element = document.createElement(tag);
-
   if (className) element.className = className;
   if (text) element.textContent = text;
-
   return element;
 }
 
@@ -47,40 +45,27 @@ function showMessage(message) {
 function updateCatalogueStatus() {
   if (!catalogueStatus) return;
 
-  try {
-    const result = validateQuestionCatalogue();
+  const result = validateQuestionCatalogue();
 
+  if (result.valid) {
     catalogueStatus.textContent =
-      typeof result === "string"
-        ? result
-        : "Question catalogue checked.";
-  } catch (error) {
+      `Catalogue valid: ${result.totalQuestions} questions, ` +
+      `${result.uniqueIds} unique IDs.`;
+  } else {
     catalogueStatus.textContent =
-      "Catalogue check: " +
-      (error.message || "Please check the question catalogue.");
+      `Catalogue has ${result.errors.length} issue(s): ` +
+      result.errors.slice(0, 3).join(" ");
   }
-}
-
-function getSelectedDifficulty() {
-  const selected = starSelector?.querySelector(
-    '[aria-pressed="true"]'
-  );
-
-  return selected
-    ? Number(selected.dataset.level)
-    : selectedDifficulty;
 }
 
 function selectDifficulty(level) {
   selectedDifficulty = Number(level);
 
-  if (!starSelector) return;
-
-  starSelector.querySelectorAll("[data-level]").forEach(button => {
-    const isSelected =
-      Number(button.dataset.level) === selectedDifficulty;
-
-    button.setAttribute("aria-pressed", String(isSelected));
+  starSelector?.querySelectorAll("[data-level]").forEach(button => {
+    button.setAttribute(
+      "aria-pressed",
+      String(Number(button.dataset.level) === selectedDifficulty)
+    );
   });
 }
 
@@ -99,23 +84,23 @@ materialsInput?.addEventListener("change", () => {
 
   const files = Array.from(materialsInput.files || []);
 
-  if (files.length === 0) {
+  if (!files.length) {
     fileList.textContent = "No files selected.";
     return;
   }
 
   files.forEach(file => {
-    const item = createElement(
-      "p",
-      "",
-      `${file.name} — ${(file.size / 1024).toFixed(1)} KB`
+    fileList.appendChild(
+      createElement(
+        "p",
+        "",
+        `${file.name} — ${(file.size / 1024).toFixed(1)} KB`
+      )
     );
-
-    fileList.appendChild(item);
   });
 
   showMessage(
-    "Files listed. Upload processing and question extraction are not enabled yet."
+    "Files listed only. Document extraction is not available yet."
   );
 });
 
@@ -127,47 +112,8 @@ function resetSession() {
   incorrectQuestions = [];
 }
 
-function renderMistakeReview(container) {
-  if (incorrectQuestions.length === 0) {
-    container.appendChild(
-      createElement("p", "", "Excellent work! No incorrect answers to review.")
-    );
-    return;
-  }
-
-  container.appendChild(
-    createElement("h3", "", "Review your incorrect answers")
-  );
-
-  incorrectQuestions.forEach((question, index) => {
-    const card = createElement("section", "panel");
-    const heading = createElement(
-      "h4",
-      "",
-      `${index + 1}. ${question.question}`
-    );
-
-    const correctAnswer = createElement(
-      "p",
-      "",
-      `Correct answer: ${question.options[question.answer]}`
-    );
-
-    card.append(heading, correctAnswer);
-
-    if (question.explanation) {
-      card.appendChild(
-        createElement("p", "", `Explanation: ${question.explanation}`)
-      );
-    }
-
-    container.appendChild(card);
-  });
-}
-
 function finishSession() {
   const results = document.getElementById("question-results");
-
   if (!results) return;
 
   const accuracy = questionsAnswered
@@ -175,32 +121,13 @@ function finishSession() {
     : 0;
 
   results.replaceChildren();
-  results.appendChild(
-    createElement("h2", "", "Practice session complete")
-  );
-
-  results.appendChild(
-    createElement("p", "", `Questions answered: ${questionsAnswered}`)
-  );
-
-  results.appendChild(
-    createElement(
-      "p",
-      "",
-      `Correct answers: ${correctAnswers} / ${questionsAnswered}`
-    )
-  );
-
-  results.appendChild(
-    createElement("p", "", `Accuracy: ${accuracy}%`)
-  );
-
-  results.appendChild(
-    createElement("p", "", `Points earned this session: ${sessionPoints}`)
-  );
+  results.appendChild(createElement("h2", "", "Practice session complete"));
+  results.appendChild(createElement("p", "", `Questions answered: ${questionsAnswered}`));
+  results.appendChild(createElement("p", "", `Correct answers: ${correctAnswers}`));
+  results.appendChild(createElement("p", "", `Accuracy: ${accuracy}%`));
+  results.appendChild(createElement("p", "", `Session points: ${sessionPoints}`));
 
   let message = "Keep practising. Every attempt helps you improve.";
-
   if (accuracy === 100 && questionsAnswered > 0) {
     message = "Perfect session! Excellent work.";
   } else if (accuracy >= 80) {
@@ -210,14 +137,44 @@ function finishSession() {
   }
 
   results.appendChild(createElement("p", "", message));
-  renderMistakeReview(results);
+
+  if (!incorrectQuestions.length) {
+    results.appendChild(
+      createElement("p", "", "Excellent! No incorrect answers to review.")
+    );
+  } else {
+    results.appendChild(
+      createElement("h3", "", "Review your incorrect answers")
+    );
+
+    incorrectQuestions.forEach((question, index) => {
+      const card = createElement("section", "panel");
+      card.appendChild(
+        createElement("h4", "", `${index + 1}. ${question.question}`)
+      );
+      card.appendChild(
+        createElement(
+          "p",
+          "",
+          `Correct answer: ${question.options[question.answerIndex]}`
+        )
+      );
+
+      if (question.explanation) {
+        card.appendChild(
+          createElement("p", "", `Explanation: ${question.explanation}`)
+        );
+      }
+
+      results.appendChild(card);
+    });
+  }
 
   showMessage("Session finished. Your results are ready to review.");
 }
 
 function renderQuestions(questions) {
-  const previousResults = document.getElementById("question-results");
-  previousResults?.remove();
+  document.getElementById("question-results")?.remove();
 
   const results = createElement("div", "");
   results.id = "question-results";
@@ -230,13 +187,9 @@ function renderQuestions(questions) {
 
   finishButton.type = "button";
   finishButton.disabled = true;
-
   finishButton.addEventListener("click", finishSession);
 
-  results.appendChild(
-    createElement("h2", "", "Your practice questions")
-  );
-
+  results.appendChild(createElement("h2", "", "Your practice questions"));
   results.appendChild(
     createElement(
       "p",
@@ -247,22 +200,12 @@ function renderQuestions(questions) {
 
   questions.forEach((question, index) => {
     const card = createElement("section", "panel");
-    const heading = createElement(
-      "h3",
-      "",
-      `${index + 1}. ${question.question}`
+    card.appendChild(
+      createElement("h3", "", `${index + 1}. ${question.question}`)
     );
-
-    const difficulty = createElement(
-      "p",
-      "",
-      `Difficulty: ${question.difficulty} star(s)`
+    card.appendChild(
+      createElement("p", "", `Difficulty: ${question.difficulty} star(s)`)
     );
-
-    card.append(heading, difficulty);
-
-    const feedback = createElement("p", "question-feedback");
-    feedback.setAttribute("aria-live", "polite");
 
     const optionsContainer = createElement("div", "question-options");
     const optionInputs = [];
@@ -280,13 +223,11 @@ function renderQuestions(questions) {
       optionInputs.push(input);
     });
 
-    const checkButton = createElement(
-      "button",
-      "check-answer",
-      "Check answer"
-    );
-
+    const checkButton = createElement("button", "check-answer", "Check answer");
     checkButton.type = "button";
+
+    const feedback = createElement("p", "question-feedback");
+    feedback.setAttribute("aria-live", "polite");
 
     checkButton.addEventListener("click", () => {
       if (answeredQuestions.has(question.id)) return;
@@ -299,37 +240,30 @@ function renderQuestions(questions) {
       }
 
       const chosenAnswer = Number(chosenInput.value);
-      const isCorrect = chosenAnswer === question.answer;
+      const isCorrect = chosenAnswer === question.answerIndex;
 
-      questionsAnswered += 1;
+      questionsAnswered++;
       answeredQuestions.add(question.id);
 
       optionInputs.forEach(input => {
         input.disabled = true;
       });
-
       checkButton.disabled = true;
 
       if (isCorrect) {
-        correctAnswers += 1;
-        sessionPoints += rewardPoints[question.difficulty] || 0;
-
-        feedback.textContent =
-          `Correct! You earned ${rewardPoints[question.difficulty] || 0} points.`;
-
-        if (question.explanation) {
-          feedback.textContent += ` ${question.explanation}`;
-        }
+        correctAnswers++;
+        const earned = rewardPoints[question.difficulty] || 0;
+        sessionPoints += earned;
+        feedback.textContent = `Correct! You earned ${earned} points.`;
       } else {
         sessionPoints = Math.max(0, sessionPoints - 2);
         incorrectQuestions.push(question);
-
         feedback.textContent =
-          `Not quite. The correct answer is: ${question.options[question.answer]}.`;
+          `Not quite. The correct answer is: ${question.options[question.answerIndex]}.`;
+      }
 
-        if (question.explanation) {
-          feedback.textContent += ` ${question.explanation}`;
-        }
+      if (question.explanation) {
+        feedback.textContent += ` ${question.explanation}`;
       }
 
       if (questionsAnswered === currentQuestions.length) {
@@ -352,41 +286,30 @@ function renderQuestions(questions) {
 
 findButton?.addEventListener("click", () => {
   try {
-    const subject = subjectSearch?.value.trim() || "";
-    const topic = topicSearch?.value.trim() || "";
-    const count = Number(questionCountSelect?.value || 10);
-    const strategy = practiceStrategy?.value || "random";
-    const difficulty = getSelectedDifficulty();
-
     resetSession();
 
     currentQuestions = selectPracticeSet({
-      subject,
-      topic,
-      minDifficulty: difficulty,
-      maxDifficulty: difficulty,
-      count,
-      strategy
+      subject: subjectSearch?.value.trim() || "",
+      topic: topicSearch?.value.trim() || "",
+      minDifficulty: selectedDifficulty,
+      maxDifficulty: selectedDifficulty,
+      count: Number(questionCountSelect?.value || 10),
+      strategy: practiceStrategy?.value || "random"
     });
 
-    if (currentQuestions.length === 0) {
+    if (!currentQuestions.length) {
+      document.getElementById("question-results")?.remove();
       showMessage(
         "No questions match these filters yet. Try another subject, topic, or difficulty."
       );
-
-      document.getElementById("question-results")?.remove();
       return;
     }
 
     renderQuestions(currentQuestions);
 
-    showMessage(
-      `${currentQuestions.length} question(s) loaded at difficulty ${difficulty}.`
-    );
+    showMessage(`${currentQuestions.length} question(s) loaded.`);
   } catch (error) {
-    showMessage(
-      error.message || "Something went wrong while loading questions."
-    );
+    showMessage(error.message || "Could not load questions.");
   }
 });
 
