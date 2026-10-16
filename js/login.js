@@ -23,7 +23,7 @@ await signInWithEmailAndPassword(auth, email, password);
 
 message.textContent = "Login successful! Redirecting...";
 
-window.location.href = "index.html";
+window.location.href = "student-dashboard.html";
 
 } catch (error) {
 const messages = {
