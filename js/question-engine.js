@@ -1,5 +1,5 @@
-
-import { selectPracticeSet } from "./question-selector.js";
+ 
+import { selectPracticeSetAsync } from "./question-selector.js";
 import { validateQuestionCatalogue } from "./question-catalogue.js";
 
 const subjectSearch = document.getElementById("subject-search");
@@ -30,11 +30,14 @@ let correctAnswers = 0;
 let currentQuestions = [];
 let answeredQuestions = new Set();
 let incorrectQuestions = [];
+let loadingQuestions = false;
 
 function createElement(tag, className, text = "") {
   const element = document.createElement(tag);
+
   if (className) element.className = className;
-  if (text) element.textContent = text;
+  if (text !== "") element.textContent = text;
+
   return element;
 }
 
@@ -49,11 +52,11 @@ function updateCatalogueStatus() {
 
   if (result.valid) {
     catalogueStatus.textContent =
-      `Catalogue valid: ${result.totalQuestions} questions, ` +
+      `Local catalogue valid: ${result.totalQuestions} questions, ` +
       `${result.uniqueIds} unique IDs.`;
   } else {
     catalogueStatus.textContent =
-      `Catalogue has ${result.errors.length} issue(s): ` +
+      `Local catalogue has ${result.errors.length} issue(s): ` +
       result.errors.slice(0, 3).join(" ");
   }
 }
@@ -121,13 +124,25 @@ function finishSession() {
     : 0;
 
   results.replaceChildren();
-  results.appendChild(createElement("h2", "", "Practice session complete"));
-  results.appendChild(createElement("p", "", `Questions answered: ${questionsAnswered}`));
-  results.appendChild(createElement("p", "", `Correct answers: ${correctAnswers}`));
-  results.appendChild(createElement("p", "", `Accuracy: ${accuracy}%`));
-  results.appendChild(createElement("p", "", `Session points: ${sessionPoints}`));
+
+  results.appendChild(
+    createElement("h2", "", "Practice session complete")
+  );
+  results.appendChild(
+    createElement("p", "", `Questions answered: ${questionsAnswered}`)
+  );
+  results.appendChild(
+    createElement("p", "", `Correct answers: ${correctAnswers}`)
+  );
+  results.appendChild(
+    createElement("p", "", `Accuracy: ${accuracy}%`)
+  );
+  results.appendChild(
+    createElement("p", "", `Session points: ${sessionPoints}`)
+  );
 
   let message = "Keep practising. Every attempt helps you improve.";
+
   if (accuracy === 100 && questionsAnswered > 0) {
     message = "Perfect session! Excellent work.";
   } else if (accuracy >= 80) {
@@ -140,7 +155,11 @@ function finishSession() {
 
   if (!incorrectQuestions.length) {
     results.appendChild(
-      createElement("p", "", "Excellent! No incorrect answers to review.")
+      createElement(
+        "p",
+        "",
+        "Excellent! No incorrect answers to review."
+      )
     );
   } else {
     results.appendChild(
@@ -149,9 +168,15 @@ function finishSession() {
 
     incorrectQuestions.forEach((question, index) => {
       const card = createElement("section", "panel");
+
       card.appendChild(
-        createElement("h4", "", `${index + 1}. ${question.question}`)
+        createElement(
+          "h4",
+          "",
+          `${index + 1}. ${question.question}`
+        )
       );
+
       card.appendChild(
         createElement(
           "p",
@@ -162,7 +187,11 @@ function finishSession() {
 
       if (question.explanation) {
         card.appendChild(
-          createElement("p", "", `Explanation: ${question.explanation}`)
+          createElement(
+            "p",
+            "",
+            `Explanation: ${question.explanation}`
+          )
         );
       }
 
@@ -189,7 +218,10 @@ function renderQuestions(questions) {
   finishButton.disabled = true;
   finishButton.addEventListener("click", finishSession);
 
-  results.appendChild(createElement("h2", "", "Your practice questions"));
+  results.appendChild(
+    createElement("h2", "", "Your practice questions")
+  );
+
   results.appendChild(
     createElement(
       "p",
@@ -200,11 +232,29 @@ function renderQuestions(questions) {
 
   questions.forEach((question, index) => {
     const card = createElement("section", "panel");
+
     card.appendChild(
-      createElement("h3", "", `${index + 1}. ${question.question}`)
+      createElement(
+        "h3",
+        "",
+        `${index + 1}. ${question.question}`
+      )
     );
+
     card.appendChild(
-      createElement("p", "", `Difficulty: ${question.difficulty} star(s)`)
+      createElement(
+        "p",
+        "",
+        `Subject: ${question.subject} | Topic: ${question.topic}`
+      )
+    );
+
+    card.appendChild(
+      createElement(
+        "p",
+        "",
+        `Difficulty: ${question.difficulty} star(s)`
+      )
     );
 
     const optionsContainer = createElement("div", "question-options");
@@ -223,7 +273,12 @@ function renderQuestions(questions) {
       optionInputs.push(input);
     });
 
-    const checkButton = createElement("button", "check-answer", "Check answer");
+    const checkButton = createElement(
+      "button",
+      "check-answer",
+      "Check answer"
+    );
+
     checkButton.type = "button";
 
     const feedback = createElement("p", "question-feedback");
@@ -248,18 +303,23 @@ function renderQuestions(questions) {
       optionInputs.forEach(input => {
         input.disabled = true;
       });
+
       checkButton.disabled = true;
 
       if (isCorrect) {
         correctAnswers++;
+
         const earned = rewardPoints[question.difficulty] || 0;
         sessionPoints += earned;
+
         feedback.textContent = `Correct! You earned ${earned} points.`;
       } else {
         sessionPoints = Math.max(0, sessionPoints - 2);
         incorrectQuestions.push(question);
+
         feedback.textContent =
-          `Not quite. The correct answer is: ${question.options[question.answerIndex]}.`;
+          `Not quite. The correct answer is: ` +
+          `${question.options[question.answerIndex]}.`;
       }
 
       if (question.explanation) {
@@ -268,7 +328,10 @@ function renderQuestions(questions) {
 
       if (questionsAnswered === currentQuestions.length) {
         finishButton.disabled = false;
-        showMessage("All questions answered. You can finish your session.");
+
+        showMessage(
+          "All questions answered. You can finish your session."
+        );
       } else {
         showMessage(
           `${questionsAnswered} of ${currentQuestions.length} questions answered.`
@@ -280,15 +343,25 @@ function renderQuestions(questions) {
     results.appendChild(card);
   });
 
+  finishButton.disabled = questions.length === 0;
+
   results.appendChild(finishButton);
   findButton?.insertAdjacentElement("afterend", results);
 }
 
-findButton?.addEventListener("click", () => {
+async function findQuestions() {
+  if (loadingQuestions) return;
+
+  loadingQuestions = true;
+
+  if (findButton) findButton.disabled = true;
+
+  showMessage("Loading questions from the catalogue and Firebase...");
+
   try {
     resetSession();
 
-    currentQuestions = selectPracticeSet({
+    currentQuestions = await selectPracticeSetAsync({
       subject: subjectSearch?.value.trim() || "",
       topic: topicSearch?.value.trim() || "",
       minDifficulty: selectedDifficulty,
@@ -299,9 +372,11 @@ findButton?.addEventListener("click", () => {
 
     if (!currentQuestions.length) {
       document.getElementById("question-results")?.remove();
+
       showMessage(
         "No questions match these filters yet. Try another subject, topic, or difficulty."
       );
+
       return;
     }
 
@@ -309,8 +384,19 @@ findButton?.addEventListener("click", () => {
 
     showMessage(`${currentQuestions.length} question(s) loaded.`);
   } catch (error) {
-    showMessage(error.message || "Could not load questions.");
+    console.error("Question loading failed:", error);
+
+    showMessage(
+      error.message || "Could not load questions. Please try again."
+    );
+  } finally {
+    loadingQuestions = false;
+
+    if (findButton) findButton.disabled = false;
   }
-});
+}
+
+findButton?.addEventListener("click", findQuestions);
 
 updateCatalogueStatus();
+    
