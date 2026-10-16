@@ -22,6 +22,16 @@ const descriptions = {
   7: "Mastery — tackle complex challenges."
 };
 
+const rewardTiers = {
+  1: { name: "Easy", points: 2 },
+  2: { name: "Medium", points: 5 },
+  3: { name: "Hard", points: 10 },
+  4: { name: "Very Hard", points: 15 },
+  5: { name: "Expert", points: 20 },
+  6: { name: "Expert", points: 20 },
+  7: { name: "Expert", points: 20 }
+};
+
 function updateDifficulty(level) {
   selectedLevel = level;
 
@@ -44,7 +54,9 @@ materialsInput.addEventListener("change", () => {
   const files = Array.from(materialsInput.files);
 
   fileList.textContent = files.length
-    ? files.map(file => `${file.name} (${formatSize(file.size)}`).join("\n")
+    ? files.map(file =>
+        `${file.name} (${formatSize(file.size)})`
+      ).join("\n")
     : "No files selected.";
 });
 
@@ -132,39 +144,26 @@ function renderResults(questions) {
 
       answered = true;
 
-      
-const correct = selectedIndex === question.answerIndex;
+      const correct = selectedIndex === question.answerIndex;
+      const reward = rewardTiers[question.difficulty] || rewardTiers[1];
 
-const rewardTiers = {
-  1: { name: "Easy", points: 2 },
-  2: { name: "Medium", points: 5 },
-  3: { name: "Hard", points: 10 },
-  4: { name: "Very Hard", points: 15 },
-  5: { name: "Expert", points: 20 },
-  6: { name: "Expert", points: 20 },
-  7: { name: "Expert", points: 20 }
-};
+      if (correct) {
+        score += reward.points;
 
-const reward = rewardTiers[question.difficulty] ||
-  rewardTiers[1];
+        feedback.textContent =
+          `Correct! +${reward.points} points (${reward.name}). ` +
+          question.explanation;
+      } else {
+        const previousScore = score;
+        score = Math.max(0, score - 2);
 
-if (correct) {
-  score += reward.points;
+        const pointsLost = previousScore - score;
 
-  feedback.textContent =
-    `Correct! +${reward.points} points (${reward.name}). ` +
-    question.explanation;
-} else {
-  const previousScore = score;
-  score = Math.max(0, score - 2);
-
-  const pointsLost = previousScore - score;
-
-  feedback.textContent =
-    `Not quite. ${pointsLost > 0 ? `-${pointsLost}` : "0"} points. ` +
-    `Correct answer: ${question.options[question.answerIndex]}. ` +
-    question.explanation;
-  }
+        feedback.textContent =
+          `Not quite. ${pointsLost > 0 ? `-${pointsLost}` : "0"} points. ` +
+          `Correct answer: ${question.options[question.answerIndex]}. ` +
+          question.explanation;
+      }
 
       scoreDisplay.textContent = `Session points: ${score}`;
 
@@ -206,4 +205,3 @@ findButton.addEventListener("click", () => {
 });
 
 updateDifficulty(1);
-                          
