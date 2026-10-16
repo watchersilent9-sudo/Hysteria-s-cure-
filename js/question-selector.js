@@ -2,11 +2,17 @@
 /*
  * Hysteria's Cure — Question Selection Engine
  *
- * Builds balanced practice sets from the question catalogue.
- * Does not modify the original questions.
+ * Combines the original catalogue with questions saved in Firebase.
+ * Preserves the original synchronous selector for existing callers.
  */
 
 import { questionCatalogue } from "./question-catalogue.js";
+import { database } from "./firebase-client.js";
+
+import {
+  get,
+  ref
+} from "https://www.gstatic.com/firebasejs/13.0.0/firebase-database.js";
 
 function shuffle(items) {
   const result = [...items];
@@ -46,14 +52,14 @@ function matchesFilters(question, filters = {}) {
 
   if (
     filters.minDifficulty != null &&
-    question.difficulty < Number(filters.minDifficulty)
+    Number(question.difficulty) < Number(filters.minDifficulty)
   ) {
     return false;
   }
 
   if (
     filters.maxDifficulty != null &&
-    question.difficulty > Number(filters.maxDifficulty)
+    Number(question.difficulty) > Number(filters.maxDifficulty)
   ) {
     return false;
   }
@@ -61,20 +67,101 @@ function matchesFilters(question, filters = {}) {
   return true;
 }
 
-/*
- * Select a practice set.
- *
- * Options:
- * subject       — e.g. "Biology"
- * topic         — e.g. "Excretion"
- * minDifficulty — lowest permitted difficulty
- * maxDifficulty — highest permitted difficulty
- * count         — maximum number of questions
- * types         — allowed question formats
- * excludeIds    — question IDs to avoid
- * strategy      — "random", "progressive", or "challenge"
- */
-export function selectPracticeSet({
+function validateOptions({
+  minDifficulty,
+  maxDifficulty,
+  count,
+  strategy
+}) {
+  if (
+    !Number.isFinite(Number(minDifficulty)) ||
+    minDifficulty < 1 ||
+    minDifficulty > 7
+  ) {
+    throw new Error("minDifficulty must be between 1 and 7.");
+  }
+
+  if (
+    !Number.isFinite(Number(maxDifficulty)) ||
+    maxDifficulty < 1 ||
+    maxDifficulty > 7
+  ) {
+    throw new Error("maxDifficulty must be between 1 and 7.");
+  }
+
+  if (minDifficulty > maxDifficulty) {
+    throw new Error("Minimum difficulty cannot exceed maximum difficulty.");
+  }
+
+  if (!Number.isFinite(Number(count)) || Number(count) < 0) {
+    throw new Error("Question count must be zero or greater.");
+  }
+
+  if (!["random", "progressive", "challenge"].includes(strategy)) {
+    throw new Error(
+      'strategy must be "random", "progressive", or "challenge".'
+    );
+  }
+}
+
+function prepareQuestion(question, id = question.id) {
+  return {
+    ...question,
+    id: String(id),
+    subject: String(question.subject ?? ""),
+    topic: String(question.topic ?? ""),
+    question: String(question.question ?? ""),
+    difficulty: Number(question.difficulty ?? 1),
+    type: question.type || "multiple-choice",
+    options: Array.isArray(question.options) ? question.options : [],
+    answerIndex: Number(question.answerIndex ?? 0),
+    explanation: String(question.explanation ?? "")
+  };
+}
+
+function isUsableQuestion(question) {
+  return (
+    question.id &&
+    question.subject.trim() &&
+    question.topic.trim() &&
+    question.question.trim() &&
+    Number.isInteger(question.difficulty) &&
+    question.difficulty >= 1 &&
+    question.difficulty <= 7 &&
+    question.options.length >= 2 &&
+    question.options.every(option =>
+      typeof option === "string" && option.trim().length > 0
+    ) &&
+    Number.isInteger(question.answerIndex) &&
+    question.answerIndex >= 0 &&
+    question.answerIndex < question.options.length
+  );
+}
+
+function combineQuestions(localQuestions, remoteQuestions) {
+  const combined = new Map();
+
+  for (const original of localQuestions) {
+    const question = prepareQuestion(original);
+
+    if (isUsableQuestion(question)) {
+      combined.set(question.id, question);
+    }
+  }
+
+  for (const original of remoteQuestions) {
+    const question = prepareQuestion(original);
+
+    if (isUsableQuestion(question)) {
+      // Firebase records replace matching IDs if an ID is duplicated.
+      combined.set(question.id, question);
+    }
+  }
+
+  return [...combined.values()];
+}
+
+function selectFromQuestions(questions, {
   subject = "",
   topic = "",
   minDifficulty = 1,
@@ -84,33 +171,28 @@ export function selectPracticeSet({
   excludeIds = [],
   strategy = "random"
 } = {}) {
+  validateOptions({
+    minDifficulty,
+    maxDifficulty,
+    count,
+    strategy
+  });
+
   const safeCount = Math.max(
     0,
-    Math.min(100, Math.floor(Number(count) || 0))
+    Math.min(100, Math.floor(Number(count)))
   );
 
-  if (minDifficulty < 1 || minDifficulty > 7) {
-    throw new Error("minDifficulty must be between 1 and 7.");
-  }
+  const excluded = new Set(excludeIds.map(String));
 
-  if (maxDifficulty < 1 || maxDifficulty > 7) {
-    throw new Error("maxDifficulty must be between 1 and 7.");
-  }
-
-  if (minDifficulty > maxDifficulty) {
-    throw new Error("Minimum difficulty cannot exceed maximum difficulty.");
-  }
-
-  const excluded = new Set(excludeIds);
-
-  const candidates = questionCatalogue.filter(question =>
+  const candidates = questions.filter(question =>
     matchesFilters(question, {
       subject,
       topic,
       types,
       minDifficulty,
       maxDifficulty
-    }) && !excluded.has(question.id)
+    }) && !excluded.has(String(question.id))
   );
 
   let selected = shuffle(candidates);
@@ -119,17 +201,56 @@ export function selectPracticeSet({
     selected.sort((a, b) => a.difficulty - b.difficulty);
   } else if (strategy === "challenge") {
     selected.sort((a, b) => b.difficulty - a.difficulty);
-  } else if (strategy !== "random") {
-    throw new Error(
-      'strategy must be "random", "progressive", or "challenge".'
-    );
   }
 
   return selected.slice(0, safeCount);
 }
 
 /*
- * Summarize the catalogue for development and planning.
+ * Original synchronous selector.
+ * Keeps compatibility with existing code using the local catalogue.
+ */
+export function selectPracticeSet(options = {}) {
+  return selectFromQuestions(questionCatalogue, options);
+}
+
+/*
+ * New asynchronous selector.
+ * Loads the shared Firebase question bank and combines it with the
+ * local catalogue before applying the same filters and strategies.
+ */
+export async function selectPracticeSetAsync(options = {}) {
+  let remoteQuestions = [];
+
+  try {
+    const snapshot = await get(ref(database, "questionBank"));
+
+    if (snapshot.exists()) {
+      const records = snapshot.val();
+
+      remoteQuestions = Object.entries(records).map(([id, question]) => ({
+        ...question,
+        id
+      }));
+    }
+  } catch (error) {
+    console.error("Firebase question bank could not be loaded:", error);
+
+    throw new Error(
+      "Could not load the shared question bank. Check your internet connection and Firebase permissions, then try again."
+    );
+  }
+
+  const combined = combineQuestions(
+    questionCatalogue,
+    remoteQuestions
+  );
+
+  return selectFromQuestions(combined, options);
+}
+
+/*
+ * Summarize the original local catalogue.
  */
 export function getCatalogueStats() {
   const subjects = {};
