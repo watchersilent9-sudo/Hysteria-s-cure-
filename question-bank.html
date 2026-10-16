@@ -1,0 +1,408 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#100d20">
+  <title>Question Bank | Hysteria's Cure</title>
+
+  <style>
+    :root {
+      --bg: #100d20;
+      --panel: #1b1730;
+      --panel2: #241e3d;
+      --accent: #b79aff;
+      --text: #f7f4ff;
+      --muted: #b9b2cc;
+      --border: #393052;
+      --danger: #ff8585;
+      --success: #8ee6b2;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, sans-serif;
+      line-height: 1.6;
+    }
+
+    header {
+      padding: 22px 16px;
+      background: #171229;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .header-inner, main {
+      width: min(1050px, 94%);
+      margin: auto;
+    }
+
+    .brand {
+      color: var(--accent);
+      font-weight: 800;
+      font-size: 1.25rem;
+    }
+
+    header p {
+      color: var(--muted);
+      margin: 4px 0 0;
+    }
+
+    main {
+      padding: 26px 0 50px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 22px;
+    }
+
+    h1, h2, h3 {
+      line-height: 1.3;
+    }
+
+    h1 {
+      font-size: clamp(1.6rem, 5vw, 2.3rem);
+      margin: 0 0 8px;
+    }
+
+    h2 {
+      margin-top: 0;
+    }
+
+    .muted, .hint {
+      color: var(--muted);
+    }
+
+    .hint {
+      font-size: 0.9rem;
+    }
+
+    .status {
+      padding: 12px 14px;
+      background: var(--panel2);
+      border-radius: 10px;
+      margin: 16px 0;
+      overflow-wrap: anywhere;
+    }
+
+    .status.error {
+      color: var(--danger);
+    }
+
+    .status.success {
+      color: var(--success);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .field {
+      margin-bottom: 16px;
+      min-width: 0;
+    }
+
+    .full {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      display: block;
+      font-weight: 650;
+      margin-bottom: 7px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 12px;
+      color: var(--text);
+      background: #110e20;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      font: inherit;
+    }
+
+    textarea {
+      min-height: 105px;
+      resize: vertical;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+    }
+
+    input[type="checkbox"] {
+      width: auto;
+      accent-color: var(--accent);
+    }
+
+    .check-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 12px 0;
+    }
+
+    .check-row label {
+      margin: 0;
+    }
+
+    button, .link-button {
+      border: 0;
+      border-radius: 9px;
+      padding: 11px 15px;
+      background: var(--accent);
+      color: #171026;
+      font: inherit;
+      font-weight: 750;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    button:disabled {
+      opacity: 0.55;
+      cursor: wait;
+    }
+
+    .secondary {
+      background: var(--panel2);
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .danger {
+      background: #54252f;
+      color: #fff;
+      border: 1px solid #88404b;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .question-card {
+      background: #151127;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 12px;
+    }
+
+    .question-card h3 {
+      margin-top: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .tag {
+      display: inline-block;
+      background: var(--panel2);
+      color: var(--accent);
+      border-radius: 6px;
+      padding: 3px 8px;
+      font-size: 0.8rem;
+      margin: 0 5px 8px 0;
+    }
+
+    .option-list {
+      padding-left: 22px;
+      overflow-wrap: anywhere;
+    }
+
+    #app-content, #editor {
+      display: none;
+    }
+
+    @media (max-width: 650px) {
+      .grid {
+        grid-template-columns: 1fr;
+        gap: 0;
+      }
+
+      .panel {
+        padding: 15px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="header-inner">
+      <div class="brand">HYSTERIA'S CURE</div>
+      <p>Failure is the disease. Learning is the cure.</p>
+    </div>
+  </header>
+
+  <main>
+    <section>
+      <h1>Question Bank</h1>
+      <p class="muted">
+        Manage questions, subjects, difficulty, answers and explanations.
+      </p>
+    </section>
+
+    <div id="status" class="status" role="status" aria-live="polite">
+      Checking administrator access...
+    </div>
+
+    <section id="app-content">
+      <div class="panel">
+        <h2>Administrator</h2>
+        <p id="admin-email" class="muted"></p>
+        <div class="actions">
+          <a class="link-button secondary" href="index.html">Home</a>
+          <a class="link-button secondary" href="practice.html">Practice</a>
+          <button id="logout-button" class="secondary" type="button">
+            Sign out
+          </button>
+        </div>
+      </div>
+
+      <section class="panel">
+        <h2 id="form-heading">Add a question</h2>
+        <p class="hint">
+          Fields marked * are required. Only mark a question verified after
+          checking it against a reliable source.
+        </p>
+
+        <form id="question-form">
+          <div class="grid">
+            <div class="field">
+              <label for="subject">Subject *</label>
+              <input id="subject" required maxlength="100"
+                     placeholder="e.g. Biology">
+            </div>
+
+            <div class="field">
+              <label for="topic">Topic *</label>
+              <input id="topic" required maxlength="150"
+                     placeholder="e.g. Excretion">
+            </div>
+
+            <div class="field full">
+              <label for="question">Question *</label>
+              <textarea id="question" required maxlength="5000"
+                        placeholder="Enter the question"></textarea>
+            </div>
+
+            <div class="field">
+              <label for="difficulty">Difficulty *</label>
+              <select id="difficulty" required>
+                <option value="1">1 — Easy</option>
+                <option value="2">2 — Basic</option>
+                <option value="3">3 — Moderate</option>
+                <option value="4">4 — Intermediate</option>
+                <option value="5">5 — Hard</option>
+                <option value="6">6 — Very hard</option>
+                <option value="7">7 — Expert</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="sourceType">Question source *</label>
+              <select id="sourceType" required>
+                <option value="sample">Sample question</option>
+                <option value="original">Original question</option>
+                <option value="past-question">Past question</option>
+                <option value="ai-generated">AI-generated question</option>
+                <option value="teacher-provided">Teacher-provided</option>
+              </select>
+            </div>
+
+            <div class="field full">
+              <label for="sourceDetails">Source details</label>
+              <input id="sourceDetails" maxlength="500"
+                     placeholder="Exam board, year, book, or source URL">
+            </div>
+
+            <div class="field full">
+              <label for="syllabusObjective">Syllabus objective</label>
+              <textarea id="syllabusObjective" maxlength="1500"
+                        placeholder="What knowledge or skill does this test?"></textarea>
+            </div>
+
+            <div class="field full">
+              <label for="option0">Option A *</label>
+              <input id="option0" required maxlength="1000">
+            </div>
+
+            <div class="field full">
+              <label for="option1">Option B *</label>
+              <input id="option1" required maxlength="1000">
+            </div>
+
+            <div class="field full">
+              <label for="option2">Option C *</label>
+              <input id="option2" required maxlength="1000">
+            </div>
+
+            <div class="field full">
+              <label for="option3">Option D *</label>
+              <input id="option3" required maxlength="1000">
+            </div>
+
+            <div class="field">
+              <label for="answerIndex">Correct answer *</label>
+              <select id="answerIndex" required>
+                <option value="0">Option A</option>
+                <option value="1">Option B</option>
+                <option value="2">Option C</option>
+                <option value="3">Option D</option>
+              </select>
+            </div>
+
+            <div class="field full">
+              <label for="explanation">Explanation *</label>
+              <textarea id="explanation" required maxlength="5000"
+                        placeholder="Explain why the answer is correct"></textarea>
+            </div>
+          </div>
+
+          <div class="check-row">
+            <input id="verified" type="checkbox">
+            <label for="verified">I have verified this question and answer</label>
+          </div>
+
+          <div class="actions">
+            <button id="save-button" type="submit">Save question</button>
+            <button id="cancel-edit" class="secondary" type="button"
+                    hidden>Cancel editing</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="panel">
+        <h2>Saved questions</h2>
+
+        <div class="field">
+          <label for="search">Search questions</label>
+          <input id="search" type="search"
+                 placeholder="Search by subject, topic or question">
+        </div>
+
+        <p id="question-count" class="muted">Loading questions...</p>
+        <div id="question-list"></div>
+      </section>
+    </section>
+  </main>
+
+  <script type="module" src="js/question-bank.js"></script>
+</body>
+</html>
