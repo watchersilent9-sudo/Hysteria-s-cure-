@@ -1,5 +1,5 @@
-
 import { selectPracticeSet } from "./question-selector.js";
+import { validateQuestionCatalogue } from "./question-catalogue.js";
 
 const subjectSearch = document.getElementById("subject-search");
 const topicSearch = document.getElementById("topic-search");
@@ -228,3 +228,18 @@ if (!document.getElementById("session-points")) {
 }
 
 updateDifficulty(1);
+
+// Check the question catalogue when the practice page loads.
+const catalogueReport = validateQuestionCatalogue();
+
+if (!catalogueReport.valid) {
+  console.error("Question catalogue validation failed:", catalogueReport.errors);
+  showMessage(
+    `Catalogue check found ${catalogueReport.errors.length} problem(s). Check the browser console.`
+  );
+} else {
+  console.info(
+    `Catalogue check passed: ${catalogueReport.totalQuestions} questions, ` +
+    `${catalogueReport.uniqueIds} unique IDs.`
+  );
+}
