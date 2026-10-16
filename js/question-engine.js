@@ -1,5 +1,5 @@
 
-import { searchQuestions } from "./question-catalogue.js";
+import { selectPracticeSet } from "./question-selector.js";
 
 const subjectSearch = document.getElementById("subject-search");
 const topicSearch = document.getElementById("topic-search");
@@ -8,200 +8,255 @@ const starDescription = document.getElementById("star-description");
 const materialsInput = document.getElementById("materials");
 const fileList = document.getElementById("file-list");
 const findButton = document.getElementById("find-questions");
-const message = document.getElementById("engine-message");
-
-let selectedLevel = 1;
+const engineMessage = document.getElementById("engine-message");
 
 const descriptions = {
-  1: "Foundation — recall essential facts.",
-  2: "Understanding — explain key concepts.",
-  3: "Application — use knowledge in familiar situations.",
-  4: "Analysis — interpret information and patterns.",
-  5: "Multi-concept — connect different ideas.",
-  6: "Advanced reasoning — solve unfamiliar problems.",
-  7: "Mastery — tackle complex challenges."
+  1: "Level 1 — Easy: build your foundation.",
+  2: "Level 2 — Basic: practise core knowledge.",
+  3: "Level 3 — Moderate: apply what you know.",
+  4: "Level 4 — Intermediate: connect related ideas.",
+  5: "Level 5 — Hard: solve more demanding questions.",
+  6: "Level 6 — Very hard: handle complex applications.",
+  7: "Level 7 — Expert: tackle advanced challenges."
 };
 
-const rewardTiers = {
-  1: { name: "Easy", points: 2 },
-  2: { name: "Medium", points: 5 },
-  3: { name: "Hard", points: 10 },
-  4: { name: "Very Hard", points: 15 },
-  5: { name: "Expert", points: 20 },
-  6: { name: "Expert", points: 20 },
-  7: { name: "Expert", points: 20 }
+const rewardPoints = {
+  1: 2,
+  2: 5,
+  3: 10,
+  4: 15,
+  5: 20,
+  6: 20,
+  7: 20
 };
+
+let selectedLevel = 1;
+let sessionPoints = 0;
+const answeredQuestions = new Set();
+
+function showMessage(message) {
+  if (engineMessage) engineMessage.textContent = message;
+}
 
 function updateDifficulty(level) {
-  selectedLevel = level;
+  selectedLevel = Number(level);
 
-  starSelector.querySelectorAll("button").forEach(button => {
-    const selected = Number(button.dataset.level) === level;
-    button.classList.toggle("selected", selected);
-    button.setAttribute("aria-pressed", String(selected));
-  });
+  if (starSelector) {
+    starSelector.querySelectorAll("[data-level]").forEach((button) => {
+      const selected = Number(button.dataset.level) === selectedLevel;
 
-  starDescription.textContent =
-    `${level} star${level === 1 ? "" : "s"} — ${descriptions[level]}`;
-}
-
-starSelector.addEventListener("click", event => {
-  const button = event.target.closest("button[data-level]");
-  if (button) updateDifficulty(Number(button.dataset.level));
-});
-
-materialsInput.addEventListener("change", () => {
-  const files = Array.from(materialsInput.files);
-
-  fileList.textContent = files.length
-    ? files.map(file =>
-        `${file.name} (${formatSize(file.size)})`
-      ).join("\n")
-    : "No files selected.";
-});
-
-function formatSize(bytes) {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
-function renderResults(questions) {
-  const oldResults = document.getElementById("search-results");
-  if (oldResults) oldResults.remove();
-
-  const container = document.createElement("section");
-  container.id = "search-results";
-  container.className = "panel";
-
-  const heading = document.createElement("h2");
-  heading.textContent = `Practice Questions (${questions.length})`;
-
-  const scoreDisplay = document.createElement("p");
-  scoreDisplay.textContent = "Session points: 0";
-
-  container.append(heading, scoreDisplay);
-
-  if (questions.length === 0) {
-    const empty = document.createElement("p");
-    empty.textContent =
-      "No matching questions found. Try another topic or difficulty.";
-    container.appendChild(empty);
+      button.classList.toggle("selected", selected);
+      button.setAttribute("aria-pressed", String(selected));
+    });
   }
 
-  let score = 0;
-
-  questions.forEach((question, index) => {
-    const card = document.createElement("article");
-    card.className = "panel";
-
-    const title = document.createElement("h3");
-    title.textContent = `${index + 1}. ${question.question}`;
-
-    const meta = document.createElement("p");
-    meta.textContent =
-      `${question.subject} • ${question.topic} • ` +
-      `${"★".repeat(question.difficulty)}`;
-
-    const optionsBox = document.createElement("div");
-    optionsBox.className = "answer-options";
-
-    const feedback = document.createElement("p");
-    feedback.setAttribute("aria-live", "polite");
-
-    const checkButton = document.createElement("button");
-    checkButton.type = "button";
-    checkButton.textContent = "Check Answer";
-
-    let selectedIndex = null;
-    let answered = false;
-
-    question.options.forEach((option, optionIndex) => {
-      const label = document.createElement("label");
-      label.style.display = "block";
-      label.style.margin = "10px 0";
-
-      const radio = document.createElement("input");
-      radio.type = "radio";
-      radio.name = `question-${index}`;
-      radio.value = optionIndex;
-
-      radio.addEventListener("change", () => {
-        selectedIndex = optionIndex;
-      });
-
-      label.append(radio, document.createTextNode(` ${option}`));
-      optionsBox.appendChild(label);
-    });
-
-    checkButton.addEventListener("click", () => {
-      if (answered) return;
-
-      if (selectedIndex === null) {
-        feedback.textContent = "Choose an answer first.";
-        return;
-      }
-
-      answered = true;
-
-      const correct = selectedIndex === question.answerIndex;
-      const reward = rewardTiers[question.difficulty] || rewardTiers[1];
-
-      if (correct) {
-        score += reward.points;
-
-        feedback.textContent =
-          `Correct! +${reward.points} points (${reward.name}). ` +
-          question.explanation;
-      } else {
-        const previousScore = score;
-        score = Math.max(0, score - 2);
-
-        const pointsLost = previousScore - score;
-
-        feedback.textContent =
-          `Not quite. ${pointsLost > 0 ? `-${pointsLost}` : "0"} points. ` +
-          `Correct answer: ${question.options[question.answerIndex]}. ` +
-          question.explanation;
-      }
-
-      scoreDisplay.textContent = `Session points: ${score}`;
-
-      optionsBox.querySelectorAll("input").forEach(input => {
-        input.disabled = true;
-      });
-
-      checkButton.disabled = true;
-      checkButton.textContent = "Answer Checked";
-    });
-
-    card.append(title, meta, optionsBox, checkButton, feedback);
-    container.appendChild(card);
-  });
-
-  message.insertAdjacentElement("afterend", container);
+  if (starDescription) {
+    starDescription.textContent =
+      descriptions[selectedLevel] || descriptions[1];
+  }
 }
 
-findButton.addEventListener("click", () => {
-  const subject = subjectSearch.value.trim();
-  const topic = topicSearch.value.trim();
+starSelector?.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-level]");
 
-  if (!subject && !topic) {
-    message.textContent =
-      "Enter a subject or topic to search the catalogue.";
+  if (!button || !starSelector.contains(button)) return;
+
+  const level = Number(button.dataset.level);
+
+  if (level >= 1 && level <= 7) {
+    updateDifficulty(level);
+  }
+});
+
+materialsInput?.addEventListener("change", () => {
+  if (!fileList) return;
+
+  fileList.replaceChildren();
+
+  const files = Array.from(materialsInput.files || []);
+
+  if (files.length === 0) {
+    fileList.textContent = "No materials selected.";
     return;
   }
 
-  const results = searchQuestions({
-    subject,
-    topic,
-    difficulty: selectedLevel
+  files.forEach((file) => {
+    const item = document.createElement("p");
+    const sizeKB = Math.max(1, Math.round(file.size / 1024));
+
+    item.textContent = `${file.name} (${sizeKB} KB)`;
+    fileList.appendChild(item);
+  });
+});
+
+function createElement(tag, className, text) {
+  const element = document.createElement(tag);
+
+  if (className) element.className = className;
+  if (text !== undefined) element.textContent = text;
+
+  return element;
+}
+
+function renderResults(questions) {
+  document.getElementById("search-results")?.remove();
+
+  const results = createElement("section", "search-results");
+  results.id = "search-results";
+
+  if (questions.length === 0) {
+    results.appendChild(
+      createElement(
+        "p",
+        "empty-results",
+        "No questions match these choices yet. Try another subject, topic, or difficulty."
+      )
+    );
+
+    findButton?.insertAdjacentElement("afterend", results);
+    return;
+  }
+
+  questions.forEach((question, index) => {
+    const card = createElement("article", "question-card");
+    const heading = createElement(
+      "h3",
+      "question-heading",
+      `Question ${index + 1}`
+    );
+
+    const details = createElement(
+      "p",
+      "question-details",
+      `${question.subject} • ${question.topic} • ${question.difficulty} star(s)`
+    );
+
+    const prompt = createElement("p", "question-prompt", question.question);
+
+    card.append(heading, details, prompt);
+
+    const feedback = createElement("p", "answer-feedback");
+    feedback.setAttribute("aria-live", "polite");
+
+    if (question.type === "multiple-choice") {
+      const optionGroup = createElement("div", "question-options");
+      const groupName = `answer-${question.id}-${index}`;
+      let selectedAnswer = null;
+
+      question.options.forEach((option, optionIndex) => {
+        const label = createElement("label", "answer-option");
+        const radio = document.createElement("input");
+
+        radio.type = "radio";
+        radio.name = groupName;
+        radio.value = String(optionIndex);
+
+        radio.addEventListener("change", () => {
+          selectedAnswer = optionIndex;
+        });
+
+        label.append(radio, document.createTextNode(` ${option}`));
+        optionGroup.appendChild(label);
+      });
+
+      const checkButton = createElement("button", "check-answer", "Check answer");
+
+      checkButton.type = "button";
+
+      checkButton.addEventListener("click", () => {
+        if (answeredQuestions.has(question.id)) return;
+
+        if (selectedAnswer === null) {
+          feedback.textContent = "Choose an answer first.";
+          return;
+        }
+
+        answeredQuestions.add(question.id);
+
+        const correct = selectedAnswer === question.answer;
+
+        if (correct) {
+          sessionPoints += rewardPoints[question.difficulty] || 2;
+          feedback.textContent =
+            `Correct! You earned ${rewardPoints[question.difficulty] || 2} points.`;
+        } else {
+          sessionPoints = Math.max(0, sessionPoints - 2);
+
+          feedback.textContent =
+            `Not quite. The correct answer is: ${question.options[question.answer]}.`;
+        }
+
+        if (question.explanation) {
+          feedback.textContent += ` Explanation: ${question.explanation}`;
+        }
+
+        optionGroup.querySelectorAll("input").forEach((input) => {
+          input.disabled = true;
+        });
+
+        checkButton.disabled = true;
+
+        const score = document.getElementById("session-points");
+
+        if (score) {
+          score.textContent = `Session points: ${sessionPoints}`;
+        }
+      });
+
+      card.append(optionGroup, checkButton, feedback);
+    } else {
+      card.appendChild(
+        createElement(
+          "p",
+          "question-type-not-supported",
+          "This question type is not supported by the current answer checker yet."
+        )
+      );
+    }
+
+    results.appendChild(card);
   });
 
-  message.textContent =
-    `Searching the current catalogue at ${selectedLevel}-star difficulty.`;
+  findButton?.insertAdjacentElement("afterend", results);
+}
 
-  renderResults(results);
+findButton?.addEventListener("click", () => {
+  const subject = subjectSearch?.value.trim() || "";
+  const topic = topicSearch?.value.trim() || "";
+
+  if (!subject && !topic) {
+    showMessage("Enter a subject or topic before finding questions.");
+    return;
+  }
+
+  try {
+    const questions = selectPracticeSet({
+      subject,
+      topic,
+      minDifficulty: selectedLevel,
+      maxDifficulty: selectedLevel,
+      count: 10,
+      strategy: "random"
+    });
+
+    renderResults(questions);
+
+    showMessage(
+      questions.length
+        ? `Found ${questions.length} question(s). Answer them to earn points.`
+        : "No matching questions were found. Try a different subject, topic, or star level."
+    );
+  } catch (error) {
+    console.error("Question selection failed:", error);
+    showMessage("Something went wrong while finding questions. Please try again.");
+  }
 });
+
+if (!document.getElementById("session-points")) {
+  const score = createElement("p", "session-points", "Session points: 0");
+  score.id = "session-points";
+
+  findButton?.insertAdjacentElement("afterend", score);
+}
 
 updateDifficulty(1);
