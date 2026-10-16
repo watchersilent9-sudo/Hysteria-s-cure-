@@ -39,6 +39,7 @@ let questionsAnswered = 0;
 let correctAnswers = 0;
 let currentQuestions = [];
 const answeredQuestions = new Set();
+const incorrectQuestions = [];
 
 function showMessage(message) {
   if (engineMessage) engineMessage.textContent = message;
@@ -143,6 +144,44 @@ function finishSession() {
   }
 
   summary.appendChild(createElement("p", "", message));
+  if (incorrectQuestions.length > 0) {
+  summary.appendChild(
+    createElement("h3", "", "Review your mistakes")
+  );
+
+  incorrectQuestions.forEach((question, index) => {
+    const review = createElement("article", "mistake-review");
+
+    review.append(
+      createElement(
+        "p",
+        "",
+        `${index + 1}. ${question.question}`
+      ),
+      createElement(
+        "p",
+        "",
+        `Correct answer: ${question.options[question.answer]}`
+      )
+    );
+
+    if (question.explanation) {
+      review.appendChild(
+        createElement(
+          "p",
+          "",
+          `Explanation: ${question.explanation}`
+        )
+      );
+    }
+
+    summary.appendChild(review);
+  });
+} else if (questionsAnswered > 0) {
+  summary.appendChild(
+    createElement("p", "", "No mistakes this session. Excellent work!")
+  );
+  }
   document.getElementById("search-results")?.insertAdjacentElement(
     "afterend",
     summary
@@ -243,14 +282,15 @@ function renderResults(questions) {
         sessionPoints += earned;
 
         feedback.textContent = `Correct! You earned ${earned} points.`;
-      } else {
-        sessionPoints = Math.max(0, sessionPoints - 2);
+} else {
+  sessionPoints = Math.max(0, sessionPoints - 2);
 
-        feedback.textContent =
-          `Not quite. The correct answer is: ` +
-          `${question.options[question.answer]}.`;
-      }
+  incorrectQuestions.push(question);
 
+  feedback.textContent =
+    `Not quite. The correct answer is: ` +
+    `${question.options[question.answer]}.`;
+}
       if (question.explanation) {
         feedback.textContent += ` Explanation: ${question.explanation}`;
       }
@@ -337,6 +377,7 @@ findButton?.addEventListener("click", () => {
 
     currentQuestions = questions;
     answeredQuestions.clear();
+    incorrectQuestions.length = 0;
     questionsAnswered = 0;
     correctAnswers = 0;
     sessionPoints = 0;
