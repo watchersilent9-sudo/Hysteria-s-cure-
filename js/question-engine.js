@@ -1,3 +1,4 @@
+
 import { selectPracticeSet } from "./question-selector.js";
 import { validateQuestionCatalogue } from "./question-catalogue.js";
 
@@ -23,11 +24,20 @@ const descriptions = {
 };
 
 const rewardPoints = {
-  1: 2, 2: 5, 3: 10, 4: 15, 5: 20, 6: 20, 7: 20
+  1: 2,
+  2: 5,
+  3: 10,
+  4: 15,
+  5: 20,
+  6: 20,
+  7: 20
 };
 
 let selectedLevel = 1;
 let sessionPoints = 0;
+let questionsAnswered = 0;
+let correctAnswers = 0;
+let currentQuestions = [];
 const answeredQuestions = new Set();
 
 function showMessage(message) {
@@ -44,7 +54,8 @@ function updateDifficulty(level) {
   });
 
   if (starDescription) {
-    starDescription.textContent = descriptions[selectedLevel] || descriptions[1];
+    starDescription.textContent =
+      descriptions[selectedLevel] || descriptions[1];
   }
 }
 
@@ -77,13 +88,72 @@ materialsInput?.addEventListener("change", () => {
 
 function createElement(tag, className, text) {
   const element = document.createElement(tag);
+
   if (className) element.className = className;
   if (text !== undefined) element.textContent = text;
+
   return element;
+}
+
+function updateSessionStats() {
+  const points = document.getElementById("session-points");
+  const progress = document.getElementById("session-progress");
+
+  if (points) {
+    points.textContent = `Session points: ${sessionPoints}`;
+  }
+
+  if (progress) {
+    const accuracy = questionsAnswered
+      ? Math.round((correctAnswers / questionsAnswered) * 100)
+      : 0;
+
+    progress.textContent =
+      `Answered: ${questionsAnswered} | ` +
+      `Correct: ${correctAnswers} | Accuracy: ${accuracy}%`;
+  }
+}
+
+function finishSession() {
+  document.getElementById("session-summary")?.remove();
+
+  const summary = createElement("section", "panel");
+  summary.id = "session-summary";
+
+  const accuracy = questionsAnswered
+    ? Math.round((correctAnswers / questionsAnswered) * 100)
+    : 0;
+
+  summary.append(
+    createElement("h2", "", "Practice session summary"),
+    createElement("p", "", `Questions answered: ${questionsAnswered}`),
+    createElement("p", "", `Correct answers: ${correctAnswers}`),
+    createElement("p", "", `Accuracy: ${accuracy}%`),
+    createElement("p", "", `Points earned after deductions: ${sessionPoints}`)
+  );
+
+  let message = "Keep practising. Every session is a chance to improve.";
+
+  if (accuracy >= 80 && questionsAnswered > 0) {
+    message = "Excellent work! You're building strong understanding.";
+  } else if (accuracy >= 50 && questionsAnswered > 0) {
+    message = "Good effort. Review the explanations and keep improving.";
+  } else if (questionsAnswered > 0) {
+    message = "Review the explanations, then practise these topics again.";
+  }
+
+  summary.appendChild(createElement("p", "", message));
+  document.getElementById("search-results")?.insertAdjacentElement(
+    "afterend",
+    summary
+  );
+
+  summary.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function renderResults(questions) {
   document.getElementById("search-results")?.remove();
+  document.getElementById("session-summary")?.remove();
 
   const results = createElement("section", "search-results");
   results.id = "search-results";
@@ -94,12 +164,14 @@ function renderResults(questions) {
       "empty-results",
       "No questions match your choices yet. Try another subject, topic, or difficulty."
     ));
+
     findButton?.insertAdjacentElement("afterend", results);
     return;
   }
 
   questions.forEach((question, index) => {
     const card = createElement("article", "question-card");
+
     card.append(
       createElement("h3", "question-heading", `Question ${index + 1}`),
       createElement(
@@ -119,6 +191,7 @@ function renderResults(questions) {
         "question-type-not-supported",
         "This question type is not supported by the current answer checker yet."
       ));
+
       results.appendChild(card);
       return;
     }
@@ -130,6 +203,7 @@ function renderResults(questions) {
     question.options.forEach((option, optionIndex) => {
       const label = createElement("label", "answer-option");
       const radio = document.createElement("input");
+
       radio.type = "radio";
       radio.name = groupName;
       radio.value = String(optionIndex);
@@ -142,7 +216,11 @@ function renderResults(questions) {
       optionGroup.appendChild(label);
     });
 
-    const checkButton = createElement("button", "check-answer", "Check answer");
+    const checkButton = createElement(
+      "button",
+      "check-answer",
+      "Check answer"
+    );
     checkButton.type = "button";
 
     checkButton.addEventListener("click", () => {
@@ -154,16 +232,23 @@ function renderResults(questions) {
       }
 
       answeredQuestions.add(question.id);
+      questionsAnswered++;
+
       const correct = selectedAnswer === question.answer;
 
       if (correct) {
+        correctAnswers++;
+
         const earned = rewardPoints[question.difficulty] || 2;
         sessionPoints += earned;
+
         feedback.textContent = `Correct! You earned ${earned} points.`;
       } else {
         sessionPoints = Math.max(0, sessionPoints - 2);
+
         feedback.textContent =
-          `Not quite. The correct answer is: ${question.options[question.answer]}.`;
+          `Not quite. The correct answer is: ` +
+          `${question.options[question.answer]}.`;
       }
 
       if (question.explanation) {
@@ -173,10 +258,13 @@ function renderResults(questions) {
       optionGroup.querySelectorAll("input").forEach((input) => {
         input.disabled = true;
       });
-      checkButton.disabled = true;
 
-      const score = document.getElementById("session-points");
-      if (score) score.textContent = `Session points: ${sessionPoints}`;
+      checkButton.disabled = true;
+      updateSessionStats();
+
+      if (questionsAnswered === currentQuestions.length) {
+        finishButton.disabled = false;
+      }
     });
 
     card.append(optionGroup, checkButton, feedback);
@@ -184,6 +272,37 @@ function renderResults(questions) {
   });
 
   findButton?.insertAdjacentElement("afterend", results);
+
+  const finishButton = createElement(
+    "button",
+    "finish-session",
+    "Finish practice session"
+  );
+  finishButton.type = "button";
+  finishButton.disabled = false;
+  finishButton.addEventListener("click", finishSession);
+
+  results.appendChild(finishButton);
+}
+
+if (!document.getElementById("session-points")) {
+  const score = createElement("p", "session-points", "Session points: 0");
+  score.id = "session-points";
+  findButton?.insertAdjacentElement("afterend", score);
+}
+
+if (!document.getElementById("session-progress")) {
+  const progress = createElement(
+    "p",
+    "session-progress",
+    "Answered: 0 | Correct: 0 | Accuracy: 0%"
+  );
+
+  progress.id = "session-progress";
+  document.getElementById("session-points")?.insertAdjacentElement(
+    "afterend",
+    progress
+  );
 }
 
 findButton?.addEventListener("click", () => {
@@ -208,28 +327,37 @@ findButton?.addEventListener("click", () => {
       strategy
     });
 
+    if (!questions.length) {
+      renderResults([]);
+      showMessage(
+        "No matching questions were found. Try a different subject, topic, or star level."
+      );
+      return;
+    }
+
+    currentQuestions = questions;
+    answeredQuestions.clear();
+    questionsAnswered = 0;
+    correctAnswers = 0;
+    sessionPoints = 0;
+
+    updateSessionStats();
     renderResults(questions);
 
     showMessage(
-      questions.length
-        ? `Found ${questions.length} question(s) at ${selectedLevel}-star difficulty.`
-        : "No matching questions were found. Try a different subject, topic, or star level."
+      `Found ${questions.length} question(s) at ` +
+      `${selectedLevel}-star difficulty. Your session has started.`
     );
   } catch (error) {
     console.error("Question selection failed:", error);
-    showMessage("Something went wrong while finding questions. Please try again.");
+    showMessage(
+      "Something went wrong while finding questions. Please try again."
+    );
   }
 });
 
-if (!document.getElementById("session-points")) {
-  const score = createElement("p", "session-points", "Session points: 0");
-  score.id = "session-points";
-  findButton?.insertAdjacentElement("afterend", score);
-}
-
 updateDifficulty(1);
-
-// Check the question catalogue when the practice page loads.
+updateSessionStats();
 
 const catalogueReport = validateQuestionCatalogue();
 const catalogueStatus = document.getElementById("catalogue-status");
