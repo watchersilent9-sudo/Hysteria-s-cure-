@@ -114,7 +114,24 @@
       </div>
 
       <p id="star-description">1 star — Foundation</p>
+        
+<div class="practice-controls">
+  <label for="question-count">Number of questions</label>
+  <select id="question-count">
+    <option value="5">5 questions</option>
+    <option value="10" selected>10 questions</option>
+    <option value="20">20 questions</option>
+    <option value="50">50 questions</option>
+  </select>
 
+  <label for="practice-strategy">Question order</label>
+  <select id="practice-strategy">
+    <option value="random" selected>Random practice</option>
+    <option value="progressive">Easier to harder</option>
+    <option value="challenge">Harder to easier</option>
+  </select>
+</div>
+      
       <button type="button" id="find-questions">
         Find Questions
       </button>
