@@ -230,16 +230,28 @@ if (!document.getElementById("session-points")) {
 updateDifficulty(1);
 
 // Check the question catalogue when the practice page loads.
+
 const catalogueReport = validateQuestionCatalogue();
+const catalogueStatus = document.getElementById("catalogue-status");
 
 if (!catalogueReport.valid) {
-  console.error("Question catalogue validation failed:", catalogueReport.errors);
-  showMessage(
-    `Catalogue check found ${catalogueReport.errors.length} problem(s). Check the browser console.`
+  console.error(
+    "Question catalogue validation failed:",
+    catalogueReport.errors
   );
+
+  if (catalogueStatus) {
+    catalogueStatus.textContent =
+      `Catalogue check failed: ${catalogueReport.errors.length} problem(s) found.`;
+  }
 } else {
   console.info(
     `Catalogue check passed: ${catalogueReport.totalQuestions} questions, ` +
     `${catalogueReport.uniqueIds} unique IDs.`
   );
+
+  if (catalogueStatus) {
+    catalogueStatus.textContent =
+      `Catalogue check passed: ${catalogueReport.totalQuestions} questions verified structurally.`;
+  }
 }
