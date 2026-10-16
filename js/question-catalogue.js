@@ -442,87 +442,81 @@ export const questionCatalogue = [
  */
 export function validateQuestionCatalogue() {
   const errors = [];
+  
+export function validateQuestionCatalogue() {
+  const errors = [];
   const seenIds = new Set();
 
-  questionCatalogue.forEach((item, index) => {
-    const label = `Question ${index + 1} (${item.id || "missing ID"})`;
+  for (const [index, question] of questionCatalogue.entries()) {
+    const label = `Question ${index + 1}`;
 
-    if (!item.id || seenIds.has(item.id)) {
-      errors.push(`${label}: missing or duplicate ID.`);
-    }
-    seenIds.add(item.id);
-
-    if (!item.subject || !item.topic || !item.question) {
-      errors.push(`${label}: subject, topic and question are required.`);
+    if (!question || typeof question !== "object") {
+      errors.push(`${label}: invalid question entry.`);
+      continue;
     }
 
-    if (!Number.isInteger(item.difficulty) ||
-        item.difficulty < 1 || item.difficulty > 7) {
+    if (!question.id || typeof question.id !== "string") {
+      errors.push(`${label}: missing or invalid ID.`);
+    } else if (seenIds.has(question.id)) {
+      errors.push(`${label}: duplicate ID "${question.id}".`);
+    } else {
+      seenIds.add(question.id);
+    }
+
+    for (const field of ["subject", "topic", "question"]) {
+      if (
+        typeof question[field] !== "string" ||
+        !question[field].trim()
+      ) {
+        errors.push(`${label}: missing or invalid ${field}.`);
+      }
+    }
+
+    if (
+      !Number.isInteger(question.difficulty) ||
+      question.difficulty < 1 ||
+      question.difficulty > 7
+    ) {
       errors.push(`${label}: difficulty must be an integer from 1 to 7.`);
     }
 
-    if (item.type === "multiple-choice") {
-      if (!Array.isArray(item.options) || item.options.length < 2) {
+    if (question.type === "multiple-choice") {
+      if (!Array.isArray(question.options) || question.options.length < 2) {
         errors.push(`${label}: multiple-choice questions need at least two options.`);
-      } else if (!Number.isInteger(item.answerIndex) ||
-                 item.answerIndex < 0 ||
-                 item.answerIndex >= item.options.length) {
-        errors.push(`${label}: answerIndex does not match the options.`);
+      } else {
+        if (
+          question.options.some(
+            option => typeof option !== "string" || !option.trim()
+          )
+        ) {
+          errors.push(`${label}: every option must be a non-empty string.`);
+        }
+
+        if (
+          !Number.isInteger(question.answer) ||
+          question.answer < 0 ||
+          question.answer >= question.options.length
+        ) {
+          errors.push(`${label}: answer index is outside the options.`);
+        }
       }
+    } else {
+      errors.push(`${label}: unsupported question type "${question.type}".`);
     }
-  });
+
+    if (
+      question.verified !== true &&
+      question.verified !== false
+    ) {
+      errors.push(`${label}: verified must be true or false.`);
+    }
+  }
 
   return {
     valid: errors.length === 0,
-    total: questionCatalogue.length,
+    totalQuestions: questionCatalogue.length,
+    uniqueIds: seenIds.size,
     errors
   };
 }
-
-/*
- * Search by subject, topic, keywords and difficulty.
- * An empty subject or topic means no restriction.
- */
-export function searchQuestions({
-  subject = "",
-  topic = "",
-  query = "",
-  difficulty = null
-} = {}) {
-  const normalize = value => String(value ?? "").trim().toLowerCase();
-
-  const wantedSubject = normalize(subject);
-  const wantedTopic = normalize(topic);
-  const keywords = normalize(query);
-
-  return questionCatalogue.filter(item => {
-    const subjectMatches =
-      !wantedSubject ||
-      normalize(item.subject).includes(wantedSubject);
-
-    const topicMatches =
-      !wantedTopic ||
-      normalize(item.topic).includes(wantedTopic);
-
-    const text = normalize(
-      `${item.subject} ${item.topic} ${item.question} ` +
-      `${(item.options || []).join(" ")} ${item.explanation || ""} ` +
-      `${item.syllabusObjective || ""}`
-    );
-
-    const queryMatches =
-      !keywords ||
-      keywords.split(/\s+/).every(word => text.includes(word));
-
-    const difficultyMatches =
-      difficulty === null ||
-      item.difficulty === Number(difficulty);
-
-    return (
-      subjectMatches &&
-      topicMatches &&
-      queryMatches &&
-      difficultyMatches
-    );
-  });
-}
+  ];
