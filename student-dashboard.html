@@ -1,0 +1,290 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#171525">
+  <title>Student Dashboard | Hysteria's Cure</title>
+
+  <style>
+    :root {
+      color-scheme: dark;
+      --background: #11101b;
+      --panel: #1c1a2b;
+      --border: #353148;
+      --text: #f7f4ff;
+      --muted: #b7b1ca;
+      --accent: #c6a7ff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--background);
+      color: var(--text);
+      font-family: system-ui, sans-serif;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding: 18px 6%;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brand {
+      font-weight: 800;
+      font-size: 1.05rem;
+    }
+
+    .brand span {
+      color: var(--accent);
+    }
+
+    button, .action {
+      border: 0;
+      border-radius: 10px;
+      padding: 12px 16px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    button {
+      background: #38334d;
+      color: var(--text);
+    }
+
+    .action {
+      background: var(--accent);
+      color: #1b1428;
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: wait;
+    }
+
+    main {
+      width: min(100% - 32px, 1000px);
+      margin: 42px auto;
+    }
+
+    .welcome {
+      margin-bottom: 32px;
+    }
+
+    .eyebrow {
+      color: var(--accent);
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-size: 0.8rem;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 6vw, 3rem);
+      margin: 10px 0;
+    }
+
+    p {
+      line-height: 1.65;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 18px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 22px;
+    }
+
+    .card h2 {
+      margin-top: 0;
+      font-size: 1.2rem;
+    }
+
+    .card p {
+      color: var(--muted);
+    }
+
+    .coming-soon {
+      display: inline-block;
+      color: var(--accent);
+      font-size: 0.85rem;
+      font-weight: 700;
+    }
+
+    #page-message {
+      padding: 14px;
+      border-radius: 10px;
+      background: var(--panel);
+    }
+
+    footer {
+      padding: 24px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="brand">HYSTERIA'S <span>CURE</span></div>
+    <button id="logout-button" type="button" hidden>
+      Log out
+    </button>
+  </header>
+
+  <main>
+    <p id="page-message" role="status" aria-live="polite">
+      Checking your sign-in...
+    </p>
+
+    <section id="dashboard" hidden>
+      <div class="welcome">
+        <p class="eyebrow">Your learning journey</p>
+        <h1>Welcome, <span id="student-name">Student</span>.</h1>
+        <p class="muted">
+          Failure is the disease. Learning is the cure.
+        </p>
+        <p class="muted">
+          This is your starting point for learning, practising,
+          and tracking your progress.
+        </p>
+      </div>
+
+      <div class="grid">
+        <article class="card">
+          <h2>Learning Mode</h2>
+          <p>
+            Choose a subject and topic, practise questions,
+            and learn from explanations.
+          </p>
+          <a class="action" href="practice.html">
+            Start practising
+          </a>
+        </article>
+
+        <article class="card">
+          <h2>Exam Mode</h2>
+          <p>
+            Prepare for timed examinations and assess
+            your readiness.
+          </p>
+          <span class="coming-soon">Coming soon</span>
+        </article>
+
+        <article class="card">
+          <h2>My Library</h2>
+          <p>
+            Your personal collection of notes, textbooks,
+            and saved questions will live here.
+          </p>
+          <span class="coming-soon">Coming soon</span>
+        </article>
+
+        <article class="card">
+          <h2>My Progress</h2>
+          <p>
+            Your learning history, topic mastery,
+            and performance insights.
+          </p>
+          <span class="coming-soon">Coming soon</span>
+        </article>
+
+        <article class="card">
+          <h2>Rewards</h2>
+          <p>
+            Your points, achievements, and progression
+            will be connected here.
+          </p>
+          <span class="coming-soon">Coming soon</span>
+        </article>
+
+        <article class="card">
+          <h2>The Three Towers</h2>
+          <p>
+            Discover the Paths of Knowledge, Conquest,
+            and Discovery as they are developed.
+          </p>
+          <span class="coming-soon">Coming soon</span>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    Hysteria's Cure — Your potential has no ceiling.
+  </footer>
+
+  <script type="module">
+    import { auth } from "./js/firebase-client.js";
+    import {
+      onAuthStateChanged,
+      signOut
+    } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
+
+    const pageMessage = document.getElementById("page-message");
+    const dashboard = document.getElementById("dashboard");
+    const studentName = document.getElementById("student-name");
+    const logoutButton = document.getElementById("logout-button");
+
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        window.location.replace("login.html");
+        return;
+      }
+
+      const displayName = user.displayName ||
+        (user.email ? user.email.split("@")[0] : "Student");
+
+      studentName.textContent = displayName;
+      pageMessage.hidden = true;
+      dashboard.hidden = false;
+      logoutButton.hidden = false;
+    });
+
+    logoutButton.addEventListener("click", async () => {
+      logoutButton.disabled = true;
+      logoutButton.textContent = "Logging out...";
+
+      try {
+        await signOut(auth);
+        window.location.replace("login.html");
+      } catch (error) {
+        console.error("Logout failed:", error);
+        pageMessage.hidden = false;
+        pageMessage.textContent =
+          "Could not log out. Please check your connection and try again.";
+        logoutButton.disabled = false;
+        logoutButton.textContent = "Log out";
+      }
+    });
+  </script>
+</body>
+</html>
