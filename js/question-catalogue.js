@@ -435,14 +435,10 @@ export const questionCatalogue = [
     syllabusObjective: "Apply algebraic identities to simplify expressions."
   }
 ];
-
 /*
  * Basic catalogue validation.
- * Run validateQuestionCatalogue() during development.
+ * Checks the existing answerIndex field used by the questions.
  */
-export function validateQuestionCatalogue() {
-  const errors = [];
-  
 export function validateQuestionCatalogue() {
   const errors = [];
   const seenIds = new Set();
@@ -455,7 +451,7 @@ export function validateQuestionCatalogue() {
       continue;
     }
 
-    if (!question.id || typeof question.id !== "string") {
+    if (typeof question.id !== "string" || !question.id.trim()) {
       errors.push(`${label}: missing or invalid ID.`);
     } else if (seenIds.has(question.id)) {
       errors.push(`${label}: duplicate ID "${question.id}".`);
@@ -463,7 +459,7 @@ export function validateQuestionCatalogue() {
       seenIds.add(question.id);
     }
 
-    for (const field of ["subject", "topic", "question"]) {
+    for (const field of ["subject", "topic", "question", "explanation"]) {
       if (
         typeof question[field] !== "string" ||
         !question[field].trim()
@@ -480,35 +476,43 @@ export function validateQuestionCatalogue() {
       errors.push(`${label}: difficulty must be an integer from 1 to 7.`);
     }
 
-    if (question.type === "multiple-choice") {
-      if (!Array.isArray(question.options) || question.options.length < 2) {
-        errors.push(`${label}: multiple-choice questions need at least two options.`);
-      } else {
-        if (
-          question.options.some(
-            option => typeof option !== "string" || !option.trim()
-          )
-        ) {
-          errors.push(`${label}: every option must be a non-empty string.`);
-        }
-
-        if (
-          !Number.isInteger(question.answer) ||
-          question.answer < 0 ||
-          question.answer >= question.options.length
-        ) {
-          errors.push(`${label}: answer index is outside the options.`);
-        }
-      }
-    } else {
-      errors.push(`${label}: unsupported question type "${question.type}".`);
+    if (question.type !== "multiple-choice") {
+      errors.push(`${label}: unsupported question type.`);
+      continue;
     }
 
     if (
-      question.verified !== true &&
-      question.verified !== false
+      !Array.isArray(question.options) ||
+      question.options.length < 2
     ) {
+      errors.push(`${label}: at least two options are required.`);
+    } else {
+      if (
+        question.options.some(
+          option => typeof option !== "string" || !option.trim()
+        )
+      ) {
+        errors.push(`${label}: every option must be a non-empty string.`);
+      }
+
+      if (
+        !Number.isInteger(question.answerIndex) ||
+        question.answerIndex < 0 ||
+        question.answerIndex >= question.options.length
+      ) {
+        errors.push(`${label}: answerIndex is invalid.`);
+      }
+    }
+
+    if (typeof question.verified !== "boolean") {
       errors.push(`${label}: verified must be true or false.`);
+    }
+
+    if (
+      typeof question.sourceType !== "string" ||
+      !question.sourceType.trim()
+    ) {
+      errors.push(`${label}: sourceType is missing.`);
     }
   }
 
@@ -519,4 +523,3 @@ export function validateQuestionCatalogue() {
     errors
   };
 }
-  ];
