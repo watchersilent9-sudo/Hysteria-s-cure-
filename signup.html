@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,63 +6,132 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <meta name="theme-color" content="#11111b">
-    <meta name="description" content="Create your Hysteria's Cure student account and begin your learning journey.">
+    <meta name="description" content="Create your Hysteria's Cure student account and choose your path.">
 
     <title>Create Account | Hysteria's Cure</title>
-
     <link rel="stylesheet" href="css/style.css">
 
     <style>
         .auth-section {
-            width: min(440px, calc(100% - 32px));
-            margin: 64px auto;
+            width: min(680px, calc(100% - 32px));
+            margin: 48px auto;
         }
 
         .auth-card {
-            padding: 32px;
-            border: 1px solid rgba(196, 181, 253, 0.2);
-            border-radius: 18px;
-            background: #151521;
+            padding: 30px;
+            border: 1px solid rgba(196, 181, 253, .2);
+            border-radius: 20px;
+            background: var(--bg-secondary, #151521);
         }
 
-        .auth-card h1 {
-            margin-bottom: 12px;
-        }
+        .auth-card h1 { margin-bottom: 12px; }
 
         .auth-description {
             margin-bottom: 28px;
-            color: #b8b8ca;
-            line-height: 1.6;
+            color: var(--text-secondary, #b8b8ca);
+            line-height: 1.7;
         }
 
-        .auth-form {
-            display: grid;
-            gap: 18px;
-        }
+        .auth-form { display: grid; gap: 18px; }
 
-        .auth-field {
-            display: grid;
-            gap: 8px;
-        }
+        .auth-field { display: grid; gap: 8px; }
 
-        .auth-field label {
-            font-weight: 600;
-        }
+        .auth-field label { font-weight: 600; }
 
         .auth-field input {
             width: 100%;
             min-height: 46px;
             padding: 12px;
-            border: 1px solid #39394d;
-            border-radius: 8px;
-            background: #0e0e16;
-            color: #ffffff;
+            border: 1px solid var(--border, #39394d);
+            border-radius: 9px;
+            background: var(--bg-primary, #0e0e16);
+            color: var(--text-primary, #fff);
             font: inherit;
         }
 
-        .auth-field input:focus {
-            outline: 2px solid #a78bfa;
-            outline-offset: 2px;
+        .auth-field input:focus,
+        .faction-option:focus-within {
+            outline: 2px solid var(--accent, #a78bfa);
+            outline-offset: 3px;
+        }
+
+        .faction-heading {
+            margin: 8px 0 4px;
+        }
+
+        .faction-intro {
+            color: var(--text-secondary, #b8b8ca);
+            line-height: 1.6;
+            margin-bottom: 4px;
+        }
+
+        .faction-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .faction-option {
+            position: relative;
+            display: block;
+            cursor: pointer;
+            border: 1px solid var(--border, #39394d);
+            border-radius: 14px;
+            padding: 16px;
+            background: var(--bg-card, #1b1b2a);
+            transition: border-color .2s, transform .2s, background .2s;
+        }
+
+        .faction-option:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent, #a78bfa);
+        }
+
+        .faction-option:has(input:checked) {
+            border: 2px solid var(--accent, #a78bfa);
+            background: var(--bg-secondary, #151521);
+            box-shadow: 0 0 18px rgba(167, 139, 250, .12);
+        }
+
+        .faction-option input {
+            width: 18px;
+            height: 18px;
+            min-height: auto;
+            accent-color: var(--accent, #a78bfa);
+            margin: 0 0 12px;
+        }
+
+        .faction-icon {
+            display: block;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .faction-name {
+            display: block;
+            font-weight: 750;
+            margin-bottom: 5px;
+        }
+
+        .faction-path {
+            display: block;
+            color: var(--accent-bright, #c4b5fd);
+            font-size: .88rem;
+            margin-bottom: 9px;
+        }
+
+        .faction-detail {
+            display: block;
+            color: var(--text-secondary, #b8b8ca);
+            font-size: .9rem;
+            line-height: 1.55;
+        }
+
+        .faction-note {
+            margin-top: 12px;
+            color: var(--text-secondary, #b8b8ca);
+            font-size: .88rem;
+            line-height: 1.6;
         }
 
         .auth-submit {
@@ -70,7 +140,7 @@
         }
 
         .auth-submit:disabled {
-            opacity: 0.65;
+            opacity: .65;
             cursor: wait;
         }
 
@@ -80,33 +150,40 @@
             overflow-wrap: anywhere;
         }
 
-        .auth-message:empty {
-            display: none;
-        }
+        .auth-message:empty { display: none; }
 
-        .auth-switch {
+        .auth-switch, .auth-home {
             margin-top: 24px;
             text-align: center;
-            color: #b8b8ca;
         }
 
-        .auth-switch a,
-        .auth-home a {
-            color: #c4b5fd;
+        .auth-switch { color: var(--text-secondary, #b8b8ca); }
+
+        .auth-switch a, .auth-home a {
+            color: var(--accent-bright, #c4b5fd);
         }
 
-        .auth-home {
-            text-align: center;
-            margin-top: 24px;
-        }
-
-        @media (max-width: 480px) {
-            .auth-card {
-                padding: 24px 20px;
+        @media (max-width: 520px) {
+            .auth-section { margin-top: 28px; }
+            .auth-card { padding: 23px 18px; }
+            .faction-grid { grid-template-columns: 1fr; }
+            .faction-option {
+                display: grid;
+                grid-template-columns: 30px 1fr;
+                column-gap: 10px;
+                align-items: start;
             }
-
-            .auth-section {
-                margin-top: 36px;
+            .faction-option input {
+                grid-column: 1;
+                grid-row: 1 / span 3;
+                margin-top: 3px;
+            }
+            .faction-icon {
+                grid-column: 2;
+                margin-bottom: 5px;
+            }
+            .faction-name, .faction-path, .faction-detail {
+                grid-column: 2;
             }
         }
     </style>
@@ -129,12 +206,11 @@
         <section class="auth-section">
             <div class="auth-card">
                 <p class="eyebrow">YOUR JOURNEY STARTS HERE</p>
-
                 <h1>Create your account</h1>
 
                 <p class="auth-description">
-                    Build your knowledge, learn from mistakes,
-                    and earn your progress one question at a time.
+                    Build your knowledge, learn from mistakes, and discover
+                    how far you can go. First, choose the path you want to follow.
                 </p>
 
                 <form id="signup-form" class="auth-form">
@@ -186,21 +262,80 @@
                         >
                     </div>
 
-                    <button
-                        type="submit"
-                        class="button button-primary auth-submit"
-                        id="signup-button"
-                    >
+                    <div>
+                        <h2 class="faction-heading">Choose your faction</h2>
+                        <p class="faction-intro">
+                            Your choice will shape your experience in Hysteria's Cure.
+                            Choose carefully; you can decide how your path develops.
+                        </p>
+                    </div>
+
+                    <div class="faction-grid" role="radiogroup"
+                         aria-label="Choose your faction">
+
+                        <label class="faction-option">
+                            <input type="radio" name="faction"
+                                   value="readers" required>
+                            <span class="faction-icon" aria-hidden="true">📚</span>
+                            <span class="faction-name">Readers</span>
+                            <span class="faction-path">Path of Knowledge</span>
+                            <span class="faction-detail">
+                                Seek understanding, explore ideas, and build knowledge
+                                one discovery at a time.
+                            </span>
+                        </label>
+
+                        <label class="faction-option">
+                            <input type="radio" name="faction"
+                                   value="gamers" required>
+                            <span class="faction-icon" aria-hidden="true">⚔️</span>
+                            <span class="faction-name">Gamers</span>
+                            <span class="faction-path">Path of Conquest</span>
+                            <span class="faction-detail">
+                                Embrace challenges, pursue mastery, and turn every
+                                test into an opportunity to advance.
+                            </span>
+                        </label>
+
+                        <label class="faction-option">
+                            <input type="radio" name="faction"
+                                   value="movie-lovers" required>
+                            <span class="faction-icon" aria-hidden="true">🎬</span>
+                            <span class="faction-name">Movie Lovers</span>
+                            <span class="faction-path">Path of Discovery</span>
+                            <span class="faction-detail">
+                                Follow curiosity, uncover connections, and discover
+                                new ways to understand the world.
+                            </span>
+                        </label>
+
+                        <label class="faction-option">
+                            <input type="radio" name="faction"
+                                   value="independent" required>
+                            <span class="faction-icon" aria-hidden="true">✦</span>
+                            <span class="faction-name">Independent</span>
+                            <span class="faction-path">Forge Your Own Path</span>
+                            <span class="faction-detail">
+                                Walk alone toward Hell-Mastery and work toward
+                                building a faction of your own.
+                            </span>
+                        </label>
+                    </div>
+
+                    <p class="faction-note">
+                        You may choose to remain independent instead of joining
+                        one of the three factions.
+                    </p>
+
+                    <button type="submit"
+                            class="button button-primary auth-submit"
+                            id="signup-button">
                         Create Account
                     </button>
                 </form>
 
-                <p
-                    id="signup-message"
-                    class="auth-message"
-                    role="status"
-                    aria-live="polite"
-                ></p>
+                <p id="signup-message" class="auth-message"
+                   role="status" aria-live="polite"></p>
 
                 <p class="auth-switch">
                     Already have an account?
@@ -216,12 +351,13 @@
 
     <footer class="site-footer">
         <p>Failure is the disease. Learning is the cure.</p>
-
-        <p>
-            &copy; <span id="current-year">2026</span>
-            Hysteria's Cure.
-        </p>
+        <p>&copy; <span id="current-year">2026</span> Hysteria's Cure.</p>
     </footer>
+
+    <script>
+        document.getElementById("current-year").textContent =
+            new Date().getFullYear();
+    </script>
 
     <script type="module" src="js/signup.js"></script>
 </body>
