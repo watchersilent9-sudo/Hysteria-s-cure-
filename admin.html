@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#171525">
+  <title>Admin Panel | Hysteria's Cure</title>
+
+  <link rel="stylesheet" href="css/faction-themes.css">
+
+  <style>
+    :root {
+      color-scheme: dark;
+      --background: var(--bg-primary, #11101b);
+      --panel: var(--bg-card, #1c1a2b);
+      --border: var(--faction-border, #353148);
+      --text: var(--text-primary, #f7f4ff);
+      --muted: var(--text-secondary, #b7b1ca);
+      --accent: var(--accent-bright, #c6a7ff);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--background);
+      color: var(--text);
+      font-family: system-ui, sans-serif;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding: 18px 6%;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-secondary, var(--background));
+    }
+
+    .brand {
+      font-weight: 800;
+      font-size: 1.05rem;
+    }
+
+    .brand span {
+      color: var(--accent);
+    }
+
+    button, .action {
+      border: 0;
+      border-radius: 10px;
+      padding: 12px 16px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    button {
+      background: var(--bg-secondary, #38334d);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .action {
+      background: var(--accent-dark, var(--accent));
+      color: #fff;
+    }
+
+    .action:hover {
+      background: var(--accent);
+      color: var(--bg-primary, #11101b);
+    }
+
+    main {
+      width: min(calc(100% - 32px), 900px);
+      margin: 42px auto;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    h1, h2 {
+      margin-top: 0;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      font-weight: 700;
+      margin-bottom: 6px;
+      font-size: 0.9rem;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      background: var(--background);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font: inherit;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    #page-message {
+      padding: 14px;
+      border-radius: 10px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      margin-bottom: 20px;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="brand">HYSTERIA'S <span>CURE</span> — <span>ADMIN</span></div>
+    <div>
+      <a class="action" href="student-dashboard.html" style="padding: 8px 14px; font-size: 0.85rem; margin-right: 10px;">Dashboard</a>
+      <button id="logout-button" type="button">Log out</button>
+    </div>
+  </header>
+
+  <main>
+    <p id="page-message" role="status" aria-live="polite">
+      Verifying administrator access...
+    </p>
+
+    <div id="admin-content" hidden>
+      <section class="panel">
+        <h2>Add New Question</h2>
+        <p class="muted">Expand the global question repository securely.</p>
+        
+        <form id="add-question-form">
+          <div class="form-group">
+            <label for="q-id">Question ID (e.g. math_001)</label>
+            <input type="text" id="q-id" required placeholder="Unique alphanumeric identifier">
+          </div>
+
+          <div class="form-group">
+            <label for="q-subject">Subject</label>
+            <input type="text" id="q-subject" required placeholder="e.g. Mathematics, History">
+          </div>
+
+          <div class="form-group">
+            <label for="q-topic">Topic</label>
+            <input type="text" id="q-topic" required placeholder="e.g. Algebra, World War II">
+          </div>
+
+          <div class="form-group">
+            <label for="q-difficulty">Difficulty (1 to 7)</label>
+            <input type="number" id="q-difficulty" min="1" max="7" value="1" required>
+          </div>
+
+          <div class="form-group">
+            <label for="q-text">Question Text</label>
+            <textarea id="q-text" required placeholder="Type the question here..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Options (Provide at least 2, up to 4)</label>
+            <input type="text" class="q-option" placeholder="Option A" required style="margin-bottom: 8px;">
+            <input type="text" class="q-option" placeholder="Option B" required style="margin-bottom: 8px;">
+            <input type="text" class="q-option" placeholder="Option C" style="margin-bottom: 8px;">
+            <input type="text" class="q-option" placeholder="Option D">
+          </div>
+
+          <div class="form-group">
+            <label for="q-answer-index">Correct Answer Index (0 for Option A, 1 for Option B, etc.)</label>
+            <input type="number" id="q-answer-index" min="0" max="3" value="0" required>
+          </div>
+
+          <div class="form-group">
+            <label for="q-explanation">Explanation (Optional)</label>
+            <textarea id="q-explanation" placeholder="Explain why the correct answer is right..."></textarea>
+          </div>
+
+          <button type="submit" class="action">Publish Question to Database</button>
+        </form>
+      </section>
+    </div>
+  </main>
+
+  <script type="module">
+    import { auth, database } from "./js/firebase-client.js";
+    import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
+    import { ref, set } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-database.js";
+
+    const ADMIN_UID = "RtaLjBtKSUgRnWB7ag06CLRCStM2";
+
+    const pageMessage = document.getElementById("page-message");
+    const adminContent = document.getElementById("admin-content");
+    const logoutButton = document.getElementById("logout-button");
+    const addForm = document.getElementById("add-question-form");
+
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        window.location.replace("login.html");
+        return;
+      }
+
+      if (user.uid !== ADMIN_UID) {
+        pageMessage.textContent = "Access denied. Administrator privileges required.";
+        pageMessage.style.borderColor = "#ff5555";
+        return;
+      }
+
+      pageMessage.hidden = true;
+      adminContent.hidden = false;
+    });
+
+    addForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const id = document.getElementById("q-id").value.trim();
+      const subject = document.getElementById("q-subject").value.trim();
+      const topic = document.getElementById("q-topic").value.trim();
+      const difficulty = Number(document.getElementById("q-difficulty").value);
+      const questionText = document.getElementById("q-text").value.trim();
+      
+      const optionInputs = document.querySelectorAll(".q-option");
+      const options = Array.from(optionInputs)
+        .map(input => input.value.trim())
+        .filter(val => val !== "");
+
+      const answerIndex = Number(document.getElementById("q-answer-index").value);
+      const explanation = document.getElementById("q-explanation").value.trim();
+
+      if (answerIndex >= options.length) {
+        alert("Correct answer index points to an empty option!");
+        return;
+      }
+
+      try {
+        const questionRef = ref(database, `questionBank/${id}`);
+        await set(questionRef, {
+          id,
+          subject,
+          topic,
+          difficulty,
+          question: questionText,
+          options,
+          answerIndex,
+          explanation,
+          verified: true,
+          createdAt: new Date().toISOString()
+        });
+
+        alert("Question successfully published to the Firebase question bank!");
+        addForm.reset();
+      } catch (error) {
+        console.error("Failed to add question:", error);
+        alert("Error publishing question. Check console for details.");
+      }
+    });
+
+    logoutButton.addEventListener("click", async () => {
+      await signOut(auth);
+      window.location.replace("login.html");
+    });
+  </script>
+</body>
+</html>
