@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#171525">
+  <title>Exam Mode | Hysteria's Cure</title>
+
+  <link rel="stylesheet" href="css/faction-themes.css">
+
+  <style>
+    :root {
+      color-scheme: dark;
+      --background: var(--bg-primary, #11101b);
+      --panel: var(--bg-card, #1c1a2b);
+      --border: var(--faction-border, #353148);
+      --text: var(--text-primary, #f7f4ff);
+      --muted: var(--text-secondary, #b7b1ca);
+      --accent: var(--accent-bright, #c6a7ff);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--background);
+      color: var(--text);
+      font-family: system-ui, sans-serif;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding: 18px 6%;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-secondary, var(--background));
+    }
+
+    .brand {
+      font-weight: 800;
+      font-size: 1.05rem;
+    }
+
+    .brand span {
+      color: var(--accent);
+    }
+
+    button, .action {
+      border: 0;
+      border-radius: 10px;
+      padding: 12px 16px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    button {
+      background: var(--bg-secondary, #38334d);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .action {
+      background: var(--accent-dark, var(--accent));
+      color: #fff;
+    }
+
+    .action:hover {
+      background: var(--accent);
+      color: var(--bg-primary, #11101b);
+    }
+
+    main {
+      width: min(calc(100% - 32px), 900px);
+      margin: 42px auto;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    h1, h2, h3 {
+      margin-top: 0;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      font-weight: 700;
+      margin-bottom: 6px;
+      font-size: 0.9rem;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      background: var(--background);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font: inherit;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .exam-header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 24px;
+      position: sticky;
+      top: 16px;
+      z-index: 10;
+    }
+
+    .timer {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: var(--accent);
+    }
+
+    .question-options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .question-option {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--background);
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+    }
+
+    .question-option input {
+      width: auto;
+    }
+
+    #page-message {
+      padding: 14px;
+      border-radius: 10px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      margin-bottom: 20px;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="brand">HYSTERIA'S <span>CURE</span> — <span>EXAM MODE</span></div>
+    <div>
+      <a class="action" href="student-dashboard.html" style="padding: 8px 14px; font-size: 0.85rem; margin-right: 10px;">Dashboard</a>
+      <button id="logout-button" type="button">Log out</button>
+    </div>
+  </header>
+
+  <main>
+    <p id="page-message" role="status" aria-live="polite">
+      Checking authentication...
+    </p>
+
+    <!-- SETUP VIEW -->
+    <section id="exam-setup" class="panel" hidden>
+      <h2>Configure Examination</h2>
+      <p class="muted">Test your knowledge under time constraints. No instant feedback until submission.</p>
+      
+      <div class="form-group">
+        <label for="exam-subject">Subject (Leave blank for all)</label>
+        <input type="text" id="exam-subject" placeholder="e.g. Mathematics, Science">
+      </div>
+
+      <div class="form-group">
+        <label for="exam-count">Number of Questions</label>
+        <select id="exam-count">
+          <option value="5">5 Questions</option>
+          <option value="10" selected>10 Questions</option>
+          <option value="15">15 Questions</option>
+          <option value="20">20 Questions</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="exam-duration">Duration</label>
+        <select id="exam-duration">
+          <option value="3">3 Minutes (Fast)</option>
+          <option value="5" selected>5 Minutes</option>
+          <option value="10">10 Minutes</option>
+          <option value="15">15 Minutes</option>
+        </select>
+      </div>
+
+      <button id="start-exam-btn" class="action">Begin Examination</button>
+    </section>
+
+    <!-- ACTIVE EXAM VIEW -->
+    <div id="exam-active" hidden>
+      <div class="exam-header-bar">
+        <div>
+          <h3 style="margin: 0;">Timed Examination in Progress</h3>
+          <p class="muted" style="margin: 0; font-size: 0.8rem;">Answer all questions before time runs out.</p>
+        </div>
+        <div id="timer-display" class="timer">05:00</div>
+      </div>
+
+      <div id="exam-questions-container"></div>
+
+      <button id="submit-exam-btn" class="action" style="width: 100%; margin-top: 20px; padding: 16px; font-size: 1.1rem;">Submit Exam</button>
+    </div>
+
+    <!-- RESULTS VIEW -->
+    <section id="exam-results" class="panel" hidden>
+      <h2>Examination Complete</h2>
+      <div id="results-summary"></div>
+      <div style="display: flex; gap: 12px; margin-top: 20px;">
+        <button id="retake-exam-btn" class="action">Take Another Exam</button>
+        <a href="student-dashboard.html" class="action" style="background: var(--bg-secondary); text-align: center;">Return to Dashboard</a>
+      </div>
+    </section>
+  </main>
+
+  <script type="module">
+    import { auth, database } from "./js/firebase-client.js";
+    import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
+    import { ref, set } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-database.js";
+    import { selectPracticeSetAsync } from "./js/question-selector.js";
+
+    const pageMessage = document.getElementById("page-message");
+    const examSetup = document.getElementById("exam-setup");
+    const examActive = document.getElementById("exam-active");
+    const examResults = document.getElementById("exam-results");
+    const logoutButton = document.getElementById("logout-button");
+
+    const startExamBtn = document.getElementById("start-exam-btn");
+    const submitExamBtn = document.getElementById("submit-exam-btn");
+    const retakeExamBtn = document.getElementById("retake-exam-btn");
+    const questionsContainer = document.getElementById("exam-questions-container");
+    const timerDisplay = document.getElementById("timer-display");
+
+    let currentExamQuestions = [];
+    let userAnswers = {};
+    let timerInterval = null;
+    let timeLeftSeconds = 300;
+
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        window.location.replace("login.html");
+        return;
+      }
+      pageMessage.hidden = true;
+      examSetup.hidden = false;
+    });
+
+    startExamBtn.addEventListener("click", async () => {
+      const subject = document.getElementById("exam-subject").value.trim();
+      const count = Number(document.getElementById("exam-count").value);
+      const minutes = Number(document.getElementById("exam-duration").value);
+
+      startExamBtn.disabled = true;
+      startExamBtn.textContent = "Loading exam set...";
+
+      try {
+        currentExamQuestions = await selectPracticeSetAsync({
+          subject,
+          topic: "",
+          minDifficulty: 1,
+          maxDifficulty: 7,
+          count,
+          strategy: "random"
+        });
+
+        if (!currentExamQuestions.length) {
+          alert("No questions found matching your criteria. Try leaving subject blank.");
+          startExamBtn.disabled = false;
+          startExamBtn.textContent = "Begin Examination";
+          return;
+        }
+
+        userAnswers = {};
+        renderExamQuestions();
+
+        examSetup.hidden = true;
+        examActive.hidden = false;
+
+        timeLeftSeconds = minutes * 60;
+        startTimer();
+      } catch (error) {
+        console.error("Failed to start exam:", error);
+        alert("Could not load exam questions.");
+        startExamBtn.disabled = false;
+        startExamBtn.textContent = "Begin Examination";
+      }
+    });
+
+    function renderExamQuestions() {
+      questionsContainer.replaceChildren();
+
+      currentExamQuestions.forEach((q, index) => {
+        const card = document.createElement("section");
+        card.className = "panel";
+
+        const title = document.createElement("h3");
+        title.textContent = `${index + 1}. ${q.question}`;
+        card.appendChild(title);
+
+        const optionsDiv = document.createElement("div");
+        optionsDiv.className = "question-options";
+
+        q.options.forEach((opt, optIdx) => {
+          const label = document.createElement("label");
+          label.className = "question-option";
+
+          const radio = document.createElement("input");
+          radio.type = "radio";
+          radio.name = `exam-q-${index}`;
+          radio.value = String(optIdx);
+
+          radio.addEventListener("change", () => {
+            userAnswers[index] = optIdx;
+          });
+
+          label.append(radio, document.createTextNode(` ${opt}`));
+          optionsDiv.appendChild(label);
+        });
+
+        card.appendChild(optionsDiv);
+        questionsContainer.appendChild(card);
+      });
+    }
+
+    function startTimer() {
+      clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        timeLeftSeconds--;
+        const mins = Math.floor(timeLeftSeconds / 60);
+        const secs = timeLeftSeconds % 60;
+        timerDisplay.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+
+        if (timeLeftSeconds <= 0) {
+          clearInterval(timerInterval);
+          alert("Time is up! Submitting your exam automatically.");
+          submitExam();
+        }
+      }, 1000);
+    }
+
+    async function submitExam() {
+      clearInterval(timerInterval);
+
+      let correctCount = 0;
+      const total = currentExamQuestions.length;
+
+      currentExamQuestions.forEach((q, index) => {
+        if (userAnswers[index] === q.answerIndex) {
+          correctCount++;
+        }
+      });
+
+      const accuracy = total > 0 ? Math.round((correctCount / total) * 100) : 0;
+
+      // Save to Firebase
+      const user = auth.currentUser;
+      if (user) {
+        const examId = `exam_${Date.now()}`;
+        const examRef = ref(database, `users/${user.uid}/exams/${examId}`);
+        await set(examRef, {
+          totalQuestions: total,
+          correctAnswers: correctCount,
+          accuracy,
+          submittedAt: new Date().toISOString()
+        }).catch(err => console.error("Failed to save exam result:", err));
+      }
+
+      // Display results view
+      const summary = document.getElementById("results-summary");
+      summary.innerHTML = `
+        <p><strong>Score:</strong> ${correctCount} / ${total}</p>
+        <p><strong>Accuracy:</strong> ${accuracy}%</p>
+        <p class="muted">${accuracy >= 70 ? "Fantastic performance! You passed the examination." : "Keep studying and review your mistake bank to improve."}</p>
+      `;
+
+      examActive.hidden = true;
+      examResults.hidden = false;
+    }
+
+    submitExamBtn.addEventListener("click", () => {
+      if (confirm("Are you sure you want to submit your exam?")) {
+        submitExam();
+      }
+    });
+
+    retakeExamBtn.addEventListener("click", () => {
+      examResults.hidden = true;
+      examSetup.hidden = false;
+      startExamBtn.disabled = false;
+      startExamBtn.textContent = "Begin Examination";
+    });
+
+    logoutButton.addEventListener("click", async () => {
+      await signOut(auth);
+      window.location.replace("login.html");
+    });
+  </script>
+  <script type="module" src="js/faction-theme.js"></script>
+</body>
+</html>
