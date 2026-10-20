@@ -7,15 +7,17 @@
   <meta name="theme-color" content="#171525">
   <title>Student Dashboard | Hysteria's Cure</title>
 
+  <link rel="stylesheet" href="css/faction-themes.css">
+
   <style>
     :root {
       color-scheme: dark;
-      --background: #11101b;
-      --panel: #1c1a2b;
-      --border: #353148;
-      --text: #f7f4ff;
-      --muted: #b7b1ca;
-      --accent: #c6a7ff;
+      --background: var(--bg-primary, #11101b);
+      --panel: var(--bg-card, #1c1a2b);
+      --border: var(--faction-border, #353148);
+      --text: var(--text-primary, #f7f4ff);
+      --muted: var(--text-secondary, #b7b1ca);
+      --accent: var(--accent-bright, #c6a7ff);
     }
 
     * {
@@ -28,6 +30,7 @@
       background: var(--background);
       color: var(--text);
       font-family: system-ui, sans-serif;
+      transition: background-color 0.25s ease, color 0.25s ease;
     }
 
     header {
@@ -37,6 +40,7 @@
       gap: 16px;
       padding: 18px 6%;
       border-bottom: 1px solid var(--border);
+      background: var(--bg-secondary, var(--background));
     }
 
     .brand {
@@ -48,7 +52,8 @@
       color: var(--accent);
     }
 
-    button, .action {
+    button,
+    .action {
       border: 0;
       border-radius: 10px;
       padding: 12px 16px;
@@ -57,16 +62,23 @@
       cursor: pointer;
       text-decoration: none;
       display: inline-block;
+      transition: background-color 0.2s ease, color 0.2s ease;
     }
 
     button {
-      background: #38334d;
+      background: var(--bg-secondary, #38334d);
       color: var(--text);
+      border: 1px solid var(--border);
     }
 
     .action {
+      background: var(--accent-dark, var(--accent));
+      color: #fff;
+    }
+
+    .action:hover {
       background: var(--accent);
-      color: #1b1428;
+      color: var(--bg-primary, #11101b);
     }
 
     button:disabled {
@@ -75,7 +87,7 @@
     }
 
     main {
-      width: min(100% - 32px, 1000px);
+      width: min(calc(100% - 32px), 1000px);
       margin: 42px auto;
     }
 
@@ -115,6 +127,7 @@
       border: 1px solid var(--border);
       border-radius: 16px;
       padding: 22px;
+      transition: background-color 0.25s ease, border-color 0.25s ease;
     }
 
     .card h2 {
@@ -137,6 +150,7 @@
       padding: 14px;
       border-radius: 10px;
       background: var(--panel);
+      border: 1px solid var(--border);
     }
 
     footer {
@@ -148,6 +162,14 @@
 
     [hidden] {
       display: none !important;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        transition: none !important;
+      }
     }
   </style>
 </head>
@@ -185,9 +207,7 @@
             Choose a subject and topic, practise questions,
             and learn from explanations.
           </p>
-          <a class="action" href="practice.html">
-            Start practising
-          </a>
+          <a class="action" href="practice.html">Start practising</a>
         </article>
 
         <article class="card">
@@ -286,5 +306,7 @@
       }
     });
   </script>
+
+  <script type="module" src="js/faction-theme.js"></script>
 </body>
 </html>
