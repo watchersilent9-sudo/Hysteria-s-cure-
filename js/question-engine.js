@@ -116,6 +116,16 @@ function resetSession() {
   incorrectQuestions = [];
 }
 
+// Simple helper for unique string hashing if question has no ID
+function hashCode(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash << 5) - hash + str.charCodeAt(i);
+    hash |= 0;
+  }
+  return hash;
+}
+
 async function saveProgressToFirebase() {
   const user = auth.currentUser;
   if (!user) {
@@ -161,7 +171,25 @@ async function saveProgressToFirebase() {
       lastActive: new Date().toISOString()
     });
 
-    console.log("Progress successfully saved to Firebase!");
+    // Save incorrect questions to Firebase mistakes bank
+    if (incorrectQuestions.length > 0) {
+      for (const q of incorrectQuestions) {
+        const mistakeKey = `q_${q.id || Math.abs(hashCode(q.question))}`;
+        const singleMistakeRef = ref(database, `users/${user.uid}/mistakes/${mistakeKey}`);
+        
+        await set(singleMistakeRef, {
+          questionId: q.id || "unknown",
+          questionText: q.question,
+          subject: q.subject,
+          topic: q.topic,
+          correctAnswer: q.options[q.answerIndex],
+          explanation: q.explanation || "",
+          failedAt: new Date().toISOString()
+        });
+      }
+    }
+
+    console.log("Progress and mistakes successfully saved to Firebase!");
     return true;
   } catch (error) {
     console.error("Failed to save progress to Firebase:", error);
@@ -177,7 +205,7 @@ async function finishSession() {
     ? Math.round((correctAnswers / questionsAnswered) * 100)
     : 0;
 
-  // Save session data to Firebase if a user is logged in
+  // Save session data and mistakes to Firebase if a user is logged in
   const saved = await saveProgressToFirebase();
 
   results.replaceChildren();
@@ -185,9 +213,9 @@ async function finishSession() {
   results.appendChild(
     createElement("h2", "", "Practice session complete")
   );
-  
+
   if (saved) {
-    results.appendChild(createElement("p", "success-msg", "✓ Progress saved to your account."));
+    results.appendChild(createElement("p", "success-msg", "✓ Progress and mistakes saved to your account."));
   } else {
     results.appendChild(createElement("p", "warning-msg", "⚠ Session not saved (Guest mode or network issue)."));
   }
@@ -205,261 +233,4 @@ async function finishSession() {
     createElement("p", "", `Session points: ${sessionPoints}`)
   );
 
-  let message = "Keep practising. Every attempt helps you improve.";
-
-  if (accuracy === 100 && questionsAnswered > 0) {
-    message = "Perfect session! Excellent work.";
-  } else if (accuracy >= 80) {
-    message = "Great work! Keep building on this progress.";
-  } else if (accuracy >= 50) {
-    message = "Good effort. Review your mistakes and try again.";
-  }
-
-  results.appendChild(createElement("p", "", message));
-
-  if (!incorrectQuestions.length) {
-    results.appendChild(
-      createElement(
-        "p",
-        "",
-        "Excellent! No incorrect answers to review."
-      )
-    );
-  } else {
-    results.appendChild(
-      createElement("h3", "", "Review your incorrect answers")
-    );
-
-    incorrectQuestions.forEach((question, index) => {
-      const card = createElement("section", "panel");
-
-      card.appendChild(
-        createElement(
-          "h4",
-          "",
-          `${index + 1}. ${question.question}`
-        )
-      );
-
-      card.appendChild(
-        createElement(
-          "p",
-          "",
-          `Correct answer: ${question.options[question.answerIndex]}`
-        )
-      );
-
-      if (question.explanation) {
-        card.appendChild(
-          createElement(
-            "p",
-            "",
-            `Explanation: ${question.explanation}`
-          )
-        );
-      }
-
-      results.appendChild(card);
-    });
-  }
-
-  showMessage("Session finished. Your results are ready to review.");
-}
-
-function renderQuestions(questions) {
-  document.getElementById("question-results")?.remove();
-
-  const results = createElement("div", "");
-  results.id = "question-results";
-
-  const finishButton = createElement(
-    "button",
-    "finish-session",
-    "Finish practice session"
-  );
-
-  finishButton.type = "button";
-  finishButton.disabled = true;
-  finishButton.addEventListener("click", finishSession);
-
-  results.appendChild(
-    createElement("h2", "", "Your practice questions")
-  );
-
-  results.appendChild(
-    createElement(
-      "p",
-      "",
-      `Loaded ${questions.length} question(s). Answer all of them to finish.`
-    )
-  );
-
-  questions.forEach((question, index) => {
-    const card = createElement("section", "panel");
-
-    card.appendChild(
-      createElement(
-        "h3",
-        "",
-        `${index + 1}. ${question.question}`
-      )
-    );
-
-    card.appendChild(
-      createElement(
-        "p",
-        "",
-        `Subject: ${question.subject} | Topic: ${question.topic}`
-      )
-    );
-
-    card.appendChild(
-      createElement(
-        "p",
-        "",
-        `Difficulty: ${question.difficulty} star(s)`
-      )
-    );
-
-    const optionsContainer = createElement("div", "question-options");
-    const optionInputs = [];
-
-    question.options.forEach((option, optionIndex) => {
-      const label = createElement("label", "question-option");
-      const input = document.createElement("input");
-
-      input.type = "radio";
-      input.name = `question-${index}`;
-      input.value = String(optionIndex);
-
-      label.append(input, document.createTextNode(` ${option}`));
-      optionsContainer.appendChild(label);
-      optionInputs.push(input);
-    });
-
-    const checkButton = createElement(
-      "button",
-      "check-answer",
-      "Check answer"
-    );
-
-    checkButton.type = "button";
-
-    const feedback = createElement("p", "question-feedback");
-    feedback.setAttribute("aria-live", "polite");
-
-    checkButton.addEventListener("click", () => {
-      if (answeredQuestions.has(question.id)) return;
-
-      const chosenInput = optionInputs.find(input => input.checked);
-
-      if (!chosenInput) {
-        feedback.textContent = "Choose an answer first.";
-        return;
-      }
-
-      const chosenAnswer = Number(chosenInput.value);
-      const isCorrect = chosenAnswer === question.answerIndex;
-
-      questionsAnswered++;
-      answeredQuestions.add(question.id);
-
-      optionInputs.forEach(input => {
-        input.disabled = true;
-      });
-
-      checkButton.disabled = true;
-
-      if (isCorrect) {
-        correctAnswers++;
-
-        const earned = rewardPoints[question.difficulty] || 0;
-        sessionPoints += earned;
-
-        feedback.textContent = `Correct! You earned ${earned} points.`;
-      } else {
-        sessionPoints = Math.max(0, sessionPoints - 2);
-        incorrectQuestions.push(question);
-
-        feedback.textContent =
-          `Not quite. The correct answer is: ` +
-          `${question.options[question.answerIndex]}.`;
-      }
-
-      if (question.explanation) {
-        feedback.textContent += ` ${question.explanation}`;
-      }
-
-      if (questionsAnswered === currentQuestions.length) {
-        finishButton.disabled = false;
-
-        showMessage(
-          "All questions answered. You can finish your session."
-        );
-      } else {
-        showMessage(
-          `${questionsAnswered} of ${currentQuestions.length} questions answered.`
-        );
-      }
-    });
-
-    card.append(optionsContainer, checkButton, feedback);
-    results.appendChild(card);
-  });
-
-  finishButton.disabled = questions.length === 0;
-
-  results.appendChild(finishButton);
-  findButton?.insertAdjacentElement("afterend", results);
-}
-
-async function findQuestions() {
-  if (loadingQuestions) return;
-
-  loadingQuestions = true;
-
-  if (findButton) findButton.disabled = true;
-
-  showMessage("Loading questions from the catalogue and Firebase...");
-
-  try {
-    resetSession();
-
-    currentQuestions = await selectPracticeSetAsync({
-      subject: subjectSearch?.value.trim() || "",
-      topic: topicSearch?.value.trim() || "",
-      minDifficulty: selectedDifficulty,
-      maxDifficulty: selectedDifficulty,
-      count: Number(questionCountSelect?.value || 10),
-      strategy: practiceStrategy?.value || "random"
-    });
-
-    if (!currentQuestions.length) {
-      document.getElementById("question-results")?.remove();
-
-      showMessage(
-        "No questions match these filters yet. Try another subject, topic, or difficulty."
-      );
-
-      return;
-    }
-
-    renderQuestions(currentQuestions);
-
-    showMessage(`${currentQuestions.length} question(s) loaded.`);
-  } catch (error) {
-    console.error("Question loading failed:", error);
-
-    showMessage(
-      error.message || "Could not load questions. Please try again."
-    );
-  } finally {
-    loadingQuestions = false;
-
-    if (findButton) findButton.disabled = false;
-  }
-}
-
-findButton?.addEventListener("click", findQuestions);
-
-updateCatalogueStatus();
+  let message = "
