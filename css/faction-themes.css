@@ -1,166 +1,102 @@
 
-/* Hysteria's Cure — Faction Theme Engine */
+/* Hysteria's Cure — Faction Themes */
 
 /* Default theme */
 :root {
-    color-scheme: dark;
-
     --bg-primary: #0e0e16;
     --bg-secondary: #151521;
     --bg-card: #1b1b2a;
-
     --text-primary: #f4f2ff;
     --text-secondary: #aaa9c0;
-
     --accent: #a78bfa;
     --accent-bright: #c4b5fd;
     --accent-dark: #7c3aed;
-
     --border: rgba(255, 255, 255, 0.09);
-    --faction-border: rgba(255, 255, 255, 0.09);
-    --faction-glow: rgba(167, 139, 250, 0.08);
-    --faction-gradient: linear-gradient(135deg, #151521, #1b1b2a);
 }
 
 /* Readers */
 :root[data-faction="readers"] {
-    --bg-primary: #100d1c;
-    --bg-secondary: #19142a;
-    --bg-card: #211b35;
-
-    --text-primary: #f5f0ff;
-    --text-secondary: #bcb1d6;
-
-    --accent: #a78bfa;
-    --accent-bright: #c4b5fd;
-    --accent-dark: #7c3aed;
-
-    --border: rgba(196, 181, 253, 0.16);
-    --faction-border: rgba(196, 181, 253, 0.16);
-    --faction-glow: rgba(167, 139, 250, 0.12);
-    --faction-gradient: linear-gradient(135deg, #19142a, #211b35);
+    --bg-primary: #101711;
+    --bg-secondary: #17231a;
+    --bg-card: #1d2c21;
+    --text-primary: #f0f8ef;
+    --text-secondary: #b4c9b3;
+    --accent: #83c995;
+    --accent-bright: #b0e5b9;
+    --accent-dark: #347a4a;
+    --border: rgba(131, 201, 149, 0.2);
 }
 
 /* Gamers */
 :root[data-faction="gamers"] {
-    --bg-primary: #170e12;
-    --bg-secondary: #241319;
-    --bg-card: #301921;
-
-    --text-primary: #fff2f2;
-    --text-secondary: #d0adb5;
-
-    --accent: #f06464;
-    --accent-bright: #ff9494;
-    --accent-dark: #c83245;
-
-    --border: rgba(255, 125, 140, 0.17);
-    --faction-border: rgba(255, 125, 140, 0.17);
-    --faction-glow: rgba(240, 100, 100, 0.11);
-    --faction-gradient: linear-gradient(135deg, #241319, #301921);
+    --bg-primary: #160e12;
+    --bg-secondary: #24131d;
+    --bg-card: #301927;
+    --text-primary: #fff1f5;
+    --text-secondary: #d1aeba;
+    --accent: #f078a0;
+    --accent-bright: #ffb0c8;
+    --accent-dark: #a92f5b;
+    --border: rgba(240, 120, 160, 0.22);
 }
 
 /* Movie Lovers */
 :root[data-faction="movie-lovers"] {
-    --bg-primary: #0b131b;
-    --bg-secondary: #111e2a;
-    --bg-card: #192938;
-
-    --text-primary: #eff8ff;
-    --text-secondary: #a9c1d4;
-
-    --accent: #62b6e8;
-    --accent-bright: #9cdbff;
-    --accent-dark: #287cb5;
-
-    --border: rgba(125, 200, 255, 0.16);
-    --faction-border: rgba(125, 200, 255, 0.16);
-    --faction-glow: rgba(98, 182, 232, 0.11);
-    --faction-gradient: linear-gradient(135deg, #111e2a, #192938);
+    --bg-primary: #10131c;
+    --bg-secondary: #191f2d;
+    --bg-card: #222b3c;
+    --text-primary: #f1f5ff;
+    --text-secondary: #b4c1d8;
+    --accent: #78baff;
+    --accent-bright: #b1d9ff;
+    --accent-dark: #326cb4;
+    --border: rgba(120, 186, 255, 0.22);
 }
 
 /* Independent */
 :root[data-faction="independent"] {
-    --bg-primary: #101112;
-    --bg-secondary: #191a1c;
-    --bg-card: #222427;
-
-    --text-primary: #f5f5f5;
-    --text-secondary: #b4b6ba;
-
-    --accent: #c3c8ce;
-    --accent-bright: #f0f2f4;
-    --accent-dark: #858c95;
-
-    --border: rgba(220, 225, 230, 0.15);
-    --faction-border: rgba(220, 225, 230, 0.15);
-    --faction-glow: rgba(200, 205, 215, 0.07);
-    --faction-gradient: linear-gradient(135deg, #191a1c, #222427);
+    --bg-primary: #15120e;
+    --bg-secondary: #211b14;
+    --bg-card: #2c2419;
+    --text-primary: #fff8ec;
+    --text-secondary: #d0c0a5;
+    --accent: #d6ad68;
+    --accent-bright: #f1d49d;
+    --accent-dark: #936b31;
+    --border: rgba(214, 173, 104, 0.22);
 }
 
-/* Shared appearance */
+/* Apply theme variables consistently */
 body {
-    background-color: var(--bg-primary);
+    background: var(--bg-primary);
     color: var(--text-primary);
-    transition:
-        background-color 0.25s ease,
-        color 0.25s ease;
+}
+
+.site-header,
+.site-footer {
+    background: var(--bg-primary);
+    border-color: var(--border);
 }
 
 .auth-card,
-.card,
 .feature-card,
-.question-card,
-.dashboard-card {
-    background-color: var(--bg-card);
-    border-color: var(--faction-border);
-    color: var(--text-primary);
-}
-
-.site-header {
+.level-card,
+.visual-card {
     background-color: var(--bg-secondary);
-    border-color: var(--faction-border);
+    border-color: var(--border);
 }
 
 .button-primary {
-    background-color: var(--accent-dark);
-    border-color: var(--accent-dark);
-    color: #fff;
-}
-
-.button-primary:hover {
-    background-color: var(--accent);
-    border-color: var(--accent);
-}
-
-a:hover {
-    color: var(--accent-bright);
-}
-
-input:focus,
-select:focus,
-textarea:focus {
-    outline-color: var(--accent);
-}
-
-::selection {
-    background-color: var(--accent);
+    background: var(--accent);
     color: var(--bg-primary);
 }
 
-/* Optional faction-themed sections */
-.faction-atmosphere {
-    background: var(--faction-gradient);
-    box-shadow: 0 0 35px var(--faction-glow);
-    border: 1px solid var(--faction-border);
-    border-radius: 16px;
+.button-primary:hover {
+    background: var(--accent-bright);
 }
 
-/* Accessibility */
-@media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-        transition: none !important;
-    }
+a:focus-visible,
+button:focus-visible,
+input:focus-visible {
+    outline-color: var(--accent-bright);
 }
