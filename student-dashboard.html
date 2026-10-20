@@ -119,6 +119,7 @@
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
       gap: 18px;
+      margin-bottom: 40px;
     }
 
     .card {
@@ -150,6 +151,30 @@
       color: var(--accent);
       font-size: 0.85rem;
       font-weight: 700;
+    }
+
+    .mistakes-section {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      margin-top: 24px;
+    }
+
+    .mistakes-section h2 {
+      margin-top: 0;
+    }
+
+    .mistake-card {
+      background: var(--background);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 12px;
+    }
+
+    .mistake-card h4 {
+      margin: 0 0 8px 0;
     }
 
     #page-message {
@@ -257,6 +282,15 @@
           <span class="coming-soon">Coming soon</span>
         </article>
       </div>
+
+      <!-- Mistake Bank Section -->
+      <section class="mistakes-section">
+        <h2>Your Mistake Bank</h2>
+        <p class="muted">Review questions you missed during practice so you can turn failure into your cure.</p>
+        <div id="mistakes-container">
+          <p class="muted">Loading your mistakes...</p>
+        </div>
+      </section>
     </section>
   </main>
 
@@ -282,6 +316,7 @@
     const statAccuracy = document.getElementById("stat-accuracy");
     const statXp = document.getElementById("stat-xp");
     const statPoints = document.getElementById("stat-points");
+    const mistakesContainer = document.getElementById("mistakes-container");
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
@@ -294,13 +329,13 @@
 
       studentName.textContent = displayName;
 
-      // Fetch student progress from Firebase
+      // Fetch student progress and mistakes from Firebase
       try {
         const progressRef = ref(database, `users/${user.uid}/progress`);
-        const snapshot = await get(progressRef);
+        const progressSnapshot = await get(progressRef);
 
-        if (snapshot.exists()) {
-          const data = snapshot.val();
+        if (progressSnapshot.exists()) {
+          const data = progressSnapshot.val();
           const answered = Number(data.totalAnswered || 0);
           const correct = Number(data.totalCorrect || 0);
           const accuracy = answered > 0 ? Math.round((correct / answered) * 100) : 0;
@@ -310,8 +345,51 @@
           statXp.textContent = `${Number(data.xp || 0)} XP`;
           statPoints.textContent = Number(data.points || 0);
         }
+
+        // Fetch mistakes
+        const mistakesRef = ref(database, `users/${user.uid}/mistakes`);
+        const mistakesSnapshot = await get(mistakesRef);
+
+        mistakesContainer.replaceChildren();
+
+        if (!mistakesSnapshot.exists()) {
+          const p = document.createElement("p");
+          p.className = "muted";
+          p.textContent = "No mistakes recorded yet. Keep practicing!";
+          mistakesContainer.appendChild(p);
+        } else {
+          const mistakesData = mistakesSnapshot.val();
+          Object.values(mistakesData).forEach((mistake, index) => {
+            const card = document.createElement("div");
+            card.className = "mistake-card";
+
+            const h4 = document.createElement("h4");
+            h4.textContent = `${index + 1}. ${mistake.questionText}`;
+
+            const sub = document.createElement("p");
+            sub.className = "muted";
+            sub.style.fontSize = "0.85rem";
+            sub.textContent = `Subject: ${mistake.subject} | Topic: ${mistake.topic}`;
+
+            const ans = document.createElement("p");
+            ans.innerHTML = `<strong>Correct Answer:</strong> ${mistake.correctAnswer}`;
+
+            card.append(h4, sub, ans);
+
+            if (mistake.explanation) {
+              const exp = document.createElement("p");
+              exp.style.fontSize = "0.9rem";
+              exp.innerHTML = `<em>Explanation:</em> ${mistake.explanation}`;
+              card.appendChild(exp);
+            }
+
+            mistakesContainer.appendChild(card);
+          });
+        }
+
       } catch (error) {
-        console.error("Failed to load user progress:", error);
+        console.error("Failed to load user progress or mistakes:", error);
+        mistakesContainer.textContent = "Could not load your mistakes.";
       }
 
       pageMessage.hidden = true;
