@@ -1,6 +1,7 @@
- 
 import { selectPracticeSetAsync } from "./question-selector.js";
 import { validateQuestionCatalogue } from "./question-catalogue.js";
+import { auth, database } from "./firebase-client.js";
+import { ref, get, set, update } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-database.js";
 
 const subjectSearch = document.getElementById("subject-search");
 const topicSearch = document.getElementById("topic-search");
@@ -115,7 +116,60 @@ function resetSession() {
   incorrectQuestions = [];
 }
 
-function finishSession() {
+async function saveProgressToFirebase() {
+  const user = auth.currentUser;
+  if (!user) {
+    console.warn("No user logged in. Progress not saved to Firebase.");
+    return false;
+  }
+
+  const userProgressRef = ref(database, `users/${user.uid}/progress`);
+
+  try {
+    // Fetch existing progress to accumulate values correctly
+    const snapshot = await get(userProgressRef);
+    let existingData = {
+      xp: 0,
+      points: 0,
+      totalAnswered: 0,
+      totalCorrect: 0,
+      sessionsCompleted: 0
+    };
+
+    if (snapshot.exists()) {
+      const data = snapshot.val();
+      existingData.xp = Number(data.xp || 0);
+      existingData.points = Number(data.points || 0);
+      existingData.totalAnswered = Number(data.totalAnswered || 0);
+      existingData.totalCorrect = Number(data.totalCorrect || 0);
+      existingData.sessionsCompleted = Number(data.sessionsCompleted || 0);
+    }
+
+    const newXp = existingData.xp + sessionPoints;
+    const newPoints = existingData.points + sessionPoints;
+    const newTotalAnswered = existingData.totalAnswered + questionsAnswered;
+    const newTotalCorrect = existingData.totalCorrect + correctAnswers;
+    const newSessionsCompleted = existingData.sessionsCompleted + 1;
+
+    // Save updated progress back to Firebase
+    await set(userProgressRef, {
+      xp: newXp,
+      points: newPoints,
+      totalAnswered: newTotalAnswered,
+      totalCorrect: newTotalCorrect,
+      sessionsCompleted: newSessionsCompleted,
+      lastActive: new Date().toISOString()
+    });
+
+    console.log("Progress successfully saved to Firebase!");
+    return true;
+  } catch (error) {
+    console.error("Failed to save progress to Firebase:", error);
+    return false;
+  }
+}
+
+async function finishSession() {
   const results = document.getElementById("question-results");
   if (!results) return;
 
@@ -123,11 +177,21 @@ function finishSession() {
     ? Math.round((correctAnswers / questionsAnswered) * 100)
     : 0;
 
+  // Save session data to Firebase if a user is logged in
+  const saved = await saveProgressToFirebase();
+
   results.replaceChildren();
 
   results.appendChild(
     createElement("h2", "", "Practice session complete")
   );
+  
+  if (saved) {
+    results.appendChild(createElement("p", "success-msg", "✓ Progress saved to your account."));
+  } else {
+    results.appendChild(createElement("p", "warning-msg", "⚠ Session not saved (Guest mode or network issue)."));
+  }
+
   results.appendChild(
     createElement("p", "", `Questions answered: ${questionsAnswered}`)
   );
@@ -399,4 +463,3 @@ async function findQuestions() {
 findButton?.addEventListener("click", findQuestions);
 
 updateCatalogueStatus();
-    
