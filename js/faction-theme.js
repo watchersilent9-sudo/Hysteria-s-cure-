@@ -6,7 +6,6 @@ import {
 } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
 
 import {
-    get,
     ref,
     onValue
 } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-database.js";
@@ -18,23 +17,17 @@ const VALID_FACTIONS = [
     "independent"
 ];
 
-const DEFAULT_FACTION = null;
-
 let factionListener = null;
 let currentUserId = null;
 
 function applyFactionTheme(faction) {
-    const validFaction = VALID_FACTIONS.includes(faction)
-        ? faction
-        : DEFAULT_FACTION;
-
-    if (validFaction) {
-        document.documentElement.dataset.faction = validFaction;
-    } else {
-        delete document.documentElement.dataset.faction;
+    if (VALID_FACTIONS.includes(faction)) {
+        document.documentElement.dataset.faction = faction;
+        return faction;
     }
 
-    return validFaction;
+    delete document.documentElement.dataset.faction;
+    return null;
 }
 
 function stopFactionListener() {
@@ -64,19 +57,32 @@ function loadFaction(user) {
     factionListener = onValue(
         factionRef,
         (snapshot) => {
-            // Ignore results if another account has signed in.
             if (currentUserId !== user.uid) return;
 
-            if (snapshot.exists()) {
-                const faction = applyFactionTheme(snapshot.val());
-
-                if (faction) return;
+            if (!snapshot.exists()) {
+                console.warn(
+                    "No saved faction was found for this account."
+                );
+                applyFactionTheme(null);
+                return;
             }
 
-            applyFactionTheme(null);
+            const faction = applyFactionTheme(snapshot.val());
+
+            if (!faction) {
+                console.warn(
+                    "The saved faction value is invalid."
+                );
+            }
         },
         (error) => {
-            console.error("Could not load faction theme:", error);
+            if (currentUserId !== user.uid) return;
+
+            console.error(
+                "Could not load the faction theme:",
+                error
+            );
+
             applyFactionTheme(null);
         }
     );
