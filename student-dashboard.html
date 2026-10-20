@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -139,6 +138,13 @@
       color: var(--muted);
     }
 
+    .stat-value {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--text);
+      margin: 8px 0;
+    }
+
     .coming-soon {
       display: inline-block;
       color: var(--accent);
@@ -230,20 +236,16 @@
 
         <article class="card">
           <h2>My Progress</h2>
-          <p>
-            Your learning history, topic mastery,
-            and performance insights.
-          </p>
-          <span class="coming-soon">Coming soon</span>
+          <p>Total questions answered & accuracy tracking.</p>
+          <div class="stat-value" id="stat-answered">0</div>
+          <p class="muted">Accuracy: <span id="stat-accuracy">0</span>%</p>
         </article>
 
         <article class="card">
-          <h2>Rewards</h2>
-          <p>
-            Your points, achievements, and progression
-            will be connected here.
-          </p>
-          <span class="coming-soon">Coming soon</span>
+          <h2>Rewards & XP</h2>
+          <p>Your accumulated experience and points.</p>
+          <div class="stat-value" id="stat-xp">0 XP</div>
+          <p class="muted">Points: <span id="stat-points">0</span></p>
         </article>
 
         <article class="card">
@@ -263,18 +265,25 @@
   </footer>
 
   <script type="module">
-    import { auth } from "./js/firebase-client.js";
+    import { auth, database } from "./js/firebase-client.js";
     import {
       onAuthStateChanged,
       signOut
     } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
+    import { ref, get } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-database.js";
 
     const pageMessage = document.getElementById("page-message");
     const dashboard = document.getElementById("dashboard");
     const studentName = document.getElementById("student-name");
     const logoutButton = document.getElementById("logout-button");
 
-    onAuthStateChanged(auth, (user) => {
+    // Stat elements
+    const statAnswered = document.getElementById("stat-answered");
+    const statAccuracy = document.getElementById("stat-accuracy");
+    const statXp = document.getElementById("stat-xp");
+    const statPoints = document.getElementById("stat-points");
+
+    onAuthStateChanged(auth, async (user) => {
       if (!user) {
         window.location.replace("login.html");
         return;
@@ -284,6 +293,27 @@
         (user.email ? user.email.split("@")[0] : "Student");
 
       studentName.textContent = displayName;
+
+      // Fetch student progress from Firebase
+      try {
+        const progressRef = ref(database, `users/${user.uid}/progress`);
+        const snapshot = await get(progressRef);
+
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          const answered = Number(data.totalAnswered || 0);
+          const correct = Number(data.totalCorrect || 0);
+          const accuracy = answered > 0 ? Math.round((correct / answered) * 100) : 0;
+
+          statAnswered.textContent = answered;
+          statAccuracy.textContent = accuracy;
+          statXp.textContent = `${Number(data.xp || 0)} XP`;
+          statPoints.textContent = Number(data.points || 0);
+        }
+      } catch (error) {
+        console.error("Failed to load user progress:", error);
+      }
+
       pageMessage.hidden = true;
       dashboard.hidden = false;
       logoutButton.hidden = false;
