@@ -3,15 +3,13 @@
 
 /* Default theme */
 :root {
-    --bg-primary: #0e0e16;
-    --bg-secondary: #151521;
-    --bg-card: #1b1b2a;
-    --text-primary: #f4f2ff;
-    --text-secondary: #aaa9c0;
-    --accent: #a78bfa;
-    --accent-bright: #c4b5fd;
-    --accent-dark: #7c3aed;
-    --border: rgba(255, 255, 255, 0.09);
+  --bg: var(--bg-primary);
+  --panel: var(--bg-secondary);
+  --panel2: var(--bg-card);
+  --text: var(--text-primary);
+  --muted: var(--text-secondary);
+  --danger: #ff8585;
+  --success: #8ee6b2;
 }
 
 /* Readers */
