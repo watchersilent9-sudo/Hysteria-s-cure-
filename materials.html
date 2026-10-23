@@ -1,0 +1,287 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Materials | Hysteria's Cure</title>
+
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/faction-themes.css">
+
+    <style>
+        .materials-container {
+            width: min(1000px, 92%);
+            margin: 35px auto;
+        }
+
+        .page-heading {
+            margin-bottom: 25px;
+        }
+
+        .muted {
+            color: var(--text-secondary);
+        }
+
+        .materials-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 22px;
+            margin: 20px 0;
+        }
+
+        .upload-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+        }
+
+        .upload-card {
+            padding: 18px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: var(--bg-secondary);
+        }
+
+        .upload-card h3 {
+            margin-top: 0;
+        }
+
+        .materials-container label {
+            display: block;
+            font-weight: 600;
+            margin: 14px 0 8px;
+        }
+
+        .materials-container select,
+        .materials-container input[type="file"],
+        .materials-container input[type="text"] {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 11px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font: inherit;
+        }
+
+        .materials-container button {
+            margin-top: 14px;
+            padding: 11px 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+            color: var(--text-primary);
+            font: inherit;
+            cursor: pointer;
+        }
+
+        .file-list {
+            padding-left: 20px;
+            overflow-wrap: anywhere;
+        }
+
+        .file-list li {
+            margin: 10px 0;
+        }
+
+        .materials-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 22px;
+        }
+
+        .materials-actions a {
+            padding: 11px 15px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            text-decoration: none;
+            color: var(--text-primary);
+        }
+
+        .notice {
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            margin-top: 15px;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="container">
+            <a href="index.html">Hysteria's Cure</a>
+            <nav>
+                <a href="student-dashboard.html">Dashboard</a>
+                <a href="learning-library.html">Learning Library</a>
+                <a href="practice.html">Practice</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="materials-container">
+        <section class="page-heading">
+            <h1>My Learning Materials</h1>
+            <p class="muted">
+                Organise the resources you use to study and practise.
+            </p>
+        </section>
+
+        <section class="materials-section">
+            <h2>Add Materials</h2>
+            <p class="muted">
+                Choose the material type, subject, and files you want to add.
+            </p>
+
+            <div class="upload-grid">
+                <article class="upload-card">
+                    <h3>Textbooks</h3>
+                    <p class="muted">Add textbooks for topic-based learning.</p>
+
+                    <label for="textbook-subject">Subject</label>
+                    <select id="textbook-subject">
+                        <option value="">Choose subject</option>
+                        <option>Biology</option>
+                        <option>Chemistry</option>
+                        <option>Mathematics</option>
+                        <option>Physics</option>
+                        <option>English Language</option>
+                        <option>Other</option>
+                    </select>
+
+                    <label for="textbook-files">Select files</label>
+                    <input
+                        type="file"
+                        id="textbook-files"
+                        accept=".pdf,.doc,.docx,.txt"
+                        multiple
+                    >
+                    <button type="button" data-list="textbook-files"
+                        data-output="textbook-list">Add to List</button>
+
+                    <ul id="textbook-list" class="file-list"></ul>
+                </article>
+
+                <article class="upload-card">
+                    <h3>Past Questions</h3>
+                    <p class="muted">Keep exam practice resources organised.</p>
+
+                    <label for="past-question-subject">Subject</label>
+                    <select id="past-question-subject">
+                        <option value="">Choose subject</option>
+                        <option>Biology</option>
+                        <option>Chemistry</option>
+                        <option>Mathematics</option>
+                        <option>Physics</option>
+                        <option>English Language</option>
+                        <option>Other</option>
+                    </select>
+
+                    <label for="past-question-files">Select files</label>
+                    <input
+                        type="file"
+                        id="past-question-files"
+                        accept=".pdf,.doc,.docx,.txt"
+                        multiple
+                    >
+                    <button type="button" data-list="past-question-files"
+                        data-output="past-question-list">Add to List</button>
+
+                    <ul id="past-question-list" class="file-list"></ul>
+                </article>
+
+                <article class="upload-card">
+                    <h3>Study Notes</h3>
+                    <p class="muted">Keep your personal notes together.</p>
+
+                    <label for="notes-subject">Subject</label>
+                    <select id="notes-subject">
+                        <option value="">Choose subject</option>
+                        <option>Biology</option>
+                        <option>Chemistry</option>
+                        <option>Mathematics</option>
+                        <option>Physics</option>
+                        <option>English Language</option>
+                        <option>Other</option>
+                    </select>
+
+                    <label for="notes-files">Select files</label>
+                    <input
+                        type="file"
+                        id="notes-files"
+                        accept=".pdf,.doc,.docx,.txt"
+                        multiple
+                    >
+                    <button type="button" data-list="notes-files"
+                        data-output="notes-list">Add to List</button>
+
+                    <ul id="notes-list" class="file-list"></ul>
+                </article>
+            </div>
+
+            <p class="notice">
+                These controls currently show selected files in temporary page
+                lists. They do not upload files, save them to your account,
+                or analyse their contents yet.
+            </p>
+        </section>
+
+        <section class="materials-section">
+            <h2>My Saved Materials</h2>
+            <p class="muted">
+                Your uploaded and saved resources will appear here after
+                Firebase Storage and the material database are connected.
+            </p>
+            <ul id="saved-materials" class="file-list">
+                <li>No saved materials loaded yet.</li>
+            </ul>
+        </section>
+
+        <section class="materials-section">
+            <h2>Use Your Materials</h2>
+            <p class="muted">
+                The planned question engine will use supported materials to
+                help create topic-focused practice questions and alternatives.
+            </p>
+
+            <div class="materials-actions">
+                <a href="practice.html">Practise Questions</a>
+                <a href="question-bank.html">Question Bank</a>
+                <a href="learning-library.html">Learning Library</a>
+                <a href="student-dashboard.html">Dashboard</a>
+            </div>
+        </section>
+    </main>
+
+    <script type="module" src="js/faction-theme.js"></script>
+
+    <script>
+        document.querySelectorAll("button[data-list]").forEach(button => {
+            button.addEventListener("click", () => {
+                const input = document.getElementById(button.dataset.list);
+                const output = document.getElementById(button.dataset.output);
+
+                if (!input || !output) return;
+
+                if (!input.files || input.files.length === 0) {
+                    alert("Please select at least one file first.");
+                    return;
+                }
+
+                Array.from(input.files).forEach(file => {
+                    const item = document.createElement("li");
+                    item.textContent = file.name;
+                    output.appendChild(item);
+                });
+
+                input.value = "";
+            });
+        });
+    </script>
+</body>
+</html>
