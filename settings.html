@@ -1,0 +1,225 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings | Hysteria's Cure</title>
+
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/faction-themes.css">
+
+    <style>
+        .settings-container {
+            width: min(850px, 92%);
+            margin: 35px auto;
+        }
+
+        .settings-container > p,
+        .muted {
+            color: var(--text-secondary);
+        }
+
+        .settings-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 22px;
+            margin: 20px 0;
+        }
+
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            padding: 16px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .setting-row:last-child {
+            border-bottom: none;
+        }
+
+        .setting-description {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .setting-description strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .settings-container select,
+        .settings-container input[type="number"] {
+            width: 180px;
+            max-width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font: inherit;
+        }
+
+        .settings-container input[type="checkbox"] {
+            width: 19px;
+            height: 19px;
+            accent-color: var(--accent);
+        }
+
+        .settings-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .settings-actions button,
+        .settings-actions a {
+            padding: 11px 16px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            text-decoration: none;
+            font: inherit;
+            cursor: pointer;
+        }
+
+        .settings-notice {
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-secondary);
+        }
+
+        @media (max-width: 480px) {
+            .settings-container select,
+            .settings-container input[type="number"] {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="container">
+            <a href="index.html">Hysteria's Cure</a>
+            <nav>
+                <a href="student-dashboard.html">Dashboard</a>
+                <a href="profile.html">My Profile</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="settings-container">
+        <h1>Settings</h1>
+        <p>Adjust your learning experience and preferences.</p>
+
+        <section class="settings-section">
+            <h2>Study Preferences</h2>
+
+            <div class="setting-row">
+                <div class="setting-description">
+                    <strong>Default question count</strong>
+                    <span class="muted">Choose how many questions to practise per session.</span>
+                </div>
+                <select id="question-count">
+                    <option value="5">5 questions</option>
+                    <option value="10" selected>10 questions</option>
+                    <option value="15">15 questions</option>
+                    <option value="20">20 questions</option>
+                    <option value="30">30 questions</option>
+                </select>
+            </div>
+
+            <div class="setting-row">
+                <div class="setting-description">
+                    <strong>Study session length</strong>
+                    <span class="muted">Your preferred study-session duration.</span>
+                </div>
+                <select id="session-length">
+                    <option value="15">15 minutes</option>
+                    <option value="25" selected>25 minutes</option>
+                    <option value="40">40 minutes</option>
+                    <option value="60">60 minutes</option>
+                </select>
+            </div>
+
+            <div class="setting-row">
+                <div class="setting-description">
+                    <strong>Show explanations</strong>
+                    <span class="muted">Prefer to see explanations after answering questions.</span>
+                </div>
+                <input type="checkbox" id="show-explanations" checked>
+            </div>
+        </section>
+
+        <section class="settings-section">
+            <h2>Reminders</h2>
+
+            <div class="setting-row">
+                <div class="setting-description">
+                    <strong>Study reminders</strong>
+                    <span class="muted">Your preference for study reminders.</span>
+                </div>
+                <input type="checkbox" id="study-reminders">
+            </div>
+
+            <div class="setting-row">
+                <div class="setting-description">
+                    <strong>Weekly progress summary</strong>
+                    <span class="muted">Your preference for a weekly learning summary.</span>
+                </div>
+                <input type="checkbox" id="weekly-summary" checked>
+            </div>
+        </section>
+
+        <section class="settings-section">
+            <h2>Account</h2>
+
+            <div class="setting-row">
+                <div class="setting-description">
+                    <strong>Profile</strong>
+                    <span class="muted">Manage your display name and faction.</span>
+                </div>
+                <a href="profile.html">Open Profile</a>
+            </div>
+
+            <div class="setting-row">
+                <div class="setting-description">
+                    <strong>Learning level</strong>
+                    <span class="muted">Review your current level and advancement requirements.</span>
+                </div>
+                <a href="levels.html">View Levels</a>
+            </div>
+        </section>
+
+        <p class="settings-notice">
+            Preferences currently apply only to this page while it is open.
+            Saving and restoring them across sessions will be implemented later.
+            Reminder controls do not send notifications yet.
+        </p>
+
+        <div class="settings-actions">
+            <button type="button" id="save-settings">Save Preferences</button>
+            <a href="student-dashboard.html">Back to Dashboard</a>
+        </div>
+
+        <p id="settings-status" class="muted" role="status"></p>
+    </main>
+
+    <script type="module" src="js/faction-theme.js"></script>
+
+    <script>
+        document.getElementById("save-settings").addEventListener("click", () => {
+            document.getElementById("settings-status").textContent =
+                "The preferences are selected, but permanent saving has not been implemented yet.";
+        });
+    </script>
+</body>
+</html>
