@@ -1,0 +1,348 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Materials | Hysteria's Cure</title>
+
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/faction-themes.css">
+
+    <style>
+        .admin-container {
+            width: min(1100px, 92%);
+            margin: 35px auto;
+        }
+
+        .muted {
+            color: var(--text-secondary);
+        }
+
+        .admin-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 22px;
+            margin: 20px 0;
+        }
+
+        .admin-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+        }
+
+        .admin-field {
+            margin: 15px 0;
+        }
+
+        .admin-field label {
+            display: block;
+            margin-bottom: 7px;
+            font-weight: 600;
+        }
+
+        .admin-field input,
+        .admin-field select,
+        .admin-field textarea {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 11px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font: inherit;
+        }
+
+        .admin-field textarea {
+            min-height: 110px;
+            resize: vertical;
+        }
+
+        .admin-button {
+            padding: 11px 16px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font: inherit;
+            cursor: pointer;
+        }
+
+        .admin-list {
+            padding-left: 20px;
+            overflow-wrap: anywhere;
+        }
+
+        .admin-list li {
+            margin: 10px 0;
+        }
+
+        .admin-notice {
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-secondary);
+        }
+
+        .admin-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .admin-links a {
+            display: inline-block;
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            text-decoration: none;
+            color: var(--text-primary);
+        }
+    </style>
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="container">
+            <a href="index.html">Hysteria's Cure</a>
+            <nav>
+                <a href="admin.html">Admin Dashboard</a>
+                <a href="question-bank.html">Question Bank</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="admin-container">
+        <h1>Materials Management</h1>
+        <p class="muted">
+            Prepare and organise academic resources for the learning platform.
+        </p>
+
+        <section class="admin-section">
+            <h2>Add a Question</h2>
+            <p class="muted">
+                Use this form to prepare question content for later integration
+                with the question catalogue.
+            </p>
+
+            <div class="admin-grid">
+                <div class="admin-field">
+                    <label for="subject">Subject</label>
+                    <select id="subject">
+                        <option value="">Choose subject</option>
+                        <option>Biology</option>
+                        <option>Chemistry</option>
+                        <option>Mathematics</option>
+                        <option>Physics</option>
+                        <option>English Language</option>
+                        <option>Other</option>
+                    </select>
+                </div>
+
+                <div class="admin-field">
+                    <label for="topic">Topic</label>
+                    <input id="topic" type="text" placeholder="e.g. Excretion">
+                </div>
+
+                <div class="admin-field">
+                    <label for="difficulty">Star difficulty</label>
+                    <select id="difficulty">
+                        <option value="">Choose difficulty</option>
+                        <option value="1">1 — Foundation recall</option>
+                        <option value="2">2 — Understanding</option>
+                        <option value="3">3 — Application</option>
+                        <option value="4">4 — Analysis</option>
+                        <option value="5">5 — Multi-concept</option>
+                        <option value="6">6 — Advanced reasoning</option>
+                        <option value="7">7 — Mastery</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="admin-field">
+                <label for="question-text">Question</label>
+                <textarea id="question-text" placeholder="Enter the question"></textarea>
+            </div>
+
+            <div class="admin-grid">
+                <div class="admin-field">
+                    <label for="option-a">Option A</label>
+                    <input id="option-a" type="text">
+                </div>
+
+                <div class="admin-field">
+                    <label for="option-b">Option B</label>
+                    <input id="option-b" type="text">
+                </div>
+
+                <div class="admin-field">
+                    <label for="option-c">Option C</label>
+                    <input id="option-c" type="text">
+                </div>
+
+                <div class="admin-field">
+                    <label for="option-d">Option D</label>
+                    <input id="option-d" type="text">
+                </div>
+            </div>
+
+            <div class="admin-grid">
+                <div class="admin-field">
+                    <label for="correct-answer">Correct answer</label>
+                    <select id="correct-answer">
+                        <option value="">Choose answer</option>
+                        <option value="0">A</option>
+                        <option value="1">B</option>
+                        <option value="2">C</option>
+                        <option value="3">D</option>
+                    </select>
+                </div>
+
+                <div class="admin-field">
+                    <label for="source-type">Source type</label>
+                    <select id="source-type">
+                        <option value="original">Original question</option>
+                        <option value="past-question">Past question</option>
+                        <option value="textbook">Textbook-based</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="admin-field">
+                <label for="explanation">Explanation</label>
+                <textarea id="explanation" placeholder="Explain why the answer is correct"></textarea>
+            </div>
+
+            <button type="button" class="admin-button" id="preview-question">
+                Preview Question
+            </button>
+
+            <div id="question-preview" class="admin-notice" hidden></div>
+        </section>
+
+        <section class="admin-section">
+            <h2>Prepare Learning Resources</h2>
+
+            <div class="admin-grid">
+                <div class="admin-field">
+                    <label for="resource-type">Resource type</label>
+                    <select id="resource-type">
+                        <option value="textbook">Textbook</option>
+                        <option value="past-question">Past questions</option>
+                        <option value="study-note">Study notes</option>
+                    </select>
+                </div>
+
+                <div class="admin-field">
+                    <label for="resource-subject">Subject</label>
+                    <select id="resource-subject">
+                        <option value="">Choose subject</option>
+                        <option>Biology</option>
+                        <option>Chemistry</option>
+                        <option>Mathematics</option>
+                        <option>Physics</option>
+                        <option>English Language</option>
+                        <option>Other</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="admin-field">
+                <label for="resource-file">Select resource file</label>
+                <input
+                    type="file"
+                    id="resource-file"
+                    accept=".pdf,.doc,.docx,.txt"
+                >
+            </div>
+
+            <p class="admin-notice">
+                File selection is a placeholder. Uploading, storing, reviewing,
+                and publishing resources will require backend integration.
+            </p>
+        </section>
+
+        <section class="admin-section">
+            <h2>Management Shortcuts</h2>
+
+            <div class="admin-links">
+                <a href="question-bank.html">Question Bank</a>
+                <a href="learning-library.html">Learning Library</a>
+                <a href="materials.html">Student Materials</a>
+                <a href="admin.html">Admin Dashboard</a>
+            </div>
+        </section>
+
+        <p class="admin-notice">
+            This page is currently a preparation interface, not a secure
+            publishing system. Admin-only access and Firebase saving must be
+            enforced before it handles real content.
+        </p>
+    </main>
+
+    <script type="module" src="js/faction-theme.js"></script>
+
+    <script>
+        const previewButton = document.getElementById("preview-question");
+        const preview = document.getElementById("question-preview");
+
+        previewButton.addEventListener("click", () => {
+            const subject = document.getElementById("subject").value;
+            const topic = document.getElementById("topic").value.trim();
+            const difficulty = document.getElementById("difficulty").value;
+            const question = document.getElementById("question-text").value.trim();
+
+            const options = [
+                document.getElementById("option-a").value.trim(),
+                document.getElementById("option-b").value.trim(),
+                document.getElementById("option-c").value.trim(),
+                document.getElementById("option-d").value.trim()
+            ];
+
+            const answer = document.getElementById("correct-answer").value;
+            const explanation = document.getElementById("explanation").value.trim();
+
+            if (!subject || !topic || !difficulty || !question ||
+                options.some(option => !option) || answer === "" || !explanation) {
+                preview.hidden = false;
+                preview.textContent = "Complete all question fields before previewing.";
+                return;
+            }
+
+            preview.replaceChildren();
+
+            const heading = document.createElement("h3");
+            heading.textContent = subject + " — " + topic;
+            preview.appendChild(heading);
+
+            const prompt = document.createElement("p");
+            prompt.textContent = question;
+            preview.appendChild(prompt);
+
+            options.forEach((option, index) => {
+                const line = document.createElement("p");
+                line.textContent = String.fromCharCode(65 + index) + ". " + option;
+                preview.appendChild(line);
+            });
+
+            const difficultyLine = document.createElement("p");
+            difficultyLine.textContent = "Star difficulty: " + difficulty;
+            preview.appendChild(difficultyLine);
+
+            const answerLine = document.createElement("p");
+            answerLine.textContent =
+                "Correct answer: " + String.fromCharCode(65 + Number(answer));
+            preview.appendChild(answerLine);
+
+            const explanationLine = document.createElement("p");
+            explanationLine.textContent = "Explanation: " + explanation;
+            preview.appendChild(explanationLine);
+
+            preview.hidden = false;
+        });
+    </script>
+</body>
+</html>
