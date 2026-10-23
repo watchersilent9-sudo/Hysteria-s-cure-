@@ -1,0 +1,104 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rewards | Hysteria's Cure</title>
+
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/faction-themes.css">
+
+  <style>
+    .rewards-container {
+      width: min(100% - 32px, 900px);
+      margin: 40px auto;
+    }
+
+    .rewards-header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .rewards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 18px;
+    }
+
+    .reward-card {
+      padding: 22px;
+      border-radius: 14px;
+      background: var(--bg-card, #1b1b2a);
+      color: var(--text-primary, #f4f2ff);
+      border: 1px solid var(--border, rgba(255,255,255,.1));
+    }
+
+    .reward-card p {
+      color: var(--text-secondary, #aaa9c0);
+      line-height: 1.6;
+    }
+
+    .points-value {
+      font-size: 2rem;
+      font-weight: bold;
+    }
+
+    .reward-note {
+      margin-top: 24px;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+
+<body>
+  <header class="site-header">
+    <h2>Hysteria's Cure</h2>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="student-dashboard.html">Dashboard</a>
+      <a href="practice.html">Practice</a>
+      <a href="towers.html">Towers</a>
+    </nav>
+  </header>
+
+  <main class="rewards-container">
+    <section class="rewards-header">
+      <h1>Rewards</h1>
+      <p>Track your learning effort and achievements.</p>
+    </section>
+
+    <section class="rewards-grid">
+      <article class="reward-card">
+        <h2>Available Points</h2>
+        <p class="points-value">—</p>
+        <p>Points you can use when rewards become available.</p>
+      </article>
+
+      <article class="reward-card">
+        <h2>Lifetime Points</h2>
+        <p class="points-value">—</p>
+        <p>Your total points earned over time, including points already spent.</p>
+      </article>
+
+      <article class="reward-card">
+        <h2>Achievements</h2>
+        <p>Achievements will recognise milestones such as completing practice sessions and improving your results.</p>
+      </article>
+
+      <article class="reward-card">
+        <h2>Future Rewards</h2>
+        <p>Rewards and redemption options will be added after the points system is connected and verified.</p>
+      </article>
+    </section>
+
+    <section class="reward-note">
+      <h2>How points are earned</h2>
+      <p>Points depend on question difficulty. Incorrect answers may reduce available points, but the balance cannot fall below zero.</p>
+      <p>The displayed balances will be connected to your account in a later development step.</p>
+    </section>
+  </main>
+
+  <script type="module" src="js/faction-theme.js"></script>
+</body>
+</html>
