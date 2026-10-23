@@ -1,0 +1,122 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Towers | Hysteria's Cure</title>
+
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/faction-themes.css">
+
+  <style>
+    .towers-container {
+      width: min(100% - 32px, 1000px);
+      margin: 40px auto;
+    }
+
+    .towers-heading {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .towers-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+    }
+
+    .tower-card {
+      background: var(--bg-card, #1b1b2a);
+      color: var(--text-primary, #f4f2ff);
+      border: 1px solid var(--border, rgba(255,255,255,.1));
+      border-radius: 14px;
+      padding: 24px;
+    }
+
+    .tower-card p {
+      color: var(--text-secondary, #aaa9c0);
+      line-height: 1.6;
+    }
+
+    .tower-card a {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 10px 16px;
+      border-radius: 8px;
+      background: var(--accent, #a78bfa);
+      color: #fff;
+      text-decoration: none;
+    }
+
+    .independent-card {
+      margin-top: 24px;
+    }
+  </style>
+</head>
+
+<body>
+  <header class="site-header">
+    <h2>Hysteria's Cure</h2>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="student-dashboard.html">Dashboard</a>
+      <a href="practice.html">Practice</a>
+    </nav>
+  </header>
+
+  <main class="towers-container">
+    <section class="towers-heading">
+      <h1>Towers</h1>
+      <p>Choose the learning community that suits you.</p>
+    </section>
+
+    <section class="towers-grid">
+      <article class="tower-card">
+        <h2>Readers</h2>
+        <p>
+          Focus on understanding, interpretation, deep reasoning
+          and connections between ideas.
+        </p>
+        <a href="student-dashboard.html">View Dashboard</a>
+      </article>
+
+      <article class="tower-card">
+        <h2>Gamers</h2>
+        <p>
+          Approach learning through challenges, competition,
+          problem-solving and progress.
+        </p>
+        <a href="student-dashboard.html">View Dashboard</a>
+      </article>
+
+      <article class="tower-card">
+        <h2>Movie Lovers</h2>
+        <p>
+          Explore academic topics through engaging scenarios,
+          practical situations and connected ideas.
+        </p>
+        <a href="student-dashboard.html">View Dashboard</a>
+      </article>
+    </section>
+
+    <section class="tower-card independent-card">
+      <h2>Independent</h2>
+      <p>
+        Follow your own learning direction. Independent users
+        aren't assigned to one of the three towers and may
+        build their own faction in the future.
+      </p>
+      <a href="practice.html">Start Practising</a>
+    </section>
+
+    <p>
+      Tower Masters will be appointed through a separate
+      system in a future update.
+    </p>
+  </main>
+
+  <script type="module" src="js/faction-theme.js"></script>
+</body>
+</html>
