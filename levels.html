@@ -1,0 +1,120 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Levels | Hysteria's Cure</title>
+
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/faction-themes.css">
+
+  <style>
+    .levels-container {
+      width: min(100% - 32px, 900px);
+      margin: 40px auto;
+    }
+
+    .levels-heading {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .levels-list {
+      display: grid;
+      gap: 16px;
+    }
+
+    .level-card {
+      padding: 22px;
+      border-radius: 14px;
+      background: var(--bg-card, #1b1b2a);
+      color: var(--text-primary, #f4f2ff);
+      border: 1px solid var(--border, rgba(255,255,255,.1));
+    }
+
+    .level-card p {
+      color: var(--text-secondary, #aaa9c0);
+      line-height: 1.6;
+    }
+
+    .level-status {
+      display: inline-block;
+      padding: 5px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border, #777);
+      font-size: .85rem;
+    }
+
+    .advancement-note {
+      margin-top: 24px;
+      line-height: 1.7;
+    }
+  </style>
+</head>
+
+<body>
+  <header class="site-header">
+    <h2>Hysteria's Cure</h2>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="student-dashboard.html">Dashboard</a>
+      <a href="practice.html">Practice</a>
+      <a href="towers.html">Towers</a>
+      <a href="rewards.html">Rewards</a>
+      <a href="learning-library.html">Library</a>
+    </nav>
+  </header>
+
+  <main class="levels-container">
+    <section class="levels-heading">
+      <h1>Levels and Advancement</h1>
+      <p>Build your knowledge and progress through the levels.</p>
+    </section>
+
+    <section class="levels-list">
+      <article class="level-card">
+        <h2>Basic</h2>
+        <p>Build a reliable foundation and understand essential concepts.</p>
+        <span class="level-status">Progression system pending</span>
+      </article>
+
+      <article class="level-card">
+        <h2>Intermediate</h2>
+        <p>Apply what you have learned to increasingly challenging questions.</p>
+        <span class="level-status">Progression system pending</span>
+      </article>
+
+      <article class="level-card">
+        <h2>Mastery</h2>
+        <p>Demonstrate strong understanding and solve multi-step problems.</p>
+        <span class="level-status">Progression system pending</span>
+      </article>
+
+      <article class="level-card">
+        <h2>Genius</h2>
+        <p>Handle advanced reasoning and unfamiliar problems.</p>
+        <span class="level-status">Progression system pending</span>
+      </article>
+
+      <article class="level-card">
+        <h2>Hell-Mastery</h2>
+        <p>Take on the highest level of challenge and demonstrate exceptional mastery.</p>
+        <span class="level-status">Progression system pending</span>
+      </article>
+    </section>
+
+    <section class="advancement-note">
+      <h2>Advancement Exams</h2>
+      <p>
+        Advancement will depend on both accuracy and speed.
+        The actual passing requirements, exam timer, and level
+        updates will be implemented when the progression system
+        is connected.
+      </p>
+    </section>
+  </main>
+
+  <script type="module" src="js/faction-theme.js"></script>
+</body>
+</html>
