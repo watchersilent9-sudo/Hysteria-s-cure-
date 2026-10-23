@@ -1,0 +1,194 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page Directory | Hysteria's Cure</title>
+
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/faction-themes.css">
+
+    <style>
+        .directory {
+            width: min(1050px, 92%);
+            margin: 35px auto;
+        }
+
+        .directory > p,
+        .page-card p {
+            color: var(--text-secondary);
+        }
+
+        .directory-section {
+            margin: 28px 0;
+        }
+
+        .page-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+        }
+
+        .page-card {
+            display: block;
+            padding: 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            text-decoration: none;
+            color: var(--text-primary);
+        }
+
+        .page-card h3 {
+            margin-top: 0;
+        }
+
+        .page-card:hover {
+            border-color: var(--accent);
+        }
+
+        .directory-note {
+            padding: 14px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="container">
+            <a href="index.html">Hysteria's Cure</a>
+            <nav>
+                <a href="student-dashboard.html">Dashboard</a>
+                <a href="login.html">Login</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="directory">
+        <h1>Page Directory</h1>
+        <p>Quick access to the learning tools and account pages.</p>
+
+        <section class="directory-section">
+            <h2>Learning</h2>
+            <div class="page-grid">
+                <a class="page-card" href="student-dashboard.html">
+                    <h3>Student Dashboard</h3>
+                    <p>Your main learning hub.</p>
+                </a>
+
+                <a class="page-card" href="towers.html">
+                    <h3>Towers</h3>
+                    <p>Explore the available factions.</p>
+                </a>
+
+                <a class="page-card" href="practice.html">
+                    <h3>Practice</h3>
+                    <p>Practise questions by subject and topic.</p>
+                </a>
+
+                <a class="page-card" href="exam.html">
+                    <h3>Exams</h3>
+                    <p>Access the exam interface.</p>
+                </a>
+
+                <a class="page-card" href="question-bank.html">
+                    <h3>Question Bank</h3>
+                    <p>Browse available question content.</p>
+                </a>
+
+                <a class="page-card" href="learning-library.html">
+                    <h3>Learning Library</h3>
+                    <p>Explore study resources.</p>
+                </a>
+
+                <a class="page-card" href="materials.html">
+                    <h3>My Materials</h3>
+                    <p>Organise personal learning resources.</p>
+                </a>
+
+                <a class="page-card" href="study-plan.html">
+                    <h3>Study Plan</h3>
+                    <p>Organise subjects and topics to study.</p>
+                </a>
+
+                <a class="page-card" href="mistakes.html">
+                    <h3>Question Review</h3>
+                    <p>Review mistakes and revisit difficult topics.</p>
+                </a>
+
+                <a class="page-card" href="progress.html">
+                    <h3>Progress</h3>
+                    <p>View learning statistics and improvement.</p>
+                </a>
+
+                <a class="page-card" href="levels.html">
+                    <h3>Levels</h3>
+                    <p>Review learning levels and advancement.</p>
+                </a>
+
+                <a class="page-card" href="rewards.html">
+                    <h3>Rewards</h3>
+                    <p>View points and planned rewards.</p>
+                </a>
+            </div>
+        </section>
+
+        <section class="directory-section">
+            <h2>Account</h2>
+            <div class="page-grid">
+                <a class="page-card" href="profile.html">
+                    <h3>My Profile</h3>
+                    <p>Account details and faction preferences.</p>
+                </a>
+
+                <a class="page-card" href="settings.html">
+                    <h3>Settings</h3>
+                    <p>Study preferences and account options.</p>
+                </a>
+
+                <a class="page-card" href="signup.html">
+                    <h3>Create Account</h3>
+                    <p>Register a new student account.</p>
+                </a>
+
+                <a class="page-card" href="login.html">
+                    <h3>Login</h3>
+                    <p>Access an existing account.</p>
+                </a>
+            </div>
+        </section>
+
+        <section class="directory-section">
+            <h2>Administration</h2>
+            <div class="page-grid">
+                <a class="page-card" href="admin.html">
+                    <h3>Admin Dashboard</h3>
+                    <p>Administration overview.</p>
+                </a>
+
+                <a class="page-card" href="admin-materials.html">
+                    <h3>Materials Management</h3>
+                    <p>Prepare questions and learning resources.</p>
+                </a>
+
+                <a class="page-card" href="admin-users.html">
+                    <h3>User Management</h3>
+                    <p>Plan student and Tower Master management.</p>
+                </a>
+            </div>
+        </section>
+
+        <p class="directory-note">
+            This directory provides navigation only. Some pages are still
+            placeholders, and admin pages must be protected with secure
+            permissions before public launch.
+        </p>
+    </main>
+
+    <script type="module" src="js/faction-theme.js"></script>
+</body>
+</html>
