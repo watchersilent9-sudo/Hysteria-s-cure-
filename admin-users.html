@@ -1,0 +1,276 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management | Hysteria's Cure</title>
+
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/faction-themes.css">
+
+    <style>
+        .admin-container {
+            width: min(1100px, 92%);
+            margin: 35px auto;
+        }
+
+        .muted {
+            color: var(--text-secondary);
+        }
+
+        .admin-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 22px;
+            margin: 20px 0;
+        }
+
+        .admin-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+            gap: 15px;
+        }
+
+        .stat-card {
+            padding: 18px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: var(--bg-secondary);
+        }
+
+        .stat-card h3 {
+            margin-top: 0;
+        }
+
+        .stat-value {
+            color: var(--accent-bright);
+            font-size: 1.7rem;
+            font-weight: bold;
+        }
+
+        .admin-field {
+            margin: 15px 0;
+        }
+
+        .admin-field label {
+            display: block;
+            margin-bottom: 7px;
+            font-weight: 600;
+        }
+
+        .admin-field input,
+        .admin-field select {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 11px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font: inherit;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px;
+        }
+
+        th,
+        td {
+            padding: 13px 10px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            color: var(--text-secondary);
+        }
+
+        .admin-notice {
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-secondary);
+        }
+
+        .admin-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .admin-links a {
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="container">
+            <a href="index.html">Hysteria's Cure</a>
+            <nav>
+                <a href="admin.html">Admin Dashboard</a>
+                <a href="admin-materials.html">Materials</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="admin-container">
+        <h1>User Management</h1>
+        <p class="muted">
+            Manage student accounts, review faction membership, and prepare
+            administrative assignments.
+        </p>
+
+        <section class="admin-section admin-stats">
+            <article class="stat-card">
+                <h3>Total Students</h3>
+                <div class="stat-value">—</div>
+                <p class="muted">Will load from the user database.</p>
+            </article>
+
+            <article class="stat-card">
+                <h3>Faction Members</h3>
+                <div class="stat-value">—</div>
+                <p class="muted">Will show faction membership totals.</p>
+            </article>
+
+            <article class="stat-card">
+                <h3>Independent Students</h3>
+                <div class="stat-value">—</div>
+                <p class="muted">Students who selected Independent.</p>
+            </article>
+        </section>
+
+        <section class="admin-section">
+            <h2>Find a Student</h2>
+
+            <div class="admin-field">
+                <label for="student-search">Search by name or email</label>
+                <input
+                    id="student-search"
+                    type="search"
+                    placeholder="Enter a name or email"
+                >
+            </div>
+
+            <div class="admin-field">
+                <label for="faction-filter">Filter by faction</label>
+                <select id="faction-filter">
+                    <option value="all">All factions</option>
+                    <option value="readers">Readers</option>
+                    <option value="gamers">Gamers</option>
+                    <option value="movie-lovers">Movie Lovers</option>
+                    <option value="independent">Independent</option>
+                </select>
+            </div>
+
+            <p class="admin-notice">
+                Student records will appear after the page is connected to
+                Firebase. No account information is loaded by this form yet.
+            </p>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Email</th>
+                            <th>Faction</th>
+                            <th>Learning Level</th>
+                            <th>Role</th>
+                        </tr>
+                    </thead>
+                    <tbody id="student-table-body">
+                        <tr>
+                            <td colspan="5">Student records have not been loaded.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="admin-section">
+            <h2>Tower Master Assignments</h2>
+            <p class="muted">
+                Tower Masters will be appointed by an authorised admin when
+                the role system is implemented.
+            </p>
+
+            <div class="admin-field">
+                <label for="master-faction">Faction</label>
+                <select id="master-faction">
+                    <option value="">Choose faction</option>
+                    <option value="readers">Readers</option>
+                    <option value="gamers">Gamers</option>
+                    <option value="movie-lovers">Movie Lovers</option>
+                </select>
+            </div>
+
+            <div class="admin-field">
+                <label for="master-email">Student email</label>
+                <input
+                    id="master-email"
+                    type="email"
+                    placeholder="Enter the student's registered email"
+                >
+            </div>
+
+            <button type="button" id="prepare-assignment">
+                Prepare Assignment
+            </button>
+
+            <p id="assignment-status" class="muted" role="status"></p>
+
+            <p class="admin-notice">
+                This is only a planning interface. It does not grant roles or
+                change permissions. Real assignments must verify admin
+                authority on the backend.
+            </p>
+        </section>
+
+        <section class="admin-section">
+            <h2>Admin Shortcuts</h2>
+
+            <div class="admin-links">
+                <a href="admin.html">Admin Dashboard</a>
+                <a href="admin-materials.html">Materials Management</a>
+                <a href="question-bank.html">Question Bank</a>
+                <a href="towers.html">Towers</a>
+            </div>
+        </section>
+    </main>
+
+    <script type="module" src="js/faction-theme.js"></script>
+
+    <script>
+        document.getElementById("prepare-assignment").addEventListener("click", () => {
+            const faction = document.getElementById("master-faction").value;
+            const email = document.getElementById("master-email").value.trim();
+            const status = document.getElementById("assignment-status");
+
+            if (!faction || !email) {
+                status.textContent = "Choose a faction and enter the student's email.";
+                return;
+            }
+
+            status.textContent =
+                "Assignment prepared for " + email +
+                " in " + faction.replace("-", " ") +
+                ". No role has been changed.";
+        });
+    </script>
+</body>
+</html>
