@@ -1,0 +1,160 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Learning Library | Hysteria's Cure</title>
+
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/faction-themes.css">
+
+  <style>
+    .library-container {
+      width: min(100% - 32px, 1000px);
+      margin: 40px auto;
+    }
+
+    .library-heading {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .library-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 18px;
+    }
+
+    .library-card {
+      padding: 22px;
+      border-radius: 14px;
+      background: var(--bg-card, #1b1b2a);
+      color: var(--text-primary, #f4f2ff);
+      border: 1px solid var(--border, rgba(255,255,255,.1));
+    }
+
+    .library-card p {
+      color: var(--text-secondary, #aaa9c0);
+      line-height: 1.6;
+    }
+
+    .library-card button {
+      padding: 10px 14px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      background: var(--accent, #a78bfa);
+      color: white;
+    }
+
+    .upload-area {
+      margin-top: 24px;
+      padding: 22px;
+      border: 1px dashed var(--border, #777);
+      border-radius: 14px;
+    }
+
+    #file-list {
+      overflow-wrap: anywhere;
+      line-height: 1.8;
+    }
+  </style>
+</head>
+
+<body>
+  <header class="site-header">
+    <h2>Hysteria's Cure</h2>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="student-dashboard.html">Dashboard</a>
+      <a href="practice.html">Practice</a>
+      <a href="towers.html">Towers</a>
+      <a href="rewards.html">Rewards</a>
+    </nav>
+  </header>
+
+  <main class="library-container">
+    <section class="library-heading">
+      <h1>Learning Library</h1>
+      <p>Organise your study resources and prepare for practice.</p>
+    </section>
+
+    <section class="library-grid">
+      <article class="library-card">
+        <h2>Textbooks</h2>
+        <p>Keep the textbooks you study from together for easier access.</p>
+        <button type="button" onclick="showLibraryMessage()">
+          View Textbooks
+        </button>
+      </article>
+
+      <article class="library-card">
+        <h2>Past Questions</h2>
+        <p>Prepare past-question materials for revision and practice.</p>
+        <button type="button" onclick="showLibraryMessage()">
+          View Past Questions
+        </button>
+      </article>
+
+      <article class="library-card">
+        <h2>Study Notes</h2>
+        <p>Organise notes by subject and topic as the library develops.</p>
+        <button type="button" onclick="showLibraryMessage()">
+          View Study Notes
+        </button>
+      </article>
+    </section>
+
+    <section class="upload-area">
+      <h2>Add Study Materials</h2>
+      <p>
+        Select textbooks, past questions or notes from your device.
+        This first version only previews selected filenames;
+        it does not upload or process the files.
+      </p>
+
+      <label for="study-files">Choose files</label>
+      <p>
+        <input
+          id="study-files"
+          type="file"
+          accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
+          multiple
+        >
+      </p>
+
+      <ul id="file-list"></ul>
+      <p id="library-message" aria-live="polite"></p>
+    </section>
+  </main>
+
+  <script>
+    function showLibraryMessage() {
+      document.getElementById("library-message").textContent =
+        "Library categories will be connected to your saved materials in a later update.";
+    }
+
+    const fileInput = document.getElementById("study-files");
+    const fileList = document.getElementById("file-list");
+
+    fileInput.addEventListener("change", function () {
+      fileList.replaceChildren();
+
+      for (const file of fileInput.files) {
+        const item = document.createElement("li");
+        item.textContent = file.name;
+        fileList.appendChild(item);
+      }
+
+      document.getElementById("library-message").textContent =
+        fileInput.files.length
+          ? "Files selected locally. They have not been uploaded."
+          : "";
+    });
+  </script>
+
+  <script type="module" src="js/faction-theme.js"></script>
+</body>
+</html>
