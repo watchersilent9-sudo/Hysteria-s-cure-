@@ -1,0 +1,199 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Question Review | Hysteria's Cure</title>
+
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/faction-themes.css">
+
+    <style>
+        .review-container {
+            width: min(1000px, 92%);
+            margin: 35px auto;
+        }
+
+        .page-heading {
+            margin-bottom: 25px;
+        }
+
+        .muted {
+            color: var(--text-secondary);
+        }
+
+        .review-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+            gap: 15px;
+            margin: 24px 0;
+        }
+
+        .summary-card,
+        .review-section,
+        .question-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 20px;
+        }
+
+        .summary-card h3 {
+            margin-top: 0;
+        }
+
+        .summary-value {
+            color: var(--accent-bright);
+            font-size: 1.7rem;
+            font-weight: bold;
+        }
+
+        .review-section {
+            margin: 20px 0;
+        }
+
+        .question-card {
+            margin: 15px 0;
+        }
+
+        .question-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .question-tag {
+            display: inline-block;
+            padding: 5px 9px;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .answer-placeholder {
+            padding: 12px;
+            border-radius: 8px;
+            background: var(--bg-secondary);
+            margin: 10px 0;
+        }
+
+        .review-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 22px;
+        }
+
+        .review-actions a {
+            display: inline-block;
+            padding: 11px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            text-decoration: none;
+        }
+
+        .empty-state {
+            padding: 22px 0;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="container">
+            <a href="index.html">Hysteria's Cure</a>
+            <nav>
+                <a href="student-dashboard.html">Dashboard</a>
+                <a href="practice.html">Practice</a>
+                <a href="progress.html">Progress</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="review-container">
+        <section class="page-heading">
+            <h1>Question Review</h1>
+            <p class="muted">
+                Learn from mistakes, revisit difficult topics, and strengthen
+                your understanding.
+            </p>
+        </section>
+
+        <section class="review-summary">
+            <article class="summary-card">
+                <h3>Questions to Review</h3>
+                <div class="summary-value">—</div>
+                <p class="muted">Incorrect answers saved from practice.</p>
+            </article>
+
+            <article class="summary-card">
+                <h3>Topics to Revisit</h3>
+                <div class="summary-value">—</div>
+                <p class="muted">Topics that need more attention.</p>
+            </article>
+        </section>
+
+        <section class="review-section">
+            <h2>Saved Mistakes</h2>
+            <p class="muted">
+                Your saved questions will appear here once this page is
+                connected to your practice history.
+            </p>
+
+            <div class="question-card">
+                <div class="question-meta">
+                    <span class="question-tag">Subject: —</span>
+                    <span class="question-tag">Topic: —</span>
+                    <span class="question-tag">Difficulty: —</span>
+                </div>
+
+                <h3>No saved questions loaded yet</h3>
+                <p class="muted">
+                    When a question is answered incorrectly during practice,
+                    it can be stored here for later review.
+                </p>
+
+                <div class="answer-placeholder">
+                    <strong>Your answer:</strong>
+                    <p class="muted">Will appear here.</p>
+                </div>
+
+                <div class="answer-placeholder">
+                    <strong>Correct answer:</strong>
+                    <p class="muted">Will appear here.</p>
+                </div>
+
+                <div class="answer-placeholder">
+                    <strong>Explanation:</strong>
+                    <p class="muted">
+                        An explanation will help you understand the concept
+                        behind the correct answer.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <section class="review-section">
+            <h2>Practise Again</h2>
+            <p class="muted">
+                Once saved mistakes are connected, you'll be able to practise
+                questions from your weak topics again.
+            </p>
+
+            <div class="review-actions">
+                <a href="practice.html">Start Practice</a>
+                <a href="study-plan.html">Update Study Plan</a>
+                <a href="progress.html">View Progress</a>
+                <a href="student-dashboard.html">Back to Dashboard</a>
+            </div>
+        </section>
+    </main>
+
+    <script type="module" src="js/faction-theme.js"></script>
+</body>
+</html>
