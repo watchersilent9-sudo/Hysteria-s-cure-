@@ -1,0 +1,215 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Study Plan | Hysteria's Cure</title>
+
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/faction-themes.css">
+
+  <style>
+    .plan-container {
+      width: min(100% - 32px, 850px);
+      margin: 40px auto;
+    }
+
+    .plan-heading {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .plan-card {
+      padding: 22px;
+      margin-bottom: 18px;
+      border-radius: 14px;
+      background: var(--bg-card, #1b1b2a);
+      color: var(--text-primary, #f4f2ff);
+      border: 1px solid var(--border, rgba(255,255,255,.1));
+    }
+
+    .plan-card p {
+      color: var(--text-secondary, #aaa9c0);
+      line-height: 1.6;
+    }
+
+    .plan-form {
+      display: grid;
+      gap: 14px;
+    }
+
+    .plan-form label {
+      display: grid;
+      gap: 6px;
+    }
+
+    .plan-form input,
+    .plan-form select,
+    .plan-form textarea {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 11px;
+      border-radius: 8px;
+      border: 1px solid var(--border, #777);
+      background: var(--bg-secondary, #151521);
+      color: var(--text-primary, #f4f2ff);
+    }
+
+    .plan-form button {
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      background: var(--accent, #a78bfa);
+      color: white;
+      cursor: pointer;
+    }
+
+    .task-item {
+      margin: 12px 0;
+      padding: 12px;
+      border-radius: 8px;
+      background: var(--bg-secondary, #151521);
+      overflow-wrap: anywhere;
+    }
+  </style>
+</head>
+
+<body>
+  <header class="site-header">
+    <h2>Hysteria's Cure</h2>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="student-dashboard.html">Dashboard</a>
+      <a href="practice.html">Practice</a>
+      <a href="learning-library.html">Library</a>
+      <a href="levels.html">Levels</a>
+    </nav>
+  </header>
+
+  <main class="plan-container">
+    <section class="plan-heading">
+      <h1>Study Plan</h1>
+      <p>Organise your subjects, topics and study priorities.</p>
+    </section>
+
+    <section class="plan-card">
+      <h2>Add a Study Task</h2>
+
+      <form id="plan-form" class="plan-form">
+        <label>
+          Subject
+          <input
+            id="subject"
+            type="text"
+            placeholder="e.g. Biology"
+            required
+          >
+        </label>
+
+        <label>
+          Topic
+          <input
+            id="topic"
+            type="text"
+            placeholder="e.g. Excretion"
+            required
+          >
+        </label>
+
+        <label>
+          Priority
+          <select id="priority">
+            <option value="High">High</option>
+            <option value="Medium" selected>Medium</option>
+            <option value="Low">Low</option>
+          </select>
+        </label>
+
+        <label>
+          Study notes (optional)
+          <textarea
+            id="notes"
+            rows="3"
+            placeholder="What do you need to cover?"
+          ></textarea>
+        </label>
+
+        <button type="submit">Add Task</button>
+      </form>
+    </section>
+
+    <section class="plan-card">
+      <h2>My Study Tasks</h2>
+      <p id="empty-message">No tasks added yet.</p>
+      <div id="task-list"></div>
+    </section>
+
+    <section class="plan-card">
+      <h2>Personalised Study Planning</h2>
+      <p>
+        Future updates can use your performance, weak topics,
+        available study time and target level to recommend what
+        to study next.
+      </p>
+      <p>
+        Tasks on this page are currently stored only in this
+        open page. They are not saved to your account.
+      </p>
+    </section>
+  </main>
+
+  <script>
+    const form = document.getElementById("plan-form");
+    const taskList = document.getElementById("task-list");
+    const emptyMessage = document.getElementById("empty-message");
+
+    form.addEventListener("submit", function (event) {
+      event.preventDefault();
+
+      const subject = document.getElementById("subject").value.trim();
+      const topic = document.getElementById("topic").value.trim();
+      const priority = document.getElementById("priority").value;
+      const notes = document.getElementById("notes").value.trim();
+
+      if (!subject || !topic) return;
+
+      const task = document.createElement("article");
+      task.className = "task-item";
+
+      const heading = document.createElement("h3");
+      heading.textContent = subject + " — " + topic;
+
+      const priorityText = document.createElement("p");
+      priorityText.textContent = "Priority: " + priority;
+
+      task.appendChild(heading);
+      task.appendChild(priorityText);
+
+      if (notes) {
+        const noteText = document.createElement("p");
+        noteText.textContent = notes;
+        task.appendChild(noteText);
+      }
+
+      const removeButton = document.createElement("button");
+      removeButton.type = "button";
+      removeButton.textContent = "Remove task";
+
+      removeButton.addEventListener("click", function () {
+        task.remove();
+        emptyMessage.hidden = taskList.children.length > 0;
+      });
+
+      task.appendChild(removeButton);
+      taskList.appendChild(task);
+
+      emptyMessage.hidden = true;
+      form.reset();
+    });
+  </script>
+
+  <script type="module" src="js/faction-theme.js"></script>
+</body>
+</html>
