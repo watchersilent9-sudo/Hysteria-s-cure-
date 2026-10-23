@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -18,9 +19,7 @@
       --accent: var(--accent-bright, #c6a7ff);
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -41,17 +40,10 @@
       background: var(--bg-secondary, var(--background));
     }
 
-    .brand {
-      font-weight: 800;
-      font-size: 1.05rem;
-    }
+    .brand { font-weight: 800; font-size: 1.05rem; }
+    .brand span { color: var(--accent); }
 
-    .brand span {
-      color: var(--accent);
-    }
-
-    button,
-    .action {
+    button, .action {
       border: 0;
       border-radius: 10px;
       padding: 12px 16px;
@@ -79,19 +71,14 @@
       color: var(--bg-primary, #11101b);
     }
 
-    button:disabled {
-      opacity: 0.6;
-      cursor: wait;
-    }
+    button:disabled { opacity: 0.6; cursor: wait; }
 
     main {
-      width: min(calc(100% - 32px), 1000px);
+      width: min(calc(100% - 32px), 1100px);
       margin: 42px auto;
     }
 
-    .welcome {
-      margin-bottom: 32px;
-    }
+    .welcome { margin-bottom: 32px; }
 
     .eyebrow {
       color: var(--accent);
@@ -101,24 +88,18 @@
       font-size: 0.8rem;
     }
 
-    h1 {
-      font-size: clamp(2rem, 6vw, 3rem);
-      margin: 10px 0;
-    }
+    h1 { font-size: clamp(2rem, 6vw, 3rem); margin: 10px 0; }
+    h2 { font-size: 1.2rem; }
+    p { line-height: 1.65; }
+    .muted { color: var(--muted); }
 
-    p {
-      line-height: 1.65;
-    }
-
-    .muted {
-      color: var(--muted);
-    }
+    .section-heading { margin: 36px 0 16px; }
 
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
       gap: 18px;
-      margin-bottom: 40px;
+      margin-bottom: 28px;
     }
 
     .card {
@@ -129,27 +110,14 @@
       transition: background-color 0.25s ease, border-color 0.25s ease;
     }
 
-    .card h2 {
-      margin-top: 0;
-      font-size: 1.2rem;
-    }
-
-    .card p {
-      color: var(--muted);
-    }
+    .card h2 { margin-top: 0; }
+    .card p { color: var(--muted); }
 
     .stat-value {
       font-size: 1.8rem;
       font-weight: 800;
       color: var(--text);
       margin: 8px 0;
-    }
-
-    .coming-soon {
-      display: inline-block;
-      color: var(--accent);
-      font-size: 0.85rem;
-      font-weight: 700;
     }
 
     .mistakes-section {
@@ -160,9 +128,7 @@
       margin-top: 24px;
     }
 
-    .mistakes-section h2 {
-      margin-top: 0;
-    }
+    .mistakes-section h2 { margin-top: 0; }
 
     .mistake-card {
       background: var(--background);
@@ -170,17 +136,23 @@
       border-radius: 12px;
       padding: 16px;
       margin-top: 12px;
+      overflow-wrap: anywhere;
     }
 
-    .mistake-card h4 {
-      margin: 0 0 8px 0;
-    }
+    .mistake-card h4 { margin: 0 0 8px; }
 
     #page-message {
       padding: 14px;
       border-radius: 10px;
       background: var(--panel);
       border: 1px solid var(--border);
+    }
+
+    .page-directory {
+      display: inline-block;
+      margin-top: 12px;
+      color: var(--accent);
+      font-weight: 700;
     }
 
     footer {
@@ -190,16 +162,10 @@
       font-size: 0.85rem;
     }
 
-    [hidden] {
-      display: none !important;
-    }
+    [hidden] { display: none !important; }
 
     @media (prefers-reduced-motion: reduce) {
-      *,
-      *::before,
-      *::after {
-        transition: none !important;
-      }
+      *, *::before, *::after { transition: none !important; }
     }
   </style>
 </head>
@@ -207,9 +173,7 @@
 <body>
   <header>
     <div class="brand">HYSTERIA'S <span>CURE</span></div>
-    <button id="logout-button" type="button" hidden>
-      Log out
-    </button>
+    <button id="logout-button" type="button" hidden>Log out</button>
   </header>
 
   <main>
@@ -221,71 +185,113 @@
       <div class="welcome">
         <p class="eyebrow">Your learning journey</p>
         <h1>Welcome, <span id="student-name">Student</span>.</h1>
+        <p class="muted">Failure is the disease. Learning is the cure.</p>
         <p class="muted">
-          Failure is the disease. Learning is the cure.
-        </p>
-        <p class="muted">
-          This is your starting point for learning, practising,
-          and tracking your progress.
+          Practise, prepare for examinations, organise your study materials,
+          and track your progress from one place.
         </p>
       </div>
 
+      <h2 class="section-heading">Learning</h2>
       <div class="grid">
         <article class="card">
-          <h2>Learning Mode</h2>
-          <p>
-            Choose a subject and topic, practise questions,
-            and learn from explanations.
-          </p>
+          <h2>Practice</h2>
+          <p>Choose a subject and topic, answer questions, and learn from explanations.</p>
           <a class="action" href="practice.html">Start practising</a>
         </article>
 
         <article class="card">
-          <h2>Exam Mode</h2>
-          <p>
-            Prepare for timed examinations and assess
-            your readiness.
-          </p>
-          <span class="coming-soon">Coming soon</span>
+          <h2>Exams</h2>
+          <p>Prepare for timed examinations and assess your readiness.</p>
+          <a class="action" href="exam.html">Open exams</a>
         </article>
 
         <article class="card">
-          <h2>My Library</h2>
-          <p>
-            Your personal collection of notes, textbooks,
-            and saved questions will live here.
-          </p>
-          <span class="coming-soon">Coming soon</span>
+          <h2>Question Bank</h2>
+          <p>Explore the available practice questions.</p>
+          <a class="action" href="question-bank.html">Open question bank</a>
         </article>
 
         <article class="card">
-          <h2>My Progress</h2>
-          <p>Total questions answered & accuracy tracking.</p>
+          <h2>My Towers</h2>
+          <p>Explore Readers, Gamers, Movie Lovers, or Independent.</p>
+          <a class="action" href="towers.html">Explore towers</a>
+        </article>
+
+        <article class="card">
+          <h2>Learning Library</h2>
+          <p>Access the page for textbooks, past questions, and study notes.</p>
+          <a class="action" href="learning-library.html">Open library</a>
+        </article>
+
+        <article class="card">
+          <h2>My Materials</h2>
+          <p>Open your study materials area.</p>
+          <a class="action" href="materials.html">View materials</a>
+        </article>
+
+        <article class="card">
+          <h2>Study Plan</h2>
+          <p>Organise the subjects and topics you want to study.</p>
+          <a class="action" href="study-plan.html">Open study plan</a>
+        </article>
+      </div>
+
+      <h2 class="section-heading">Your Progress</h2>
+      <div class="grid">
+        <article class="card">
+          <h2>Questions Answered</h2>
           <div class="stat-value" id="stat-answered">0</div>
           <p class="muted">Accuracy: <span id="stat-accuracy">0</span>%</p>
+          <a class="page-directory" href="progress.html">View full progress</a>
         </article>
 
         <article class="card">
           <h2>Rewards & XP</h2>
-          <p>Your accumulated experience and points.</p>
           <div class="stat-value" id="stat-xp">0 XP</div>
           <p class="muted">Points: <span id="stat-points">0</span></p>
+          <a class="page-directory" href="rewards.html">View rewards</a>
         </article>
 
         <article class="card">
-          <h2>The Three Towers</h2>
-          <p>
-            Discover the Paths of Knowledge, Conquest,
-            and Discovery as they are developed.
-          </p>
-          <span class="coming-soon">Coming soon</span>
+          <h2>Learning Levels</h2>
+          <p>View the planned learning levels and advancement system.</p>
+          <a class="action" href="levels.html">View levels</a>
+        </article>
+
+        <article class="card">
+          <h2>Question Review</h2>
+          <p>Open the page for reviewing questions you answered incorrectly.</p>
+          <a class="action" href="mistakes.html">Review questions</a>
         </article>
       </div>
 
-      <!-- Mistake Bank Section -->
+      <h2 class="section-heading">Account</h2>
+      <div class="grid">
+        <article class="card">
+          <h2>My Profile</h2>
+          <p>View your account details and faction information.</p>
+          <a class="action" href="profile.html">Open profile</a>
+        </article>
+
+        <article class="card">
+          <h2>Settings</h2>
+          <p>Open your learning preferences.</p>
+          <a class="action" href="settings.html">Open settings</a>
+        </article>
+
+        <article class="card">
+          <h2>All Pages</h2>
+          <p>Find the student and administration pages in one directory.</p>
+          <a class="action" href="pages.html">View all pages</a>
+        </article>
+      </div>
+
       <section class="mistakes-section">
         <h2>Your Mistake Bank</h2>
-        <p class="muted">Review questions you missed during practice so you can turn failure into your cure.</p>
+        <p class="muted">
+          Review questions you missed during practice so you can learn from them.
+        </p>
         <div id="mistakes-container">
           <p class="muted">Loading your mistakes...</p>
         </div>
@@ -303,14 +309,16 @@
       onAuthStateChanged,
       signOut
     } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
-    import { ref, get } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-database.js";
+    import {
+      ref,
+      get
+    } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-database.js";
 
     const pageMessage = document.getElementById("page-message");
     const dashboard = document.getElementById("dashboard");
     const studentName = document.getElementById("student-name");
     const logoutButton = document.getElementById("logout-button");
 
-    // Stat elements
     const statAnswered = document.getElementById("stat-answered");
     const statAccuracy = document.getElementById("stat-accuracy");
     const statXp = document.getElementById("stat-xp");
@@ -328,16 +336,18 @@
 
       studentName.textContent = displayName;
 
-      // Fetch student progress and mistakes from Firebase
       try {
-        const progressRef = ref(database, `users/${user.uid}/progress`);
-        const progressSnapshot = await get(progressRef);
+        const progressSnapshot = await get(
+          ref(database, `users/${user.uid}/progress`)
+        );
 
         if (progressSnapshot.exists()) {
           const data = progressSnapshot.val();
           const answered = Number(data.totalAnswered || 0);
           const correct = Number(data.totalCorrect || 0);
-          const accuracy = answered > 0 ? Math.round((correct / answered) * 100) : 0;
+          const accuracy = answered > 0
+            ? Math.round((correct / answered) * 100)
+            : 0;
 
           statAnswered.textContent = answered;
           statAccuracy.textContent = accuracy;
@@ -345,50 +355,68 @@
           statPoints.textContent = Number(data.points || 0);
         }
 
-        // Fetch mistakes
-        const mistakesRef = ref(database, `users/${user.uid}/mistakes`);
-        const mistakesSnapshot = await get(mistakesRef);
+        const mistakesSnapshot = await get(
+          ref(database, `users/${user.uid}/mistakes`)
+        );
 
         mistakesContainer.replaceChildren();
 
         if (!mistakesSnapshot.exists()) {
           const p = document.createElement("p");
           p.className = "muted";
-          p.textContent = "No mistakes recorded yet. Keep practicing!";
+          p.textContent = "No mistakes recorded yet. Keep practising!";
           mistakesContainer.appendChild(p);
         } else {
           const mistakesData = mistakesSnapshot.val();
+
           Object.values(mistakesData).forEach((mistake, index) => {
             const card = document.createElement("div");
             card.className = "mistake-card";
 
-            const h4 = document.createElement("h4");
-            h4.textContent = `${index + 1}. ${mistake.questionText}`;
+            const heading = document.createElement("h4");
+            heading.textContent =
+              `${index + 1}. ${mistake.questionText || "Question"}`;
 
-            const sub = document.createElement("p");
-            sub.className = "muted";
-            sub.style.fontSize = "0.85rem";
-            sub.textContent = `Subject: ${mistake.subject} | Topic: ${mistake.topic}`;
+            const subject = document.createElement("p");
+            subject.className = "muted";
+            subject.textContent =
+              `Subject: ${mistake.subject || "Unknown"} | Topic: ${mistake.topic || "Unknown"}`;
 
-            const ans = document.createElement("p");
-            ans.innerHTML = `<strong>Correct Answer:</strong> ${mistake.correctAnswer}`;
+            const answer = document.createElement("p");
+            const answerLabel = document.createElement("strong");
+            answerLabel.textContent = "Correct Answer: ";
+            answer.append(answerLabel, document.createTextNode(
+              String(mistake.correctAnswer ?? "Not recorded")
+            ));
 
-            card.append(h4, sub, ans);
+            card.append(heading, subject, answer);
 
             if (mistake.explanation) {
-              const exp = document.createElement("p");
-              exp.style.fontSize = "0.9rem";
-              exp.innerHTML = `<em>Explanation:</em> ${mistake.explanation}`;
-              card.appendChild(exp);
+              const explanation = document.createElement("p");
+              const explanationLabel = document.createElement("strong");
+              explanationLabel.textContent = "Explanation: ";
+              explanation.append(
+                explanationLabel,
+                document.createTextNode(String(mistake.explanation))
+              );
+              card.appendChild(explanation);
             }
 
             mistakesContainer.appendChild(card);
           });
-        }
 
+          const reviewLink = document.createElement("p");
+          const link = document.createElement("a");
+          link.className = "page-directory";
+          link.href = "mistakes.html";
+          link.textContent = "Open full question review";
+          reviewLink.appendChild(link);
+          mistakesContainer.appendChild(reviewLink);
+        }
       } catch (error) {
         console.error("Failed to load user progress or mistakes:", error);
-        mistakesContainer.textContent = "Could not load your mistakes.";
+        mistakesContainer.textContent =
+          "Could not load your mistakes. Your other dashboard pages are still available.";
       }
 
       pageMessage.hidden = true;
