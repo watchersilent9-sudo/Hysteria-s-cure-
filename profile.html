@@ -1,0 +1,205 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile | Hysteria's Cure</title>
+
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/faction-themes.css">
+
+    <style>
+        .profile-container {
+            width: min(850px, 92%);
+            margin: 35px auto;
+        }
+
+        .profile-heading {
+            margin-bottom: 25px;
+        }
+
+        .profile-heading p,
+        .muted {
+            color: var(--text-secondary);
+        }
+
+        .profile-card,
+        .profile-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 22px;
+            margin-bottom: 20px;
+        }
+
+        .profile-avatar {
+            width: 76px;
+            height: 76px;
+            display: grid;
+            place-items: center;
+            border-radius: 50%;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            color: var(--accent-bright);
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .profile-field {
+            margin: 18px 0;
+        }
+
+        .profile-field label {
+            display: block;
+            margin-bottom: 7px;
+            font-weight: 600;
+        }
+
+        .profile-field input,
+        .profile-field select {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font: inherit;
+        }
+
+        .profile-field input:disabled {
+            opacity: 0.75;
+        }
+
+        .profile-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .profile-actions a,
+        .profile-actions button {
+            padding: 11px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            text-decoration: none;
+            font: inherit;
+            cursor: pointer;
+        }
+
+        .profile-notice {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: 12px;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="container">
+            <a href="index.html">Hysteria's Cure</a>
+            <nav>
+                <a href="student-dashboard.html">Dashboard</a>
+                <a href="towers.html">Towers</a>
+                <a href="progress.html">Progress</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="profile-container">
+        <section class="profile-heading">
+            <h1>My Profile</h1>
+            <p>Manage your account details and learning preferences.</p>
+        </section>
+
+        <section class="profile-card">
+            <div class="profile-avatar" id="profile-avatar">?</div>
+            <h2 id="profile-display-name">Student</h2>
+            <p class="muted" id="profile-email">Account details will appear here.</p>
+            <p class="muted">Your personal learning profile</p>
+        </section>
+
+        <section class="profile-section">
+            <h2>Account Details</h2>
+
+            <div class="profile-field">
+                <label for="display-name">Display Name</label>
+                <input
+                    type="text"
+                    id="display-name"
+                    placeholder="Your display name"
+                    autocomplete="name"
+                >
+            </div>
+
+            <div class="profile-field">
+                <label for="email">Email Address</label>
+                <input
+                    type="email"
+                    id="email"
+                    disabled
+                    placeholder="Your registered email"
+                >
+            </div>
+
+            <p class="profile-notice">
+                Your saved account details will be loaded from Firebase when
+                this page is connected.
+            </p>
+        </section>
+
+        <section class="profile-section">
+            <h2>Learning Preferences</h2>
+
+            <div class="profile-field">
+                <label for="faction">Selected Faction</label>
+                <select id="faction">
+                    <option value="readers">Readers</option>
+                    <option value="gamers">Gamers</option>
+                    <option value="movie-lovers">Movie Lovers</option>
+                    <option value="independent">Independent</option>
+                </select>
+            </div>
+
+            <div class="profile-field">
+                <label for="level">Current Learning Level</label>
+                <input
+                    type="text"
+                    id="level"
+                    value="Basic"
+                    disabled
+                >
+            </div>
+
+            <p class="profile-notice">
+                Changing factions will eventually update your saved profile
+                and site theme. This form does not save changes yet.
+            </p>
+
+            <div class="profile-actions">
+                <button type="button" id="save-profile">Save Changes</button>
+                <a href="levels.html">View Levels</a>
+            </div>
+        </section>
+
+        <section class="profile-section">
+            <h2>Other Pages</h2>
+
+            <div class="profile-actions">
+                <a href="learning-library.html">Learning Library</a>
+                <a href="study-plan.html">Study Plan</a>
+                <a href="rewards.html">Rewards</a>
+                <a href="login.html">Login Page</a>
+            </div>
+        </section>
+    </main>
+
+    <script type="module" src="js/faction-theme.js"></script>
+</body>
+</html>
