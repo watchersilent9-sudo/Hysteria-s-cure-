@@ -1,14 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#171525">
-  <title>Admin Panel | Hysteria's Cure</title>
-
-  <link rel="stylesheet" href="css/faction-themes.css">
-
-  <style>
+  <title>Admin Panel | Hysteria's Cure</title>  <link rel="stylesheet" href="css/faction-themes.css">  <style>
     :root {
       color-scheme: dark;
       --background: var(--bg-primary, #11101b);
@@ -34,6 +29,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      flex-wrap: wrap;
       gap: 16px;
       padding: 18px 6%;
       border-bottom: 1px solid var(--border);
@@ -49,7 +45,8 @@
       color: var(--accent);
     }
 
-    button, .action {
+    button,
+    .action {
       border: 0;
       border-radius: 10px;
       padding: 12px 16px;
@@ -77,8 +74,13 @@
       color: var(--bg-primary, #11101b);
     }
 
+    button:disabled {
+      opacity: 0.6;
+      cursor: wait;
+    }
+
     main {
-      width: min(calc(100% - 32px), 900px);
+      width: min(calc(100% - 32px), 1000px);
       margin: 42px auto;
     }
 
@@ -90,8 +92,43 @@
       margin-bottom: 24px;
     }
 
-    h1, h2 {
+    h1,
+    h2 {
       margin-top: 0;
+    }
+
+    .admin-nav {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+    }
+
+    .admin-card {
+      display: block;
+      padding: 20px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--background);
+      color: var(--text);
+      text-decoration: none;
+      transition: border-color 0.2s ease, transform 0.2s ease;
+    }
+
+    .admin-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .admin-card h3 {
+      margin: 0 0 8px;
+      color: var(--accent);
+    }
+
+    .admin-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.6;
     }
 
     .form-group {
@@ -105,7 +142,9 @@
       font-size: 0.9rem;
     }
 
-    input, select, textarea {
+    input,
+    select,
+    textarea {
       width: 100%;
       padding: 12px;
       border-radius: 10px;
@@ -123,6 +162,7 @@
     .muted {
       color: var(--muted);
       font-size: 0.9rem;
+      line-height: 1.6;
     }
 
     #page-message {
@@ -133,85 +173,220 @@
       margin-bottom: 20px;
     }
 
+    #form-message {
+      margin-top: 16px;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow-wrap: anywhere;
+    }
+
     [hidden] {
       display: none !important;
     }
-  </style>
-</head>
 
-<body>
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        transition: none !important;
+      }
+    }
+  </style></head><body>
   <header>
-    <div class="brand">HYSTERIA'S <span>CURE</span> — <span>ADMIN</span></div>
-    <div>
-      <a class="action" href="student-dashboard.html" style="padding: 8px 14px; font-size: 0.85rem; margin-right: 10px;">Dashboard</a>
-      <button id="logout-button" type="button">Log out</button>
-    </div>
-  </header>
+    <div class="brand">HYSTERIA'S <span>CURE</span> — <span>ADMIN</span></div><div>
+  <a
+    class="action"
+    href="student-dashboard.html"
+    style="padding: 8px 14px; font-size: 0.85rem; margin-right: 8px;"
+  >Student Dashboard</a>
 
-  <main>
+  <button id="logout-button" type="button">Log out</button>
+</div>
+
+  </header>  <main>
     <p id="page-message" role="status" aria-live="polite">
       Verifying administrator access...
+    </p><div id="admin-content" hidden>
+  <section class="panel">
+    <h1>Administration</h1>
+    <p class="muted">
+      Manage questions, learning materials, and student accounts.
     </p>
 
-    <div id="admin-content" hidden>
-      <section class="panel">
-        <h2>Add New Question</h2>
-        <p class="muted">Expand the global question repository securely.</p>
-        
-        <form id="add-question-form">
-          <div class="form-group">
-            <label for="q-id">Question ID (e.g. math_001)</label>
-            <input type="text" id="q-id" required placeholder="Unique alphanumeric identifier">
-          </div>
+    <div class="admin-nav">
+      <a class="admin-card" href="admin.html">
+        <h3>Question Management</h3>
+        <p>Create and publish questions to the question bank.</p>
+      </a>
 
-          <div class="form-group">
-            <label for="q-subject">Subject</label>
-            <input type="text" id="q-subject" required placeholder="e.g. Mathematics, History">
-          </div>
+      <a class="admin-card" href="admin-materials.html">
+        <h3>Learning Materials</h3>
+        <p>Open the page for managing learning resources.</p>
+      </a>
 
-          <div class="form-group">
-            <label for="q-topic">Topic</label>
-            <input type="text" id="q-topic" required placeholder="e.g. Algebra, World War II">
-          </div>
+      <a class="admin-card" href="admin-users.html">
+        <h3>Student Management</h3>
+        <p>Open the student and faction management page.</p>
+      </a>
 
-          <div class="form-group">
-            <label for="q-difficulty">Difficulty (1 to 7)</label>
-            <input type="number" id="q-difficulty" min="1" max="7" value="1" required>
-          </div>
-
-          <div class="form-group">
-            <label for="q-text">Question Text</label>
-            <textarea id="q-text" required placeholder="Type the question here..."></textarea>
-          </div>
-
-          <div class="form-group">
-            <label>Options (Provide at least 2, up to 4)</label>
-            <input type="text" class="q-option" placeholder="Option A" required style="margin-bottom: 8px;">
-            <input type="text" class="q-option" placeholder="Option B" required style="margin-bottom: 8px;">
-            <input type="text" class="q-option" placeholder="Option C" style="margin-bottom: 8px;">
-            <input type="text" class="q-option" placeholder="Option D">
-          </div>
-
-          <div class="form-group">
-            <label for="q-answer-index">Correct Answer Index (0 for Option A, 1 for Option B, etc.)</label>
-            <input type="number" id="q-answer-index" min="0" max="3" value="0" required>
-          </div>
-
-          <div class="form-group">
-            <label for="q-explanation">Explanation (Optional)</label>
-            <textarea id="q-explanation" placeholder="Explain why the correct answer is right..."></textarea>
-          </div>
-
-          <button type="submit" class="action">Publish Question to Database</button>
-        </form>
-      </section>
+      <a class="admin-card" href="pages.html">
+        <h3>Page Directory</h3>
+        <p>Find the other student and administration pages.</p>
+      </a>
     </div>
-  </main>
+  </section>
 
-  <script type="module">
+  <section class="panel">
+    <h2>Add New Question</h2>
+    <p class="muted">
+      Add a question to the global question repository.
+    </p>
+
+    <form id="add-question-form">
+      <div class="form-group">
+        <label for="q-id">Question ID</label>
+        <input
+          type="text"
+          id="q-id"
+          required
+          pattern="[A-Za-z0-9_-]+"
+          maxlength="100"
+          placeholder="e.g. math_001"
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="q-subject">Subject</label>
+        <input
+          type="text"
+          id="q-subject"
+          required
+          maxlength="100"
+          placeholder="e.g. Mathematics, Biology"
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="q-topic">Topic</label>
+        <input
+          type="text"
+          id="q-topic"
+          required
+          maxlength="150"
+          placeholder="e.g. Algebra, Excretion"
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="q-difficulty">Difficulty (1 to 7)</label>
+        <input
+          type="number"
+          id="q-difficulty"
+          min="1"
+          max="7"
+          step="1"
+          value="1"
+          required
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="q-text">Question Text</label>
+        <textarea
+          id="q-text"
+          required
+          maxlength="10000"
+          placeholder="Type the question here..."
+        ></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Options (at least 2, up to 4)</label>
+
+        <input
+          type="text"
+          class="q-option"
+          aria-label="Option A"
+          placeholder="Option A"
+          maxlength="2000"
+          required
+          style="margin-bottom: 8px;"
+        >
+
+        <input
+          type="text"
+          class="q-option"
+          aria-label="Option B"
+          placeholder="Option B"
+          maxlength="2000"
+          required
+          style="margin-bottom: 8px;"
+        >
+
+        <input
+          type="text"
+          class="q-option"
+          aria-label="Option C"
+          placeholder="Option C"
+          maxlength="2000"
+          style="margin-bottom: 8px;"
+        >
+
+        <input
+          type="text"
+          class="q-option"
+          aria-label="Option D"
+          placeholder="Option D"
+          maxlength="2000"
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="q-answer-index">
+          Correct Answer Index (0 = A, 1 = B, 2 = C, 3 = D)
+        </label>
+        <input
+          type="number"
+          id="q-answer-index"
+          min="0"
+          max="3"
+          step="1"
+          value="0"
+          required
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="q-explanation">Explanation (Optional)</label>
+        <textarea
+          id="q-explanation"
+          maxlength="10000"
+          placeholder="Explain why the correct answer is right..."
+        ></textarea>
+      </div>
+
+      <button id="publish-button" type="submit" class="action">
+        Publish Question
+      </button>
+
+      <p id="form-message" role="status" aria-live="polite" hidden></p>
+    </form>
+  </section>
+</div>
+
+  </main>  <script type="module">
     import { auth, database } from "./js/firebase-client.js";
-    import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
-    import { ref, set } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-database.js";
+
+    import {
+      onAuthStateChanged,
+      signOut
+    } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
+
+    import {
+      ref,
+      set
+    } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-database.js";
 
     const ADMIN_UID = "RtaLjBtKSUgRnWB7ag06CLRCStM2";
 
@@ -219,47 +394,115 @@
     const adminContent = document.getElementById("admin-content");
     const logoutButton = document.getElementById("logout-button");
     const addForm = document.getElementById("add-question-form");
+    const publishButton = document.getElementById("publish-button");
+    const formMessage = document.getElementById("form-message");
+
+    let currentAdmin = null;
+
+    function showFormMessage(message, isError = false) {
+      formMessage.hidden = false;
+      formMessage.textContent = message;
+      formMessage.style.borderColor = isError ? "#ff7777" : "var(--border)";
+    }
 
     onAuthStateChanged(auth, (user) => {
+      currentAdmin = null;
+
       if (!user) {
         window.location.replace("login.html");
         return;
       }
 
       if (user.uid !== ADMIN_UID) {
-        pageMessage.textContent = "Access denied. Administrator privileges required.";
+        pageMessage.hidden = false;
+        pageMessage.textContent =
+          "Access denied. Administrator privileges required.";
         pageMessage.style.borderColor = "#ff5555";
+        adminContent.hidden = true;
         return;
       }
 
+      currentAdmin = user;
       pageMessage.hidden = true;
       adminContent.hidden = false;
     });
 
-    addForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
+    addForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      if (!currentAdmin || auth.currentUser?.uid !== ADMIN_UID) {
+        showFormMessage(
+          "You are not authorised to publish questions.",
+          true
+        );
+        return;
+      }
 
       const id = document.getElementById("q-id").value.trim();
       const subject = document.getElementById("q-subject").value.trim();
       const topic = document.getElementById("q-topic").value.trim();
-      const difficulty = Number(document.getElementById("q-difficulty").value);
+      const difficulty = Number(
+        document.getElementById("q-difficulty").value
+      );
       const questionText = document.getElementById("q-text").value.trim();
-      
-      const optionInputs = document.querySelectorAll(".q-option");
-      const options = Array.from(optionInputs)
+
+      const optionInputs = [
+        ...document.querySelectorAll(".q-option")
+      ];
+
+      const options = optionInputs
         .map(input => input.value.trim())
-        .filter(val => val !== "");
+        .filter(value => value !== "");
 
-      const answerIndex = Number(document.getElementById("q-answer-index").value);
-      const explanation = document.getElementById("q-explanation").value.trim();
+      const answerIndex = Number(
+        document.getElementById("q-answer-index").value
+      );
 
-      if (answerIndex >= options.length) {
-        alert("Correct answer index points to an empty option!");
+      const explanation =
+        document.getElementById("q-explanation").value.trim();
+
+      if (!/^[A-Za-z0-9_-]+$/.test(id)) {
+        showFormMessage(
+          "Use only letters, numbers, underscores, and hyphens in the question ID.",
+          true
+        );
         return;
       }
 
+      if (difficulty < 1 || difficulty > 7 ||
+          !Number.isInteger(difficulty)) {
+        showFormMessage(
+          "Difficulty must be a whole number from 1 to 7.",
+          true
+        );
+        return;
+      }
+
+      if (options.length < 2 || options.length > 4) {
+        showFormMessage(
+          "Provide between two and four non-empty options.",
+          true
+        );
+        return;
+      }
+
+      if (!Number.isInteger(answerIndex) ||
+          answerIndex < 0 ||
+          answerIndex >= options.length) {
+        showFormMessage(
+          "The correct answer must point to an option that contains text.",
+          true
+        );
+        return;
+      }
+
+      publishButton.disabled = true;
+      publishButton.textContent = "Publishing...";
+      showFormMessage("Publishing question...");
+
       try {
         const questionRef = ref(database, `questionBank/${id}`);
+
         await set(questionRef, {
           id,
           subject,
@@ -270,21 +513,43 @@
           answerIndex,
           explanation,
           verified: true,
-          createdAt: new Date().toISOString()
+          createdAt: new Date().toISOString(),
+          createdBy: currentAdmin.uid
         });
 
-        alert("Question successfully published to the Firebase question bank!");
+        showFormMessage(
+          "Question saved to Firebase. Confirm that it appears in the question bank during the integration pass."
+        );
+
         addForm.reset();
+        document.getElementById("q-difficulty").value = "1";
+        document.getElementById("q-answer-index").value = "0";
       } catch (error) {
-        console.error("Failed to add question:", error);
-        alert("Error publishing question. Check console for details.");
+        console.error("Failed to publish question:", error);
+
+        showFormMessage(
+          "Could not publish the question. Firebase permissions or connectivity may be the cause.",
+          true
+        );
+      } finally {
+        publishButton.disabled = false;
+        publishButton.textContent = "Publish Question";
       }
     });
 
     logoutButton.addEventListener("click", async () => {
-      await signOut(auth);
-      window.location.replace("login.html");
+      logoutButton.disabled = true;
+
+      try {
+        await signOut(auth);
+        window.location.replace("login.html");
+      } catch (error) {
+        console.error("Logout failed:", error);
+        pageMessage.hidden = false;
+        pageMessage.textContent =
+          "Could not log out. Please check your connection and try again.";
+        logoutButton.disabled = false;
+      }
     });
-  </script>
-</body>
+  </script>  <script type="module" src="js/faction-theme.js"></script></body>
 </html>
