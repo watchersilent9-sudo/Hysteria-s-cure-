@@ -5,6 +5,7 @@
  * - Subject and topic search
  * - Random, progressive and challenge ordering
  * - Local and Firebase question bank integration
+ * - Faction-specific learning feedback
  * - Question display and answer checking
  * - XP, points, progress and mistakes tracking
  * - Session results and error handling
@@ -17,6 +18,10 @@ import {
 
 import { validateQuestionCatalogue } from "./question-catalogue.js";
 import { auth, database } from "./firebase-client.js";
+
+import {
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
 
 import {
   ref,
@@ -66,6 +71,113 @@ const difficultyDescriptions = {
   6: "Advanced reasoning",
   7: "Mastery"
 };
+
+// --------------------------------------------------
+// FACTION EXPERIENCE
+// --------------------------------------------------
+
+const VALID_FACTIONS = [
+  "readers",
+  "gamers",
+  "movie-lovers",
+  "independent"
+];
+
+let currentFaction = "independent";
+
+const factionExperience = {
+  readers: {
+    name: "Readers",
+    introduction:
+      "Look beyond the answer. Examine the reasoning and discover what the concept reveals.",
+    correct:
+      "Correct! Think about the principle behind your answer.",
+    incorrect:
+      "Not quite. Re-examine the explanation and identify the concept you missed."
+  },
+
+  gamers: {
+    name: "Gamers",
+    introduction:
+      "Build your score through accurate answers. Timed bot challenges will be added as a separate mode.",
+    correct:
+      "Correct! Points added to your score.",
+    incorrect:
+      "Incorrect. Review the answer and learn from the mistake."
+  },
+
+  "movie-lovers": {
+    name: "Movie Lovers",
+    introduction:
+      "Examine the clues, connect the details, and work out why the answer makes sense.",
+    correct:
+      "Correct! You found the right answer.",
+    incorrect:
+      "That wasn't the right answer. Re-examine the clues and explanation."
+  },
+
+  independent: {
+    name: "Independent",
+    introduction:
+      "Your practice, your approach. Build your understanding one question at a time.",
+    correct:
+      "Correct! Keep building your understanding.",
+    incorrect:
+      "Not quite. Review the explanation and try applying the concept again."
+  }
+};
+
+// Wait until Firebase has determined whether a user is signed in.
+function waitForAuth() {
+  if (auth.currentUser) {
+    return Promise.resolve(auth.currentUser);
+  }
+
+  return new Promise(resolve => {
+    let unsubscribe = () => {};
+
+    unsubscribe = onAuthStateChanged(
+      auth,
+      user => {
+        unsubscribe();
+        resolve(user);
+      },
+      error => {
+        console.error("Authentication check failed:", error);
+        unsubscribe();
+        resolve(null);
+      }
+    );
+  });
+}
+
+async function loadUserFaction() {
+  try {
+    const user = await waitForAuth();
+
+    if (!user) {
+      currentFaction = "independent";
+      return currentFaction;
+    }
+
+    const factionSnapshot = await get(
+      ref(database, `users/${user.uid}/faction`)
+    );
+
+    const faction = factionSnapshot.val();
+
+    currentFaction = VALID_FACTIONS.includes(faction)
+      ? faction
+      : "independent";
+
+    return currentFaction;
+  } catch (error) {
+    console.error("Could not load student faction:", error);
+
+    currentFaction = "independent";
+    return currentFaction;
+  }
+}
 
 // --------------------------------------------------
 // SESSION STATE
@@ -337,7 +449,13 @@ async function loadQuestions() {
       throw new Error("Please select a valid question order.");
     }
 
-    showMessage("Finding questions for your selected difficulty...");
+    await loadUserFaction();
+
+    const experience = factionExperience[currentFaction];
+
+    showMessage(
+      `${experience.name}: ${experience.introduction}`
+    );
 
     const filters = {
       subject,
@@ -394,7 +512,7 @@ async function loadQuestions() {
       : "";
 
     showMessage(
-      `${currentQuestions.length} question(s) found at ` +
+      `${experience.name}: ${currentQuestions.length} question(s) found at ` +
       `${selectedDifficulty}★ — ${difficultyDescriptions[selectedDifficulty]}.` +
       sourceMessage
     );
@@ -567,6 +685,7 @@ function checkAnswer(selectedIndex) {
   answeredQuestions.add(questionKey);
 
   const feedback = document.getElementById("answer-feedback");
+  const experience = factionExperience[currentFaction];
 
   if (isCorrect) {
     correctAnswers++;
@@ -580,7 +699,7 @@ function checkAnswer(selectedIndex) {
         createElement(
           "p",
           "success-msg",
-          `Correct! You earned ${earnedPoints} points.`
+          `${experience.correct} You earned ${earnedPoints} points.`
         )
       );
     }
@@ -602,7 +721,7 @@ function checkAnswer(selectedIndex) {
         createElement(
           "p",
           "warning-msg",
-          "Not quite. Two points have been deducted where available."
+          `${experience.incorrect} Two points have been deducted where available.`
         )
       );
 
@@ -866,7 +985,7 @@ async function finishSession() {
 
     resultsArea.appendChild(
       createElement(
-        saved ? "p" : "p",
+        "p",
         saved ? "success-msg" : "warning-msg",
         saved
           ? "Your progress and mistakes have been saved."
