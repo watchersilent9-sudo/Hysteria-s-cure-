@@ -1,32 +1,35 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+
   <title>Question Engine | Hysteria's Cure</title>
+
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="css/faction-themes.css">
-  <style>  
-.engine {
-  width: min(94%, 760px);
-  margin: 28px auto;
-}
 
-.student-navigation {
-  padding: 16px 6%;
-  border-bottom: 1px solid #353148;
-}
+  <style>
+    .engine {
+      width: min(94%, 760px);
+      margin: 28px auto;
+    }
 
-.student-navigation a {
-  color: #c6a7ff;
-  text-decoration: none;
-  font-weight: 600;
-}
+    .student-navigation {
+      padding: 16px 6%;
+      border-bottom: 1px solid #353148;
+    }
 
-.student-navigation a:hover {
-  text-decoration: underline;
-}
+    .student-navigation a {
+      color: #c6a7ff;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .student-navigation a:hover {
+      text-decoration: underline;
+    }
+
     .panel {
       padding: 20px;
       margin: 18px 0;
@@ -65,17 +68,72 @@
       font-size: 0.92rem;
     }
 
+    #gamer-modes {
+      border-color: #6d4aff;
+    }
+
+    #gamer-modes[hidden] {
+      display: none;
+    }
+
+    #duel-area[hidden] {
+      display: none;
+    }
+
+    .duel-scoreboard {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      text-align: center;
+    }
+
+    .duel-score {
+      padding: 14px;
+      border: 1px solid #ded8e8;
+      border-radius: 12px;
+    }
+
+    .duel-score strong {
+      display: block;
+      font-size: 1.6rem;
+      margin-top: 6px;
+    }
+
+    #duel-timer {
+      font-size: 2rem;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .duel-option.correct-answer {
+      border: 2px solid #238636;
+    }
+
+    .duel-option.incorrect-answer {
+      border: 2px solid #d73a49;
+    }
+
     @media (max-width: 420px) {
-      .panel { padding: 14px; }
-      .stars { gap: 3px; }
-      .stars button { font-size: 12px; }
+      .panel {
+        padding: 14px;
+      }
+
+      .stars {
+        gap: 3px;
+      }
+
+      .stars button {
+        font-size: 12px;
+      }
     }
   </style>
 </head>
-<body> 
+
+<body>
   <nav class="student-navigation">
-  <a href="student-dashboard.html">← Student Dashboard</a>
+    <a href="student-dashboard.html">← Student Dashboard</a>
   </nav>
+
   <main class="engine">
     <p><a href="index.html">← Home</a></p>
 
@@ -87,12 +145,18 @@
       <h2>Find your subject</h2>
 
       <label for="subject-search">Search for a subject</label>
-      <input id="subject-search" type="search"
-        placeholder="e.g. Physics, Literature, Economics">
+      <input
+        id="subject-search"
+        type="search"
+        placeholder="e.g. Physics, Literature, Economics"
+      >
 
       <label for="topic-search">Topic or concept</label>
-      <input id="topic-search" type="search"
-        placeholder="e.g. Electricity, Poetry, Demand">
+      <input
+        id="topic-search"
+        type="search"
+        placeholder="e.g. Electricity, Poetry, Demand"
+      >
 
       <p class="hint">
         Enter the subject and topic you want to practise.
@@ -104,16 +168,38 @@
       <p>Bring your own textbooks, notes, and past questions.</p>
 
       <label for="materials">Select documents</label>
-      <input id="materials" type="file"
+      <input
+        id="materials"
+        type="file"
         accept=".pdf,.txt,.doc,.docx"
-        multiple>
+        multiple
+      >
 
       <p id="file-list" class="hint" aria-live="polite">
         No files selected.
       </p>
 
       <p class="hint">
-        Files are not uploaded or processed yet. This is the selection interface.
+        Files are not uploaded or processed yet.
+      </p>
+    </section>
+
+    <!-- GAMER MODES -->
+    <section class="panel" id="gamer-modes" hidden>
+      <h2>Game Mode</h2>
+      <p>Choose how you want to compete.</p>
+
+      <label for="game-mode">Challenge mode</label>
+
+      <select id="game-mode">
+        <option value="practice">Normal Practice</option>
+        <option value="quick-duel">Quick Duel</option>
+        <option value="survival">Survival</option>
+        <option value="ranked">Ranked Challenge</option>
+      </select>
+
+      <p class="hint" id="game-mode-description" aria-live="polite">
+        Practise at your own pace.
       </p>
     </section>
 
@@ -131,37 +217,75 @@
         <button type="button" data-level="7">7★</button>
       </div>
 
-      <p id="star-description">1 star — Foundation</p>
-        
-<div class="practice-controls">
-  <label for="question-count">Number of questions</label>
-  <select id="question-count">
-    <option value="5">5 questions</option>
-    <option value="10" selected>10 questions</option>
-    <option value="20">20 questions</option>
-    <option value="50">50 questions</option>
-  </select>
+      <p id="star-description">1 star — Foundation recall</p>
 
-  <label for="practice-strategy">Question order</label>
-  <select id="practice-strategy">
-    <option value="random" selected>Random practice</option>
-    <option value="progressive">Easier to harder</option>
-    <option value="challenge">Harder to easier</option>
-  </select>
-</div>
-      
+      <div class="practice-controls">
+        <label for="question-count">Number of questions</label>
+
+        <select id="question-count">
+          <option value="5">5 questions</option>
+          <option value="10" selected>10 questions</option>
+          <option value="20">20 questions</option>
+          <option value="50">50 questions</option>
+        </select>
+
+        <label for="practice-strategy">Question order</label>
+
+        <select id="practice-strategy">
+          <option value="random" selected>Random practice</option>
+          <option value="progressive">Easier to harder</option>
+          <option value="challenge">Harder to easier</option>
+        </select>
+      </div>
+
       <button type="button" id="find-questions">
         Find Questions
       </button>
 
       <p id="engine-message" aria-live="polite"></p>
+
       <p id="catalogue-status" role="status" aria-live="polite">
-  Checking question catalogue...
+        Checking question catalogue...
       </p>
+    </section>
+
+    <!-- Separate game interface; normal practice remains intact. -->
+    <section class="panel" id="duel-area" hidden aria-live="polite">
+      <h2 id="duel-title">Quick Duel</h2>
+
+      <div class="duel-scoreboard">
+        <div class="duel-score">
+          <span>You</span>
+          <strong id="duel-player-score">0</strong>
+        </div>
+
+        <div class="duel-score">
+          <span>Bot</span>
+          <strong id="duel-bot-score">0</strong>
+        </div>
+      </div>
+
+      <p id="duel-progress" class="hint"></p>
+      <p id="duel-timer">5</p>
+
+      <h3 id="duel-question"></h3>
+
+      <div id="duel-options"></div>
+
+      <p id="duel-feedback" aria-live="polite"></p>
+
+      <button type="button" id="duel-next" hidden>
+        Next Question
+      </button>
+
+      <button type="button" id="duel-exit">
+        Exit Challenge
+      </button>
     </section>
   </main>
 
   <script type="module" src="js/question-engine.js"></script>
   <script type="module" src="js/faction-theme.js"></script>
+  <script type="module" src="js/gamer-modes.js"></script>
 </body>
 </html>
