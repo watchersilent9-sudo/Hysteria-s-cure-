@@ -3,7 +3,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#171525">
-  <meta name="description" content="Your Hysteria's Cure learning dashboard.">  <title>Student Dashboard | Hysteria's Cure</title>  <link rel="stylesheet" href="css/faction-themes.css">  <style>
+  <meta name="description" content="Your personal Hysteria's Cure learning space.">
+  <title>My Learning Space | Hysteria's Cure</title>  <link rel="stylesheet" href="css/faction-themes.css">  <style>
     :root {
       color-scheme: dark;
       --background: var(--bg-primary, #11101b);
@@ -12,42 +13,52 @@
       --text: var(--text-primary, #f7f4ff);
       --muted: var(--text-secondary, #b7b1ca);
       --accent: var(--accent-bright, #c6a7ff);
+      --line: var(--border, #353148);
+      --radius: 22px;
     }
 
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
 
     body {
       margin: 0;
       min-height: 100vh;
       background: var(--background);
       color: var(--text);
-      font-family: system-ui, sans-serif;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.6;
       transition: background-color .25s ease, color .25s ease;
     }
 
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 16px;
-      padding: 18px 6%;
-      border-bottom: 1px solid var(--border);
-      background: var(--panel);
+    a {
+      color: inherit;
     }
 
-    .brand { font-weight: 800; font-size: 1.05rem; }
-    .brand span { color: var(--accent); }
+    button,
+    a {
+      -webkit-tap-highlight-color: transparent;
+    }
 
-    button, .action {
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 12px 16px;
+    button,
+    .button {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      gap: 9px;
+      min-height: 44px;
+      padding: 11px 17px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
       font: inherit;
       font-weight: 700;
-      cursor: pointer;
       text-decoration: none;
-      display: inline-block;
-      transition: background-color .2s ease, color .2s ease;
+      cursor: pointer;
+      transition: transform .2s ease, border-color .2s ease, background-color .2s ease;
     }
 
     button {
@@ -55,274 +66,836 @@
       color: var(--text);
     }
 
-    .action {
+    button:hover,
+    .button:hover {
+      border-color: var(--accent);
+    }
+
+    button:disabled {
+      opacity: .6;
+      cursor: wait;
+    }
+
+    button:focus-visible,
+    a:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 4px;
+    }
+
+    .button-primary {
       background: var(--accent);
       border-color: var(--accent);
       color: var(--background);
     }
 
-    .action:hover {
-      background: var(--accent-dark, var(--accent));
+    .button-primary:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.06);
+    }
+
+    .button-secondary {
+      background: transparent;
       color: var(--text);
     }
 
-    button:hover { border-color: var(--accent); }
-    button:disabled { opacity: .6; cursor: wait; }
-
-    button:focus-visible, a:focus-visible {
-      outline: 2px solid var(--accent);
-      outline-offset: 3px;
-    }
-
-    main {
-      width: min(calc(100% - 32px), 1100px);
-      margin: 42px auto;
-    }
-
-    .welcome { margin-bottom: 32px; }
-
-    .eyebrow {
-      color: var(--accent);
-      font-weight: 700;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      font-size: .8rem;
-    }
-
-    h1 { font-size: clamp(2rem, 6vw, 3rem); margin: 10px 0; }
-    h2 { font-size: 1.2rem; }
-    p { line-height: 1.65; }
-    .muted { color: var(--muted); }
-
-    .faction-indicator {
-      display: inline-block;
-      margin: 12px 0;
-      padding: 9px 14px;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      background: var(--panel);
-      color: var(--muted);
-    }
-
-    .faction-indicator strong {
-      color: var(--accent);
-    }
-
-    .section-heading { margin: 36px 0 16px; }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    .topbar {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       gap: 18px;
-      margin-bottom: 28px;
-    }
-
-    .card {
-      min-width: 0;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 22px;
-      transition: background-color .25s ease, border-color .25s ease;
-    }
-
-    .card:hover { border-color: var(--accent); }
-    .card h2 { margin-top: 0; }
-    .card p { color: var(--muted); }
-
-    .stat-value {
-      font-size: 1.8rem;
-      font-weight: 800;
-      color: var(--text);
-      margin: 8px 0;
-      overflow-wrap: anywhere;
-    }
-
-    .mistakes-section {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 24px;
-      margin-top: 24px;
-    }
-
-    .mistakes-section h2 { margin-top: 0; }
-
-    .mistake-card {
+      padding: 17px max(5%, calc((100% - 1180px) / 2));
+      border-bottom: 1px solid var(--line);
       background: var(--background);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 16px;
-      margin-top: 12px;
-      overflow-wrap: anywhere;
     }
 
-    .mistake-card h4 { margin: 0 0 8px; }
-
-    #page-message {
-      padding: 14px;
-      border-radius: 10px;
-      background: var(--card);
-      border: 1px solid var(--border);
+    .brand {
+      font-size: 1rem;
+      font-weight: 900;
+      letter-spacing: .07em;
+      text-decoration: none;
     }
 
-    .page-directory {
-      display: inline-block;
-      margin-top: 12px;
+    .brand span {
       color: var(--accent);
-      font-weight: 700;
     }
 
-    footer {
-      padding: 24px;
-      text-align: center;
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .status-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
       color: var(--muted);
       font-size: .85rem;
     }
 
-    [hidden] { display: none !important; }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
 
-    @media (max-width: 520px) {
-      main { margin-top: 28px; }
-      header { padding: 16px; }
-      .card { padding: 18px; }
-      .mistakes-section { padding: 18px; }
+    main {
+      width: min(1180px, calc(100% - 36px));
+      margin: 34px auto 60px;
+    }
+
+    .welcome {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(230px, .65fr);
+      gap: 24px;
+      align-items: stretch;
+      margin-bottom: 34px;
+    }
+
+    .welcome-copy {
+      padding: clamp(24px, 5vw, 44px) 0;
+      align-self: center;
+    }
+
+    .eyebrow {
+      margin: 0 0 12px;
+      color: var(--accent);
+      font-size: .76rem;
+      font-weight: 850;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      max-width: 700px;
+      margin: 0;
+      font-size: clamp(2.1rem, 6vw, 4rem);
+      line-height: 1.08;
+      letter-spacing: -.045em;
+      overflow-wrap: anywhere;
+    }
+
+    .welcome-copy > p:not(.eyebrow) {
+      max-width: 560px;
+      margin: 18px 0;
+      color: var(--muted);
+    }
+
+    .welcome-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 11px;
+      margin-top: 25px;
+    }
+
+    .faction-art {
+      position: relative;
+      isolation: isolate;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 280px;
+      padding: 25px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      background:
+        radial-gradient(ellipse at 80% 15%, color-mix(in srgb, var(--accent) 27%, transparent), transparent 55%),
+        linear-gradient(145deg, var(--panel), var(--background));
+    }
+
+    .faction-art::before,
+    .faction-art::after {
+      position: absolute;
+      z-index: -1;
+      content: "";
+      border: 1px solid color-mix(in srgb, var(--accent) 55%, transparent);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .faction-art::before {
+      width: 210px;
+      height: 210px;
+      top: 38px;
+      right: -25px;
+    }
+
+    .faction-art::after {
+      width: 150px;
+      height: 150px;
+      top: 68px;
+      right: 5px;
+    }
+
+    .art-symbol {
+      align-self: flex-end;
+      display: grid;
+      place-items: center;
+      width: 120px;
+      height: 120px;
+      margin: 8px 18px 0 0;
+      border: 1px solid color-mix(in srgb, var(--accent) 70%, transparent);
+      border-radius: 32px;
+      background: color-mix(in srgb, var(--accent) 12%, var(--panel));
+      color: var(--accent);
+      font-size: 4.5rem;
+      font-weight: 300;
+      line-height: 1;
+      transform: rotate(-8deg);
+      box-shadow: 0 18px 55px color-mix(in srgb, var(--accent) 10%, transparent);
+    }
+
+    html[data-faction="readers"] .art-symbol {
+      border-radius: 12px 28px 12px 28px;
+      transform: rotate(-5deg);
+    }
+
+    html[data-faction="gamers"] .art-symbol {
+      border-radius: 8px;
+      box-shadow: 8px 8px 0 color-mix(in srgb, var(--accent) 20%, transparent);
+      transform: rotate(4deg);
+    }
+
+    html[data-faction="movie-lovers"] .art-symbol {
+      border-radius: 18px;
+      transform: rotate(0);
+      box-shadow: 0 0 35px color-mix(in srgb, var(--accent) 20%, transparent);
+    }
+
+    html[data-faction="independent"] .art-symbol {
+      border-radius: 50%;
+      transform: rotate(0);
+    }
+
+    .art-caption {
+      position: relative;
+      z-index: 1;
+    }
+
+    .art-caption p {
+      margin: 0 0 4px;
+      color: var(--muted);
+      font-size: .8rem;
+    }
+
+    .art-caption strong {
+      font-size: 1.25rem;
+    }
+
+    .section {
+      margin-top: 38px;
+    }
+
+    .section-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .section-heading h2 {
+      margin: 0;
+      font-size: clamp(1.35rem, 3vw, 1.8rem);
+      letter-spacing: -.025em;
+    }
+
+    .section-heading p {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: .92rem;
+    }
+
+    .text-link {
+      color: var(--accent);
+      font-weight: 750;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .text-link:hover {
+      text-decoration: underline;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: var(--line);
+    }
+
+    .stat {
+      min-width: 0;
+      padding: 23px;
+      background: var(--panel);
+    }
+
+    .stat-label {
+      color: var(--muted);
+      font-size: .85rem;
+    }
+
+    .stat-value {
+      margin-top: 7px;
+      font-size: clamp(1.65rem, 4vw, 2.25rem);
+      font-weight: 850;
+      line-height: 1.2;
+      overflow-wrap: anywhere;
+    }
+
+    .accuracy-track {
+      height: 5px;
+      margin-top: 14px;
+      overflow: hidden;
+      border-radius: 20px;
+      background: var(--line);
+    }
+
+    .accuracy-fill {
+      width: 0;
+      height: 100%;
+      border-radius: inherit;
+      background: var(--accent);
+      transition: width .4s ease;
+    }
+
+    .feature {
+      position: relative;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 24px;
+      align-items: center;
+      padding: clamp(24px, 5vw, 38px);
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background:
+        radial-gradient(ellipse at 100% 0%, color-mix(in srgb, var(--accent) 13%, transparent), transparent 52%),
+        var(--panel);
+    }
+
+    .feature h2 {
+      margin: 0;
+      font-size: clamp(1.55rem, 4vw, 2.2rem);
+      line-height: 1.2;
+    }
+
+    .feature p {
+      max-width: 520px;
+      margin: 12px 0 20px;
+      color: var(--muted);
+    }
+
+    .feature-mark {
+      display: grid;
+      place-items: center;
+      width: 110px;
+      height: 110px;
+      border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+      border-radius: 32px;
+      background: color-mix(in srgb, var(--accent) 10%, var(--background));
+      color: var(--accent);
+      font-size: 3rem;
+      transform: rotate(5deg);
+    }
+
+    .tool-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px 26px;
+    }
+
+    .tool {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      min-width: 0;
+      padding: 16px 4px;
+      border-bottom: 1px solid var(--line);
+      text-decoration: none;
+      transition: color .2s ease, transform .2s ease;
+    }
+
+    .tool:hover {
+      color: var(--accent);
+      transform: translateX(3px);
+    }
+
+    .tool-icon {
+      display: grid;
+      place-items: center;
+      flex: 0 0 45px;
+      width: 45px;
+      height: 45px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--panel);
+      color: var(--accent);
+      font-size: 1.2rem;
+    }
+
+    .tool-copy {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .tool-copy strong {
+      display: block;
+      font-size: .98rem;
+    }
+
+    .tool-copy span {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: .83rem;
+    }
+
+    .tool-arrow {
+      color: var(--muted);
+      font-size: 1.15rem;
+    }
+
+    .more-tools {
+      margin-top: 24px;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .more-tools summary {
+      padding: 18px 0;
+      color: var(--accent);
+      font-weight: 750;
+      cursor: pointer;
+    }
+
+    .more-tools[open] summary {
+      margin-bottom: 4px;
+    }
+
+    .more-tools .tool-list {
+      padding-bottom: 16px;
+    }
+
+    .mistakes-section {
+      margin-top: 38px;
+      padding: clamp(20px, 4vw, 30px);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+    }
+
+    .mistakes-section h2 {
+      margin: 0;
+      font-size: 1.45rem;
+    }
+
+    .mistakes-intro {
+      margin: 7px 0 18px;
+      color: var(--muted);
+    }
+
+    .mistake-card {
+      padding: 17px;
+      margin-top: 12px;
+      overflow-wrap: anywhere;
+      border: 1px solid var(--line);
+      border-radius: 15px;
+      background: var(--background);
+    }
+
+    .mistake-card h4 {
+      margin: 0 0 8px;
+      line-height: 1.5;
+    }
+
+    .mistake-card p {
+      margin: 8px 0;
+    }
+
+    .mistake-card .muted {
+      color: var(--muted);
+      font-size: .9rem;
+    }
+
+    #page-message {
+      padding: 16px 18px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--panel);
+    }
+
+    .error-message {
+      color: #ffb4b4;
+    }
+
+    footer {
+      padding: 25px 18px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      text-align: center;
+      font-size: .85rem;
+    }
+
+    footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    @media (max-width: 700px) {
+      .welcome {
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+
+      .welcome-copy {
+        padding: 15px 0 10px;
+      }
+
+      .faction-art {
+        min-height: 200px;
+      }
+
+      .art-symbol {
+        width: 86px;
+        height: 86px;
+        font-size: 3.2rem;
+        border-radius: 24px;
+      }
+
+      .faction-art::before {
+        width: 165px;
+        height: 165px;
+        top: 15px;
+      }
+
+      .faction-art::after {
+        width: 120px;
+        height: 120px;
+        top: 38px;
+      }
+
+      .tool-list {
+        grid-template-columns: 1fr;
+      }
+
+      .feature-mark {
+        width: 75px;
+        height: 75px;
+        border-radius: 23px;
+        font-size: 2.2rem;
+      }
+    }
+
+    @media (max-width: 440px) {
+      main {
+        width: calc(100% - 28px);
+        margin-top: 20px;
+      }
+
+      .topbar {
+        padding: 14px;
+      }
+
+      .status-label {
+        display: none;
+      }
+
+      .stats {
+        grid-template-columns: 1fr;
+      }
+
+      .stat {
+        padding: 16px 19px;
+      }
+
+      .stat-value {
+        font-size: 1.7rem;
+      }
+
+      .feature {
+        grid-template-columns: 1fr;
+      }
+
+      .feature-mark {
+        display: none;
+      }
+
+      .welcome-actions .button {
+        flex: 1 1 100%;
+      }
+
+      .section-heading {
+        align-items: start;
+      }
     }
 
     @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after { transition: none !important; }
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        transition: none !important;
+      }
     }
   </style></head><body>
-  <header>
-    <div class="brand">HYSTERIA'S <span>CURE</span></div>
-    <button id="logout-button" type="button" hidden>Log out</button>
+  <header class="topbar">
+    <a class="brand" href="index.html">HYSTERIA'S <span>CURE</span></a><div class="topbar-right">
+  <span class="status-label">
+    <span class="status-dot"></span>
+    Your learning space
+  </span>
+  <button id="logout-button" type="button" hidden>Log out</button>
+</div>
+
   </header>  <main>
     <p id="page-message" role="status" aria-live="polite">
       Checking your sign-in...
     </p><section id="dashboard" hidden>
-  <div class="welcome">
-    <p class="eyebrow">Your learning journey</p>
-    <h1>Welcome, <span id="student-name">Student</span>.</h1>
+  <section class="welcome">
+    <div class="welcome-copy">
+      <p class="eyebrow">Your space. Your progress.</p>
 
-    <p class="faction-indicator">
-      Faction: <strong id="student-faction">Loading...</strong>
-    </p>
+      <h1>Welcome back, <span id="student-name">Student</span>.</h1>
 
-    <p class="muted">Failure is the disease. Learning is the cure.</p>
-    <p class="muted">
-      Practise, prepare for examinations, organise your study materials,
-      and track your progress from one place.
-    </p>
-  </div>
+      <p>
+        Every question you solve is progress. Choose what to learn next
+        and make this session count.
+      </p>
 
-  <h2 class="section-heading">Learning</h2>
-  <div class="grid">
-    <article class="card">
-      <h2>Practice</h2>
-      <p>Choose a subject and topic, answer questions, and learn from explanations.</p>
-      <a class="action" href="practice.html">Start practising</a>
-    </article>
+      <div class="welcome-actions">
+        <a class="button button-primary" href="practice.html">
+          Start practising <span aria-hidden="true">↗</span>
+        </a>
+        <a class="button button-secondary" href="progress.html">
+          View progress
+        </a>
+      </div>
+    </div>
 
-    <article class="card">
-      <h2>Exams</h2>
-      <p>Prepare for timed examinations and assess your readiness.</p>
-      <a class="action" href="exam.html">Open exams</a>
-    </article>
+    <aside class="faction-art" aria-label="Your faction identity">
+      <div class="art-symbol" aria-hidden="true">✦</div>
 
-    <article class="card">
-      <h2>Question Bank</h2>
-      <p>Explore the available practice questions.</p>
-      <a class="action" href="question-bank.html">Open question bank</a>
-    </article>
+      <div class="art-caption">
+        <p>YOUR FACTION</p>
+        <strong id="student-faction">Loading...</strong>
+      </div>
+    </aside>
+  </section>
 
-    <article class="card">
-      <h2>My Towers</h2>
-      <p>Explore Readers, Gamers, Movie Lovers, or Independent.</p>
-      <a class="action" href="towers.html">Explore towers</a>
-    </article>
+  <section class="section" aria-labelledby="progress-heading">
+    <div class="section-heading">
+      <div>
+        <h2 id="progress-heading">Your progress</h2>
+        <p>Every session adds to your learning record.</p>
+      </div>
+      <a class="text-link" href="progress.html">Details ↗</a>
+    </div>
 
-    <article class="card">
-      <h2>Learning Library</h2>
-      <p>Access the page for textbooks, past questions, and study notes.</p>
-      <a class="action" href="learning-library.html">Open library</a>
-    </article>
+    <div class="stats">
+      <article class="stat">
+        <div class="stat-label">Questions answered</div>
+        <div class="stat-value" id="stat-answered">0</div>
+      </article>
 
-    <article class="card">
-      <h2>My Materials</h2>
-      <p>Open your study materials area.</p>
-      <a class="action" href="materials.html">View materials</a>
-    </article>
+      <article class="stat">
+        <div class="stat-label">Accuracy</div>
+        <div class="stat-value"><span id="stat-accuracy">0</span>%</div>
+        <div
+          class="accuracy-track"
+          role="progressbar"
+          aria-label="Answer accuracy"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          aria-valuenow="0"
+          id="accuracy-track"
+        >
+          <div class="accuracy-fill" id="accuracy-fill"></div>
+        </div>
+      </article>
 
-    <article class="card">
-      <h2>Study Plan</h2>
-      <p>Organise the subjects and topics you want to study.</p>
-      <a class="action" href="study-plan.html">Open study plan</a>
-    </article>
-  </div>
+      <article class="stat">
+        <div class="stat-label">Experience points</div>
+        <div class="stat-value" id="stat-xp">0 XP</div>
+        <div class="stat-label">
+          Total points: <strong id="stat-points">0</strong>
+        </div>
+      </article>
+    </div>
+  </section>
 
-  <h2 class="section-heading">Your Progress</h2>
-  <div class="grid">
-    <article class="card">
-      <h2>Questions Answered</h2>
-      <div class="stat-value" id="stat-answered">0</div>
-      <p class="muted">Accuracy: <span id="stat-accuracy">0</span>%</p>
-      <a class="page-directory" href="progress.html">View full progress</a>
-    </article>
+  <section class="section" aria-labelledby="continue-heading">
+    <div class="feature">
+      <div>
+        <p class="eyebrow">Pick up where you are</p>
+        <h2 id="continue-heading">Your next question is waiting.</h2>
+        <p>
+          Choose a subject, select your difficulty, and practise at
+          your own pace. Learn from your mistakes as you go.
+        </p>
+        <a class="button button-primary" href="practice.html">
+          Enter Question Engine <span aria-hidden="true">→</span>
+        </a>
+      </div>
 
-    <article class="card">
-      <h2>Rewards &amp; XP</h2>
-      <div class="stat-value" id="stat-xp">0 XP</div>
-      <p class="muted">Points: <span id="stat-points">0</span></p>
-      <a class="page-directory" href="rewards.html">View rewards</a>
-    </article>
+      <div class="feature-mark" aria-hidden="true">✎</div>
+    </div>
+  </section>
 
-    <article class="card">
-      <h2>Learning Levels</h2>
-      <p>View the learning levels and advancement system.</p>
-      <a class="action" href="levels.html">View levels</a>
-    </article>
+  <section class="section" aria-labelledby="learning-heading">
+    <div class="section-heading">
+      <div>
+        <h2 id="learning-heading">Explore your learning space</h2>
+        <p>Your main study tools, without the clutter.</p>
+      </div>
+    </div>
 
-    <article class="card">
-      <h2>Question Review</h2>
-      <p>Review questions you answered incorrectly.</p>
-      <a class="action" href="mistakes.html">Review questions</a>
-    </article>
-  </div>
+    <div class="tool-list">
+      <a class="tool" href="exam.html">
+        <span class="tool-icon" aria-hidden="true">◷</span>
+        <span class="tool-copy">
+          <strong>Exams</strong>
+          <span>Prepare for timed examinations.</span>
+        </span>
+        <span class="tool-arrow" aria-hidden="true">↗</span>
+      </a>
 
-  <h2 class="section-heading">Account</h2>
-  <div class="grid">
-    <article class="card">
-      <h2>My Profile</h2>
-      <p>View your account details and faction information.</p>
-      <a class="action" href="profile.html">Open profile</a>
-    </article>
+      <a class="tool" href="question-bank.html">
+        <span class="tool-icon" aria-hidden="true">▤</span>
+        <span class="tool-copy">
+          <strong>Question Bank</strong>
+          <span>Explore available questions.</span>
+        </span>
+        <span class="tool-arrow" aria-hidden="true">↗</span>
+      </a>
 
-    <article class="card">
-      <h2>Settings</h2>
-      <p>Open your learning preferences.</p>
-      <a class="action" href="settings.html">Open settings</a>
-    </article>
+      <a class="tool" href="towers.html">
+        <span class="tool-icon" aria-hidden="true">◇</span>
+        <span class="tool-copy">
+          <strong>My Faction</strong>
+          <span>Explore your faction area.</span>
+        </span>
+        <span class="tool-arrow" aria-hidden="true">↗</span>
+      </a>
 
-    <article class="card">
-      <h2>All Pages</h2>
-      <p>Find the student and administration pages in one directory.</p>
-      <a class="action" href="pages.html">View all pages</a>
-    </article>
-  </div>
+      <a class="tool" href="learning-library.html">
+        <span class="tool-icon" aria-hidden="true">▥</span>
+        <span class="tool-copy">
+          <strong>Learning Library</strong>
+          <span>Find learning resources.</span>
+        </span>
+        <span class="tool-arrow" aria-hidden="true">↗</span>
+      </a>
 
-  <section class="mistakes-section">
-    <h2>Your Mistake Bank</h2>
-    <p class="muted">
-      Review questions you missed during practice so you can learn from them.
-    </p>
-    <div id="mistakes-container">
-      <p class="muted">Loading your mistakes...</p>
+      <a class="tool" href="materials.html">
+        <span class="tool-icon" aria-hidden="true">⌁</span>
+        <span class="tool-copy">
+          <strong>My Materials</strong>
+          <span>Open your study materials area.</span>
+        </span>
+        <span class="tool-arrow" aria-hidden="true">↗</span>
+      </a>
+
+      <a class="tool" href="study-plan.html">
+        <span class="tool-icon" aria-hidden="true">☷</span>
+        <span class="tool-copy">
+          <strong>Study Plan</strong>
+          <span>Organise what you want to study.</span>
+        </span>
+        <span class="tool-arrow" aria-hidden="true">↗</span>
+      </a>
+    </div>
+
+    <details class="more-tools">
+      <summary>More tools and account options</summary>
+
+      <div class="tool-list">
+        <a class="tool" href="levels.html">
+          <span class="tool-icon" aria-hidden="true">↑</span>
+          <span class="tool-copy">
+            <strong>Learning Levels</strong>
+            <span>View the level system.</span>
+          </span>
+          <span class="tool-arrow" aria-hidden="true">↗</span>
+        </a>
+
+        <a class="tool" href="rewards.html">
+          <span class="tool-icon" aria-hidden="true">✧</span>
+          <span class="tool-copy">
+            <strong>Rewards</strong>
+            <span>View your points and rewards.</span>
+          </span>
+          <span class="tool-arrow" aria-hidden="true">↗</span>
+        </a>
+
+        <a class="tool" href="mistakes.html">
+          <span class="tool-icon" aria-hidden="true">↻</span>
+          <span class="tool-copy">
+            <strong>Question Review</strong>
+            <span>Revisit questions you missed.</span>
+          </span>
+          <span class="tool-arrow" aria-hidden="true">↗</span>
+        </a>
+
+        <a class="tool" href="profile.html">
+          <span class="tool-icon" aria-hidden="true">◎</span>
+          <span class="tool-copy">
+            <strong>My Profile</strong>
+            <span>View your account details.</span>
+          </span>
+          <span class="tool-arrow" aria-hidden="true">↗</span>
+        </a>
+
+        <a class="tool" href="settings.html">
+          <span class="tool-icon" aria-hidden="true">⚙</span>
+          <span class="tool-copy">
+            <strong>Settings</strong>
+            <span>Manage learning preferences.</span>
+          </span>
+          <span class="tool-arrow" aria-hidden="true">↗</span>
+        </a>
+
+        <a class="tool" href="pages.html">
+          <span class="tool-icon" aria-hidden="true">⌘</span>
+          <span class="tool-copy">
+            <strong>All Pages</strong>
+            <span>Browse the page directory.</span>
+          </span>
+          <span class="tool-arrow" aria-hidden="true">↗</span>
+        </a>
+      </div>
+    </details>
+  </section>
+
+  <section class="mistakes-section" aria-labelledby="mistakes-heading">
+    <div class="section-heading">
+      <div>
+        <h2 id="mistakes-heading">Your mistake bank</h2>
+        <p>Understand what went wrong and strengthen your knowledge.</p>
+      </div>
+      <a class="text-link" href="mistakes.html">Review all ↗</a>
+    </div>
+
+    <div id="mistakes-container" aria-live="polite">
+      <p class="mistakes-intro">Loading your mistakes...</p>
     </div>
   </section>
 </section>
 
   </main>  <footer>
-    Hysteria's Cure — Your potential has no ceiling.
+    Hysteria's Cure ·
+    <a href="index.html">Learn. Master. Advance.</a>
   </footer>  <script type="module">
     import { auth, database } from "./js/firebase-client.js";
 
@@ -346,6 +919,8 @@
     const statAccuracy = document.getElementById("stat-accuracy");
     const statXp = document.getElementById("stat-xp");
     const statPoints = document.getElementById("stat-points");
+    const accuracyFill = document.getElementById("accuracy-fill");
+    const accuracyTrack = document.getElementById("accuracy-track");
     const mistakesContainer = document.getElementById("mistakes-container");
 
     const factionNames = {
@@ -367,8 +942,6 @@
         user.displayName ||
         (user.email ? user.email.split("@")[0] : "Student");
 
-      // Load faction independently so a faction read failure
-      // does not prevent the rest of the dashboard from loading.
       try {
         const factionSnapshot = await get(
           ref(database, `users/${user.uid}/faction`)
@@ -403,8 +976,15 @@
           statAccuracy.textContent = accuracy;
           statXp.textContent = `${Number(data.xp || 0)} XP`;
           statPoints.textContent = Number(data.points || 0);
-        }
 
+          accuracyFill.style.width = `${Math.min(100, accuracy)}%`;
+          accuracyTrack.setAttribute("aria-valuenow", accuracy);
+        }
+      } catch (error) {
+        console.error("Failed to load progress:", error);
+      }
+
+      try {
         const mistakesSnapshot = await get(
           ref(database, `users/${user.uid}/mistakes`)
         );
@@ -413,14 +993,14 @@
 
         if (!mistakesSnapshot.exists()) {
           const p = document.createElement("p");
-          p.className = "muted";
+          p.className = "mistakes-intro";
           p.textContent = "No mistakes recorded yet. Keep practising!";
           mistakesContainer.appendChild(p);
         } else {
           const mistakesData = mistakesSnapshot.val();
 
           Object.values(mistakesData).forEach((mistake, index) => {
-            const card = document.createElement("div");
+            const card = document.createElement("article");
             card.className = "mistake-card";
 
             const heading = document.createElement("h4");
@@ -430,11 +1010,11 @@
             const subject = document.createElement("p");
             subject.className = "muted";
             subject.textContent =
-              `Subject: ${mistake.subject || "Unknown"} | Topic: ${mistake.topic || "Unknown"}`;
+              `Subject: ${mistake.subject || "Unknown"} · Topic: ${mistake.topic || "Unknown"}`;
 
             const answer = document.createElement("p");
             const answerLabel = document.createElement("strong");
-            answerLabel.textContent = "Correct Answer: ";
+            answerLabel.textContent = "Correct answer: ";
             answer.append(
               answerLabel,
               document.createTextNode(
@@ -446,30 +1026,18 @@
 
             if (mistake.explanation) {
               const explanation = document.createElement("p");
-              const explanationLabel = document.createElement("strong");
-              explanationLabel.textContent = "Explanation: ";
-              explanation.append(
-                explanationLabel,
-                document.createTextNode(String(mistake.explanation))
-              );
+              explanation.textContent =
+                `Explanation: ${mistake.explanation}`;
               card.appendChild(explanation);
             }
 
             mistakesContainer.appendChild(card);
           });
-
-          const reviewLink = document.createElement("p");
-          const link = document.createElement("a");
-          link.className = "page-directory";
-          link.href = "mistakes.html";
-          link.textContent = "Open full question review";
-          reviewLink.appendChild(link);
-          mistakesContainer.appendChild(reviewLink);
         }
       } catch (error) {
-        console.error("Failed to load progress or mistakes:", error);
+        console.error("Failed to load mistakes:", error);
         mistakesContainer.textContent =
-          "Could not load your progress or mistakes. You can still use the other dashboard pages.";
+          "Your mistake bank could not load. Please check your connection and try again.";
       }
 
       pageMessage.hidden = true;
@@ -486,6 +1054,7 @@
       } catch (error) {
         console.error("Logout failed:", error);
         pageMessage.hidden = false;
+        pageMessage.classList.add("error-message");
         pageMessage.textContent =
           "Could not log out. Please check your connection and try again.";
         logoutButton.disabled = false;
