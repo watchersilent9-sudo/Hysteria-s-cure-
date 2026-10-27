@@ -1,934 +1,430 @@
 /*
- * Hysteria's Cure — Question Engine
+ * Hysteria's Cure — Question Bank Manager
  * Features:
- * - Seven-star difficulty selection
- * - Subject and topic search
- * - Random, progressive and challenge ordering
- * - Local and Firebase question bank integration
- * - Question display and answer checking
- * - XP, points, progress and mistakes tracking
- * - Session results and error handling
+ * - Administrator-only question management
+ * - Add, edit, delete and search questions
+ * - Seven-star difficulty system
+ * - Source and syllabus metadata
+ * - Question-engine-compatible Firebase records
+ * - Verification status and error handling
  */
 
-import {
-  selectPracticeSetAsync,
-  selectPracticeSet
-} from "./question-selector.js";
-
-import { validateQuestionCatalogue } from "./question-catalogue.js";
 import { auth, database } from "./firebase-client.js";
 
 import {
+  onAuthStateChanged,
+  signOut
+} from "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
+
+import {
   ref,
-  get,
-  runTransaction,
-  set
+  push,
+  set,
+  update,
+  remove,
+  onValue
 } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-database.js";
 
-// --------------------------------------------------
-// PAGE ELEMENTS
-// --------------------------------------------------
+// Keep this UID consistent with the authorised administrator account.
+const ADMIN_UID = "RtaLjBtKSUgRnWB7ag06CLRCStM2";
 
-const subjectSearch = document.getElementById("subject-search");
-const topicSearch = document.getElementById("topic-search");
-const starSelector = document.getElementById("star-selector");
-const materialsInput = document.getElementById("materials");
-const fileList = document.getElementById("file-list");
-const questionCountSelect = document.getElementById("question-count");
-const practiceStrategy = document.getElementById("practice-strategy");
-const findButton = document.getElementById("find-questions");
-const engineMessage = document.getElementById("engine-message");
-const catalogueStatus = document.getElementById("catalogue-status");
+const statusBox = document.getElementById("status");
+const appContent = document.getElementById("app-content");
+const form = document.getElementById("question-form");
+const formHeading = document.getElementById("form-heading");
+const saveButton = document.getElementById("save-button");
+const cancelButton = document.getElementById("cancel-edit");
+const questionList = document.getElementById("question-list");
+const questionCount = document.getElementById("question-count");
+const searchInput = document.getElementById("search");
 
-const starDescription = document.getElementById("star-description");
-const mainContainer = document.querySelector("main.engine");
-
-// --------------------------------------------------
-// CONFIGURATION
-// --------------------------------------------------
-
-const rewardPoints = {
-  1: 2,
-  2: 5,
-  3: 10,
-  4: 15,
-  5: 20,
-  6: 20,
-  7: 20
-};
-
-const difficultyDescriptions = {
-  1: "Foundation recall",
-  2: "Understanding",
-  3: "Application",
-  4: "Analysis",
-  5: "Multi-concept",
-  6: "Advanced reasoning",
-  7: "Mastery"
-};
+let currentUser = null;
+let questions = {};
+let editingId = null;
+let stopListening = null;
 
 // --------------------------------------------------
-// SESSION STATE
+// HELPERS
 // --------------------------------------------------
 
-let selectedDifficulty = 1;
-let sessionPoints = 0;
-let questionsAnswered = 0;
-let correctAnswers = 0;
+function showStatus(message, type = "") {
+  if (!statusBox) return;
 
-let currentQuestions = [];
-let currentQuestionIndex = 0;
-
-let answeredQuestions = new Set();
-let incorrectQuestions = [];
-
-let loadingQuestions = false;
-let answeringQuestion = false;
-let sessionFinished = false;
-
-let questionArea;
-let resultsArea;
-
-// --------------------------------------------------
-// GENERAL HELPERS
-// --------------------------------------------------
-
-function createElement(tag, className = "", text = "") {
-  const element = document.createElement(tag);
-
-  if (className) {
-    element.className = className;
-  }
-
-  if (text !== "") {
-    element.textContent = text;
-  }
-
-  return element;
+  statusBox.textContent = message;
+  statusBox.className = "status" + (type ? ` ${type}` : "");
 }
 
-function showMessage(message) {
-  if (engineMessage) {
-    engineMessage.textContent = message;
-  }
+function escapeHTML(value) {
+  return String(value ?? "").replace(/[&<>"']/g, character => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  })[character]);
 }
 
-function setButtonBusy(busy) {
-  if (!findButton) return;
-
-  findButton.disabled = busy;
-  findButton.textContent = busy
-    ? "Loading questions..."
-    : "Find Questions";
+function field(id) {
+  return document.getElementById(id);
 }
 
-function normalize(value) {
-  return String(value ?? "").trim().toLowerCase();
+function isAuthorisedAdmin() {
+  return Boolean(currentUser && currentUser.uid === ADMIN_UID);
 }
 
-function hashCode(value) {
-  let hash = 0;
-
-  for (let i = 0; i < value.length; i++) {
-    hash = (hash << 5) - hash + value.charCodeAt(i);
-    hash |= 0;
-  }
-
-  return hash;
+function makeQuestionId() {
+  // Firebase push keys are suitable for stable question IDs.
+  return push(ref(database, "questionBank")).key;
 }
 
-function getQuestionKey(question) {
-  const original = String(
-    question.id || question.question || "unknown"
-  );
+function resetForm() {
+  form?.reset();
+  editingId = null;
 
-  const safe = original.replace(/[^a-zA-Z0-9_-]/g, "_");
-
-  return safe || `question_${Math.abs(hashCode(original))}`;
+  if (formHeading) formHeading.textContent = "Add a question";
+  if (saveButton) saveButton.textContent = "Save question";
+  if (cancelButton) cancelButton.hidden = true;
 }
 
-// --------------------------------------------------
-// STAR SELECTOR
-// --------------------------------------------------
-
-function selectDifficulty(level) {
-  const difficulty = Number(level);
-
-  if (
-    !Number.isInteger(difficulty) ||
-    difficulty < 1 ||
-    difficulty > 7
-  ) {
+function beginEditing(id) {
+  if (!isAuthorisedAdmin()) {
+    showStatus("You are not authorised to edit questions.", "error");
     return;
   }
 
-  selectedDifficulty = difficulty;
-
-  starSelector?.querySelectorAll("[data-level]").forEach(button => {
-    const isSelected =
-      Number(button.dataset.level) === selectedDifficulty;
-
-    button.classList.toggle("selected", isSelected);
-    button.setAttribute("aria-pressed", String(isSelected));
-  });
-
-  if (starDescription) {
-    starDescription.textContent =
-      `${difficulty} star${difficulty === 1 ? "" : "s"} — ` +
-      difficultyDescriptions[difficulty];
-  }
-}
-
-starSelector?.querySelectorAll("[data-level]").forEach(button => {
-  button.addEventListener("click", () => {
-    selectDifficulty(button.dataset.level);
-  });
-});
-
-selectDifficulty(selectedDifficulty);
-
-// --------------------------------------------------
-// CATALOGUE STATUS
-// --------------------------------------------------
-
-function updateCatalogueStatus() {
-  if (!catalogueStatus) return;
-
-  const result = validateQuestionCatalogue();
-
-  if (result.valid) {
-    catalogueStatus.textContent =
-      `Local catalogue valid: ${result.totalQuestions} questions, ` +
-      `${result.uniqueIds} unique IDs.`;
-  } else {
-    catalogueStatus.textContent =
-      `Local catalogue has ${result.errors.length} issue(s): ` +
-      result.errors.slice(0, 3).join(" ");
-  }
-}
-
-updateCatalogueStatus();
-
-// --------------------------------------------------
-// LEARNING MATERIALS
-// --------------------------------------------------
-
-materialsInput?.addEventListener("change", () => {
-  if (!fileList) return;
-
-  fileList.replaceChildren();
-
-  const files = Array.from(materialsInput.files || []);
-
-  if (!files.length) {
-    fileList.textContent = "No files selected.";
-    return;
-  }
-
-  files.forEach(file => {
-    fileList.appendChild(
-      createElement(
-        "p",
-        "",
-        `${file.name} — ${(file.size / 1024).toFixed(1)} KB`
-      )
-    );
-  });
-
-  showMessage(
-    "Files selected. Uploading and extracting document contents " +
-    "are not implemented yet."
-  );
-});
-
-// --------------------------------------------------
-// CREATE THE QUESTION INTERFACE
-// --------------------------------------------------
-
-function createQuestionInterface() {
-  if (!mainContainer) return;
-
-  questionArea = document.getElementById("question-area");
-  resultsArea = document.getElementById("question-results");
-
-  if (!questionArea) {
-    questionArea = createElement("section", "panel");
-    questionArea.id = "question-area";
-    questionArea.setAttribute("aria-live", "polite");
-
-    const controlsPanel = findButton?.closest(".panel");
-
-    if (controlsPanel) {
-      controlsPanel.insertAdjacentElement("afterend", questionArea);
-    } else {
-      mainContainer.appendChild(questionArea);
-    }
-  }
-
-  if (!resultsArea) {
-    resultsArea = createElement("section", "panel");
-    resultsArea.id = "question-results";
-    resultsArea.setAttribute("aria-live", "polite");
-
-    questionArea.insertAdjacentElement("afterend", resultsArea);
-  }
-
-  questionArea.hidden = true;
-  resultsArea.hidden = true;
-}
-
-createQuestionInterface();
-
-// --------------------------------------------------
-// RESET A PRACTICE SESSION
-// --------------------------------------------------
-
-function resetSession() {
-  sessionPoints = 0;
-  questionsAnswered = 0;
-  correctAnswers = 0;
-
-  currentQuestionIndex = 0;
-
-  answeredQuestions = new Set();
-  incorrectQuestions = [];
-
-  answeringQuestion = false;
-  sessionFinished = false;
-
-  if (questionArea) {
-    questionArea.replaceChildren();
-    questionArea.hidden = true;
-  }
-
-  if (resultsArea) {
-    resultsArea.replaceChildren();
-    resultsArea.hidden = true;
-  }
-}
-
-// --------------------------------------------------
-// LOAD QUESTIONS
-// --------------------------------------------------
-
-async function loadQuestions() {
-  if (loadingQuestions) return;
-
-  loadingQuestions = true;
-  setButtonBusy(true);
-
-  resetSession();
-
-  try {
-    const subject = subjectSearch?.value.trim() || "";
-    const topic = topicSearch?.value.trim() || "";
-
-    const count = Math.min(
-      50,
-      Math.max(
-        1,
-        Number.parseInt(questionCountSelect?.value || "10", 10) || 10
-      )
-    );
-
-    const strategy = practiceStrategy?.value || "random";
-
-    if (!["random", "progressive", "challenge"].includes(strategy)) {
-      throw new Error("Please select a valid question order.");
-    }
-
-    showMessage("Finding questions for your selected difficulty...");
-
-    const filters = {
-      subject,
-      topic,
-
-      // Selecting one star level selects that level only.
-      minDifficulty: selectedDifficulty,
-      maxDifficulty: selectedDifficulty,
-
-      count,
-      strategy
-    };
-
-    let questions;
-    let usingLocalOnly = false;
-
-    try {
-      questions = await selectPracticeSetAsync(filters);
-    } catch (error) {
-      console.error("Firebase question loading failed:", error);
-
-      // Keep practice available when Firebase is unavailable.
-      questions = selectPracticeSet(filters);
-      usingLocalOnly = true;
-    }
-
-    currentQuestions = questions;
-
-    if (!currentQuestions.length) {
-      if (questionArea) {
-        questionArea.replaceChildren();
-        questionArea.hidden = true;
-      }
-
-      showMessage(
-        "No questions matched your subject, topic and star level. " +
-        "Try a different search or difficulty."
-      );
-
-      return;
-    }
-
-    if (questionArea) {
-      questionArea.hidden = false;
-    }
-
-    if (resultsArea) {
-      resultsArea.hidden = true;
-      resultsArea.replaceChildren();
-    }
-
-    const sourceMessage = usingLocalOnly
-      ? " Firebase was unavailable, so only local catalogue questions are being used."
-      : "";
-
-    showMessage(
-      `${currentQuestions.length} question(s) found at ` +
-      `${selectedDifficulty}★ — ${difficultyDescriptions[selectedDifficulty]}.` +
-      sourceMessage
-    );
-
-    renderCurrentQuestion();
-
-    questionArea?.scrollIntoView({
-      behavior: "smooth",
-      block: "start"
-    });
-  } catch (error) {
-    console.error("Question engine error:", error);
-
-    showMessage(
-      error.message || "Something went wrong while loading questions."
-    );
-  } finally {
-    loadingQuestions = false;
-    setButtonBusy(false);
-  }
-}
-
-findButton?.addEventListener("click", loadQuestions);
-
-// --------------------------------------------------
-// DISPLAY A QUESTION
-// --------------------------------------------------
-
-function renderCurrentQuestion() {
-  if (!questionArea) return;
-
-  if (currentQuestionIndex >= currentQuestions.length) {
-    finishSession();
-    return;
-  }
-
-  answeringQuestion = false;
-
-  const question = currentQuestions[currentQuestionIndex];
-
-  questionArea.replaceChildren();
-
-  const header = createElement("div", "question-header");
-
-  header.appendChild(
-    createElement(
-      "p",
-      "hint",
-      `Question ${currentQuestionIndex + 1} of ${currentQuestions.length}`
-    )
-  );
-
-  header.appendChild(
-    createElement(
-      "p",
-      "hint",
-      `${question.subject} · ${question.topic} · ${question.difficulty}★`
-    )
-  );
-
-  header.appendChild(
-    createElement(
-      "p",
-      "hint",
-      `Points available: ${rewardPoints[question.difficulty] ?? 2}`
-    )
-  );
-
-  questionArea.appendChild(header);
-
-  questionArea.appendChild(
-    createElement("h2", "question-text", question.question)
-  );
-
-  const optionsContainer = createElement("div", "question-options");
-  optionsContainer.id = "question-options";
-
-  question.options.forEach((option, index) => {
-    const button = createElement(
-      "button",
-      "answer-option",
-      `${String.fromCharCode(65 + index)}. ${option}`
-    );
-
-    button.type = "button";
-    button.dataset.optionIndex = String(index);
-
-    button.addEventListener("click", () => {
-      checkAnswer(index);
-    });
-
-    optionsContainer.appendChild(button);
-  });
-
-  questionArea.appendChild(optionsContainer);
-
-  const feedback = createElement("div", "answer-feedback");
-  feedback.id = "answer-feedback";
-  feedback.setAttribute("aria-live", "polite");
-
-  questionArea.appendChild(feedback);
-
-  const nextButton = createElement(
-    "button",
-    "next-question",
-    "Next Question"
-  );
-
-  nextButton.type = "button";
-  nextButton.id = "next-question";
-  nextButton.hidden = true;
-
-  nextButton.addEventListener("click", () => {
-    if (!answeringQuestion) return;
-
-    currentQuestionIndex++;
-    renderCurrentQuestion();
-
-    questionArea.scrollIntoView({
-      behavior: "smooth",
-      block: "start"
-    });
-  });
-
-  questionArea.appendChild(nextButton);
-
-  const finishButton = createElement(
-    "button",
-    "finish-practice",
-    "Finish Session"
-  );
-
-  finishButton.type = "button";
-  finishButton.addEventListener("click", () => {
-    finishSession();
-  });
-
-  questionArea.appendChild(finishButton);
-}
-
-// --------------------------------------------------
-// CHECK AN ANSWER
-// --------------------------------------------------
-
-function checkAnswer(selectedIndex) {
-  if (answeringQuestion || sessionFinished) return;
-
-  const question = currentQuestions[currentQuestionIndex];
-
+  const question = questions[id];
   if (!question) return;
 
-  answeringQuestion = true;
+  editingId = id;
 
-  const optionButtons = questionArea.querySelectorAll(
-    "[data-option-index]"
-  );
+  field("subject").value = question.subject || "";
+  field("topic").value = question.topic || "";
+  field("question").value = question.question || "";
+  field("difficulty").value = String(question.difficulty ?? 1);
+  field("sourceType").value = question.sourceType || "sample";
+  field("sourceDetails").value = question.sourceDetails || "";
+  field("syllabusObjective").value = question.syllabusObjective || "";
 
-  optionButtons.forEach(button => {
-    button.disabled = true;
+  const options = Array.isArray(question.options) ? question.options : [];
+
+  for (let i = 0; i < 4; i++) {
+    field(`option${i}`).value = options[i] || "";
+  }
+
+  field("answerIndex").value = String(question.answerIndex ?? 0);
+  field("explanation").value = question.explanation || "";
+  field("verified").checked = question.verified === true;
+
+  formHeading.textContent = "Edit question";
+  saveButton.textContent = "Update question";
+  cancelButton.hidden = false;
+
+  form.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+// --------------------------------------------------
+// QUESTION LIST
+// --------------------------------------------------
+
+function renderQuestions() {
+  if (!questionList || !questionCount || !searchInput) return;
+
+  const query = searchInput.value.trim().toLowerCase();
+
+  const entries = Object.entries(questions).filter(([, question]) => {
+    const text = [
+      question.subject,
+      question.topic,
+      question.question,
+      question.sourceType,
+      question.sourceDetails
+    ].join(" ").toLowerCase();
+
+    return text.includes(query);
   });
 
-  const isCorrect = selectedIndex === question.answerIndex;
+  questionCount.textContent =
+    `${entries.length} question${entries.length === 1 ? "" : "s"} shown`;
 
-  questionsAnswered++;
+  if (!entries.length) {
+    questionList.replaceChildren();
 
-  const questionKey = String(
-    question.id || `${currentQuestionIndex}_${question.question}`
-  );
+    const message = document.createElement("p");
+    message.className = "muted";
+    message.textContent = "No questions found. Add one using the form above.";
 
-  answeredQuestions.add(questionKey);
-
-  const feedback = document.getElementById("answer-feedback");
-
-  if (isCorrect) {
-    correctAnswers++;
-
-    const earnedPoints = rewardPoints[question.difficulty] ?? 2;
-
-    sessionPoints += earnedPoints;
-
-    if (feedback) {
-      feedback.appendChild(
-        createElement(
-          "p",
-          "success-msg",
-          `Correct! You earned ${earnedPoints} points.`
-        )
-      );
-    }
-
-    optionButtons.forEach(button => {
-      if (
-        Number(button.dataset.optionIndex) === question.answerIndex
-      ) {
-        button.classList.add("correct-answer");
-      }
-    });
-  } else {
-    // A wrong answer costs two points, but the session total
-    // cannot fall below zero.
-    sessionPoints = Math.max(0, sessionPoints - 2);
-
-    if (feedback) {
-      feedback.appendChild(
-        createElement(
-          "p",
-          "warning-msg",
-          "Not quite. Two points have been deducted where available."
-        )
-      );
-
-      feedback.appendChild(
-        createElement(
-          "p",
-          "",
-          `Correct answer: ${question.options[question.answerIndex]}`
-        )
-      );
-    }
-
-    optionButtons.forEach(button => {
-      const optionIndex = Number(button.dataset.optionIndex);
-
-      if (optionIndex === question.answerIndex) {
-        button.classList.add("correct-answer");
-      }
-
-      if (optionIndex === selectedIndex) {
-        button.classList.add("incorrect-answer");
-      }
-    });
-
-    incorrectQuestions.push({
-      ...question,
-      selectedAnswerIndex: selectedIndex
-    });
-  }
-
-  if (question.explanation && feedback) {
-    feedback.appendChild(
-      createElement(
-        "p",
-        "question-explanation",
-        `Explanation: ${question.explanation}`
-      )
-    );
-  }
-
-  if (feedback) {
-    feedback.appendChild(
-      createElement(
-        "p",
-        "hint",
-        `Current session points: ${sessionPoints}`
-      )
-    );
-  }
-
-  const nextButton = document.getElementById("next-question");
-
-  if (nextButton) {
-    nextButton.hidden = false;
-
-    nextButton.textContent =
-      currentQuestionIndex === currentQuestions.length - 1
-        ? "View Results"
-        : "Next Question";
-  }
-
-  const finishButton = questionArea.querySelector(".finish-practice");
-
-  if (finishButton) {
-    finishButton.hidden = true;
-  }
-}
-
-// --------------------------------------------------
-// SAVE PROGRESS TO FIREBASE
-// --------------------------------------------------
-
-async function saveProgressToFirebase() {
-  const user = auth.currentUser;
-
-  if (!user) {
-    console.warn("No user logged in. Progress was not saved.");
-    return false;
-  }
-
-  if (questionsAnswered === 0) {
-    return false;
-  }
-
-  try {
-    const progressRef = ref(
-      database,
-      `users/${user.uid}/progress`
-    );
-
-    // A transaction helps avoid overwriting progress if another
-    // update happens at the same time.
-    const transactionResult = await runTransaction(
-      progressRef,
-      currentData => {
-        const data = currentData || {};
-
-        const previousXp = Number(data.xp) || 0;
-        const previousPoints = Number(data.points) || 0;
-        const previousAnswered = Number(data.totalAnswered) || 0;
-        const previousCorrect = Number(data.totalCorrect) || 0;
-        const previousSessions = Number(data.sessionsCompleted) || 0;
-
-        return {
-          ...data,
-
-          xp: previousXp + sessionPoints,
-          points: Math.max(0, previousPoints + sessionPoints),
-
-          totalAnswered: previousAnswered + questionsAnswered,
-          totalCorrect: previousCorrect + correctAnswers,
-
-          sessionsCompleted: previousSessions + 1,
-
-          lastActive: new Date().toISOString()
-        };
-      },
-      {
-        applyLocally: false
-      }
-    );
-
-    if (!transactionResult.committed) {
-      throw new Error("Progress could not be committed.");
-    }
-
-    // Save the incorrect answers for later review.
-    for (const question of incorrectQuestions) {
-      const mistakeKey = getQuestionKey(question);
-
-      const mistakeRef = ref(
-        database,
-        `users/${user.uid}/mistakes/${mistakeKey}`
-      );
-
-      await set(mistakeRef, {
-        questionId: String(question.id || "unknown"),
-        questionText: String(question.question || ""),
-        subject: String(question.subject || ""),
-        topic: String(question.topic || ""),
-
-        options: Array.isArray(question.options)
-          ? question.options
-          : [],
-
-        selectedAnswerIndex: Number(question.selectedAnswerIndex),
-        correctAnswerIndex: Number(question.answerIndex),
-
-        correctAnswer: String(
-          question.options?.[question.answerIndex] || ""
-        ),
-
-        explanation: String(question.explanation || ""),
-        difficulty: Number(question.difficulty) || 1,
-
-        failedAt: new Date().toISOString()
-      });
-    }
-
-    console.log("Progress and mistakes saved successfully.");
-
-    return true;
-  } catch (error) {
-    console.error("Failed to save progress to Firebase:", error);
-
-    return false;
-  }
-}
-
-// --------------------------------------------------
-// FINISH THE SESSION
-// --------------------------------------------------
-
-async function finishSession() {
-  if (sessionFinished) return;
-
-  sessionFinished = true;
-
-  if (questionArea) {
-    questionArea.querySelectorAll("button").forEach(button => {
-      button.disabled = true;
-    });
-  }
-
-  const accuracy = questionsAnswered
-    ? Math.round((correctAnswers / questionsAnswered) * 100)
-    : 0;
-
-  let saved = false;
-
-  if (questionsAnswered > 0) {
-    showMessage("Saving your progress...");
-
-    saved = await saveProgressToFirebase();
-  }
-
-  if (!resultsArea) {
-    createQuestionInterface();
-  }
-
-  if (!resultsArea) {
-    showMessage("Session finished, but the results panel is unavailable.");
+    questionList.appendChild(message);
     return;
   }
 
-  resultsArea.replaceChildren();
-  resultsArea.hidden = false;
+  questionList.innerHTML = entries.map(([id, question]) => {
+    const options = Array.isArray(question.options) ? question.options : [];
+    const letters = ["A", "B", "C", "D"];
 
-  resultsArea.appendChild(
-    createElement("h2", "", "Practice Session Complete")
-  );
+    const optionHTML = options.map((option, index) => `
+      <li>
+        ${letters[index] || index + 1}.
+        ${escapeHTML(option)}
+        ${Number(question.answerIndex) === index ? " — Correct answer" : ""}
+      </li>
+    `).join("");
 
-  if (questionsAnswered === 0) {
-    resultsArea.appendChild(
-      createElement(
-        "p",
-        "",
-        "You haven't answered any questions in this session."
-      )
-    );
-  } else {
-    resultsArea.appendChild(
-      createElement(
-        "p",
-        "",
-        `Questions answered: ${questionsAnswered}`
-      )
-    );
+    return `
+      <article class="question-card">
+        <span class="tag">${escapeHTML(question.subject || "No subject")}</span>
+        <span class="tag">${escapeHTML(question.topic || "No topic")}</span>
+        <span class="tag">Difficulty ${escapeHTML(question.difficulty ?? "?")}/7</span>
+        <span class="tag">${question.verified === true ? "Verified" : "Unverified"}</span>
 
-    resultsArea.appendChild(
-      createElement(
-        "p",
-        "",
-        `Correct answers: ${correctAnswers}`
-      )
-    );
+        <h3>${escapeHTML(question.question || "Untitled question")}</h3>
 
-    resultsArea.appendChild(
-      createElement(
-        "p",
-        "",
-        `Incorrect answers: ${questionsAnswered - correctAnswers}`
-      )
-    );
+        <ol class="option-list" type="A">
+          ${optionHTML}
+        </ol>
 
-    resultsArea.appendChild(
-      createElement(
-        "p",
-        "",
-        `Accuracy: ${accuracy}%`
-      )
-    );
+        <p><strong>Explanation:</strong>
+          ${escapeHTML(question.explanation || "No explanation supplied.")}
+        </p>
 
-    resultsArea.appendChild(
-      createElement(
-        "p",
-        "",
-        `Session points: ${sessionPoints}`
-      )
-    );
+        <p class="hint">
+          Source: ${escapeHTML(question.sourceType || "unspecified")}
+          ${question.sourceDetails ? " — " + escapeHTML(question.sourceDetails) : ""}
+        </p>
 
-    resultsArea.appendChild(
-      createElement(
-        saved ? "p" : "p",
-        saved ? "success-msg" : "warning-msg",
-        saved
-          ? "Your progress and mistakes have been saved."
-          : auth.currentUser
-            ? "Your results are displayed, but saving failed. Check your connection and Firebase permissions."
-            : "Guest session: your results are displayed, but were not saved to an account."
-      )
-    );
-  }
+        ${question.syllabusObjective ? `
+          <p class="hint">
+            Syllabus objective: ${escapeHTML(question.syllabusObjective)}
+          </p>` : ""}
 
-  resultsArea.appendChild(
-    createElement(
-      "p",
-      "",
-      accuracy >= 80 && questionsAnswered > 0
-        ? "Excellent work. Keep building on what you've learned."
-        : accuracy >= 50
-          ? "Good effort. Review the explanations and keep practising."
-          : questionsAnswered > 0
-            ? "Use the explanations to strengthen your understanding before trying again."
-            : "Choose your subject and difficulty to begin practising."
-    )
-  );
+        <div class="actions">
+          <button type="button" class="edit-button" data-id="${escapeHTML(id)}">
+            Edit
+          </button>
+          <button type="button" class="danger delete-button" data-id="${escapeHTML(id)}">
+            Delete
+          </button>
+        </div>
+      </article>
+    `;
+  }).join("");
 
-  const restartButton = createElement(
-    "button",
-    "",
-    "Practise Again"
-  );
+  questionList.querySelectorAll(".edit-button").forEach(button => {
+    button.addEventListener("click", () => beginEditing(button.dataset.id));
+  });
 
-  restartButton.type = "button";
+  questionList.querySelectorAll(".delete-button").forEach(button => {
+    button.addEventListener("click", async () => {
+      if (!isAuthorisedAdmin()) {
+        showStatus("You are not authorised to delete questions.", "error");
+        return;
+      }
 
-  restartButton.addEventListener("click", () => {
-    resetSession();
-    showMessage("Choose your settings, then find questions.");
-    mainContainer?.scrollIntoView({
-      behavior: "smooth",
-      block: "start"
+      const id = button.dataset.id;
+
+      if (!questions[id]) return;
+      if (!confirm("Delete this question permanently?")) return;
+
+      button.disabled = true;
+
+      try {
+        await remove(ref(database, `questionBank/${id}`));
+
+        if (editingId === id) resetForm();
+
+        showStatus("Question deleted.", "success");
+      } catch (error) {
+        console.error("Question deletion failed:", error);
+
+        showStatus(
+          "Could not delete the question. Check your connection and Firebase permissions.",
+          "error"
+        );
+
+        button.disabled = false;
+      }
     });
   });
-
-  resultsArea.appendChild(restartButton);
-
-  resultsArea.scrollIntoView({
-    behavior: "smooth",
-    block: "start"
-  });
-
-  showMessage("Practice session completed.");
 }
 
 // --------------------------------------------------
-// INITIAL STATE
+// ADMIN AUTHENTICATION
 // --------------------------------------------------
 
-showMessage("Choose a subject, topic and star level to begin.");
+onAuthStateChanged(auth, user => {
+  if (stopListening) {
+    stopListening();
+    stopListening = null;
+  }
 
-if (starSelector) {
-  starSelector.querySelectorAll("[data-level]").forEach(button => {
-    button.setAttribute(
-      "aria-pressed",
-      String(Number(button.dataset.level) === selectedDifficulty)
+  currentUser = user;
+
+  if (!user) {
+    if (appContent) appContent.style.display = "none";
+
+    showStatus("Please sign in with the authorised administrator account.");
+    window.location.replace("login.html");
+    return;
+  }
+
+  if (user.uid !== ADMIN_UID) {
+    if (appContent) appContent.style.display = "none";
+
+    showStatus(
+      "Access denied. This account is not authorised to manage questions.",
+      "error"
     );
-  });
-}
+
+    return;
+  }
+
+  if (appContent) appContent.style.display = "block";
+
+  const emailField = field("admin-email");
+  if (emailField) emailField.textContent = user.email || "Administrator";
+
+  showStatus("Administrator access confirmed.", "success");
+
+  stopListening = onValue(
+    ref(database, "questionBank"),
+    snapshot => {
+      questions = snapshot.val() || {};
+      renderQuestions();
+    },
+    error => {
+      console.error("Question loading failed:", error);
+
+      showStatus(
+        "Could not load questions. Check Firebase rules and your connection.",
+        "error"
+      );
+    }
+  );
+});
+
+// --------------------------------------------------
+// VALIDATE AND SAVE QUESTIONS
+// --------------------------------------------------
+
+form?.addEventListener("submit", async event => {
+  event.preventDefault();
+
+  if (!isAuthorisedAdmin()) {
+    showStatus("You are not authorised to save questions.", "error");
+    return;
+  }
+
+  const options = [0, 1, 2, 3].map(index =>
+    field(`option${index}`).value.trim()
+  );
+
+  if (options.some(option => !option)) {
+    showStatus("Please fill in all four answer options.", "error");
+    return;
+  }
+
+  const difficulty = Number(field("difficulty").value);
+  const answerIndex = Number(field("answerIndex").value);
+
+  if (!Number.isInteger(difficulty) || difficulty < 1 || difficulty > 7) {
+    showStatus("Choose a difficulty from 1 to 7.", "error");
+    return;
+  }
+
+  if (!Number.isInteger(answerIndex) || answerIndex < 0 || answerIndex > 3) {
+    showStatus("Choose a valid correct answer.", "error");
+    return;
+  }
+
+  const data = {
+    subject: field("subject").value.trim(),
+    topic: field("topic").value.trim(),
+    question: field("question").value.trim(),
+    difficulty,
+
+    type: "multiple-choice",
+
+    sourceType: field("sourceType").value,
+    sourceDetails: field("sourceDetails").value.trim(),
+    syllabusObjective: field("syllabusObjective").value.trim(),
+
+    options,
+    answerIndex,
+    explanation: field("explanation").value.trim(),
+
+    verified: field("verified").checked,
+
+    updatedAt: Date.now(),
+    updatedBy: currentUser.uid
+  };
+
+  if (!data.subject || !data.topic || !data.question || !data.explanation) {
+    showStatus("Complete all required fields.", "error");
+    return;
+  }
+
+  if (!data.sourceType) {
+    showStatus("Select a question source type.", "error");
+    return;
+  }
+
+  saveButton.disabled = true;
+
+  try {
+    if (editingId) {
+      const existingQuestion = questions[editingId];
+
+      if (!existingQuestion) {
+        throw new Error("This question no longer exists. Refresh and try again.");
+      }
+
+      await update(ref(database, `questionBank/${editingId}`), data);
+
+      showStatus("Question updated successfully.", "success");
+    } else {
+      const newId = makeQuestionId();
+
+      if (!newId) {
+        throw new Error("Could not generate a question ID.");
+      }
+
+      await set(ref(database, `questionBank/${newId}`), {
+        ...data,
+        id: newId,
+        createdAt: Date.now(),
+        createdBy: currentUser.uid
+      });
+
+      showStatus("Question saved successfully.", "success");
+    }
+
+    resetForm();
+  } catch (error) {
+    console.error("Question saving failed:", error);
+
+    showStatus(
+      error.message ||
+        "Saving failed. Check your internet connection, account and Firebase rules.",
+      "error"
+    );
+  } finally {
+    saveButton.disabled = false;
+  }
+});
+
+// --------------------------------------------------
+// FORM CONTROLS AND LOGOUT
+// --------------------------------------------------
+
+cancelButton?.addEventListener("click", resetForm);
+
+searchInput?.addEventListener("input", renderQuestions);
+
+field("logout-button")?.addEventListener("click", async () => {
+  try {
+    await signOut(auth);
+    window.location.replace("login.html");
+  } catch (error) {
+    console.error("Sign-out failed:", error);
+    showStatus("Could not sign out. Please try again.", "error");
+  }
+});
