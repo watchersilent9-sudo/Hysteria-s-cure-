@@ -1,19 +1,14 @@
-
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#171525">
-  <title>Student Dashboard | Hysteria's Cure</title>
-
-  <link rel="stylesheet" href="css/faction-themes.css">
-
-  <style>
+  <meta name="description" content="Your Hysteria's Cure learning dashboard.">  <title>Student Dashboard | Hysteria's Cure</title>  <link rel="stylesheet" href="css/faction-themes.css">  <style>
     :root {
       color-scheme: dark;
       --background: var(--bg-primary, #11101b);
-      --panel: var(--bg-card, #1c1a2b);
+      --panel: var(--bg-secondary, #1c1a2b);
+      --card: var(--bg-card, #1c1a2b);
       --text: var(--text-primary, #f7f4ff);
       --muted: var(--text-secondary, #b7b1ca);
       --accent: var(--accent-bright, #c6a7ff);
@@ -27,7 +22,7 @@
       background: var(--background);
       color: var(--text);
       font-family: system-ui, sans-serif;
-      transition: background-color 0.25s ease, color 0.25s ease;
+      transition: background-color .25s ease, color .25s ease;
     }
 
     header {
@@ -37,14 +32,14 @@
       gap: 16px;
       padding: 18px 6%;
       border-bottom: 1px solid var(--border);
-      background: var(--bg-secondary, var(--background));
+      background: var(--panel);
     }
 
     .brand { font-weight: 800; font-size: 1.05rem; }
     .brand span { color: var(--accent); }
 
     button, .action {
-      border: 0;
+      border: 1px solid var(--border);
       border-radius: 10px;
       padding: 12px 16px;
       font: inherit;
@@ -52,26 +47,32 @@
       cursor: pointer;
       text-decoration: none;
       display: inline-block;
-      transition: background-color 0.2s ease, color 0.2s ease;
+      transition: background-color .2s ease, color .2s ease;
     }
 
     button {
-      background: var(--bg-secondary, #38334d);
+      background: var(--panel);
       color: var(--text);
-      border: 1px solid var(--border);
     }
 
     .action {
-      background: var(--accent-dark, var(--accent));
-      color: #fff;
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--background);
     }
 
     .action:hover {
-      background: var(--accent);
-      color: var(--bg-primary, #11101b);
+      background: var(--accent-dark, var(--accent));
+      color: var(--text);
     }
 
-    button:disabled { opacity: 0.6; cursor: wait; }
+    button:hover { border-color: var(--accent); }
+    button:disabled { opacity: .6; cursor: wait; }
+
+    button:focus-visible, a:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+    }
 
     main {
       width: min(calc(100% - 32px), 1100px);
@@ -83,15 +84,29 @@
     .eyebrow {
       color: var(--accent);
       font-weight: 700;
-      letter-spacing: 0.08em;
+      letter-spacing: .08em;
       text-transform: uppercase;
-      font-size: 0.8rem;
+      font-size: .8rem;
     }
 
     h1 { font-size: clamp(2rem, 6vw, 3rem); margin: 10px 0; }
     h2 { font-size: 1.2rem; }
     p { line-height: 1.65; }
     .muted { color: var(--muted); }
+
+    .faction-indicator {
+      display: inline-block;
+      margin: 12px 0;
+      padding: 9px 14px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--panel);
+      color: var(--muted);
+    }
+
+    .faction-indicator strong {
+      color: var(--accent);
+    }
 
     .section-heading { margin: 36px 0 16px; }
 
@@ -103,13 +118,15 @@
     }
 
     .card {
-      background: var(--panel);
+      min-width: 0;
+      background: var(--card);
       border: 1px solid var(--border);
       border-radius: 16px;
       padding: 22px;
-      transition: background-color 0.25s ease, border-color 0.25s ease;
+      transition: background-color .25s ease, border-color .25s ease;
     }
 
+    .card:hover { border-color: var(--accent); }
     .card h2 { margin-top: 0; }
     .card p { color: var(--muted); }
 
@@ -118,10 +135,11 @@
       font-weight: 800;
       color: var(--text);
       margin: 8px 0;
+      overflow-wrap: anywhere;
     }
 
     .mistakes-section {
-      background: var(--panel);
+      background: var(--card);
       border: 1px solid var(--border);
       border-radius: 16px;
       padding: 24px;
@@ -144,7 +162,7 @@
     #page-message {
       padding: 14px;
       border-radius: 10px;
-      background: var(--panel);
+      background: var(--card);
       border: 1px solid var(--border);
     }
 
@@ -159,156 +177,160 @@
       padding: 24px;
       text-align: center;
       color: var(--muted);
-      font-size: 0.85rem;
+      font-size: .85rem;
     }
 
     [hidden] { display: none !important; }
 
+    @media (max-width: 520px) {
+      main { margin-top: 28px; }
+      header { padding: 16px; }
+      .card { padding: 18px; }
+      .mistakes-section { padding: 18px; }
+    }
+
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { transition: none !important; }
     }
-  </style>
-</head>
-
-<body>
+  </style></head><body>
   <header>
     <div class="brand">HYSTERIA'S <span>CURE</span></div>
     <button id="logout-button" type="button" hidden>Log out</button>
-  </header>
-
-  <main>
+  </header>  <main>
     <p id="page-message" role="status" aria-live="polite">
       Checking your sign-in...
+    </p><section id="dashboard" hidden>
+  <div class="welcome">
+    <p class="eyebrow">Your learning journey</p>
+    <h1>Welcome, <span id="student-name">Student</span>.</h1>
+
+    <p class="faction-indicator">
+      Faction: <strong id="student-faction">Loading...</strong>
     </p>
 
-    <section id="dashboard" hidden>
-      <div class="welcome">
-        <p class="eyebrow">Your learning journey</p>
-        <h1>Welcome, <span id="student-name">Student</span>.</h1>
-        <p class="muted">Failure is the disease. Learning is the cure.</p>
-        <p class="muted">
-          Practise, prepare for examinations, organise your study materials,
-          and track your progress from one place.
-        </p>
-      </div>
+    <p class="muted">Failure is the disease. Learning is the cure.</p>
+    <p class="muted">
+      Practise, prepare for examinations, organise your study materials,
+      and track your progress from one place.
+    </p>
+  </div>
 
-      <h2 class="section-heading">Learning</h2>
-      <div class="grid">
-        <article class="card">
-          <h2>Practice</h2>
-          <p>Choose a subject and topic, answer questions, and learn from explanations.</p>
-          <a class="action" href="practice.html">Start practising</a>
-        </article>
+  <h2 class="section-heading">Learning</h2>
+  <div class="grid">
+    <article class="card">
+      <h2>Practice</h2>
+      <p>Choose a subject and topic, answer questions, and learn from explanations.</p>
+      <a class="action" href="practice.html">Start practising</a>
+    </article>
 
-        <article class="card">
-          <h2>Exams</h2>
-          <p>Prepare for timed examinations and assess your readiness.</p>
-          <a class="action" href="exam.html">Open exams</a>
-        </article>
+    <article class="card">
+      <h2>Exams</h2>
+      <p>Prepare for timed examinations and assess your readiness.</p>
+      <a class="action" href="exam.html">Open exams</a>
+    </article>
 
-        <article class="card">
-          <h2>Question Bank</h2>
-          <p>Explore the available practice questions.</p>
-          <a class="action" href="question-bank.html">Open question bank</a>
-        </article>
+    <article class="card">
+      <h2>Question Bank</h2>
+      <p>Explore the available practice questions.</p>
+      <a class="action" href="question-bank.html">Open question bank</a>
+    </article>
 
-        <article class="card">
-          <h2>My Towers</h2>
-          <p>Explore Readers, Gamers, Movie Lovers, or Independent.</p>
-          <a class="action" href="towers.html">Explore towers</a>
-        </article>
+    <article class="card">
+      <h2>My Towers</h2>
+      <p>Explore Readers, Gamers, Movie Lovers, or Independent.</p>
+      <a class="action" href="towers.html">Explore towers</a>
+    </article>
 
-        <article class="card">
-          <h2>Learning Library</h2>
-          <p>Access the page for textbooks, past questions, and study notes.</p>
-          <a class="action" href="learning-library.html">Open library</a>
-        </article>
+    <article class="card">
+      <h2>Learning Library</h2>
+      <p>Access the page for textbooks, past questions, and study notes.</p>
+      <a class="action" href="learning-library.html">Open library</a>
+    </article>
 
-        <article class="card">
-          <h2>My Materials</h2>
-          <p>Open your study materials area.</p>
-          <a class="action" href="materials.html">View materials</a>
-        </article>
+    <article class="card">
+      <h2>My Materials</h2>
+      <p>Open your study materials area.</p>
+      <a class="action" href="materials.html">View materials</a>
+    </article>
 
-        <article class="card">
-          <h2>Study Plan</h2>
-          <p>Organise the subjects and topics you want to study.</p>
-          <a class="action" href="study-plan.html">Open study plan</a>
-        </article>
-      </div>
+    <article class="card">
+      <h2>Study Plan</h2>
+      <p>Organise the subjects and topics you want to study.</p>
+      <a class="action" href="study-plan.html">Open study plan</a>
+    </article>
+  </div>
 
-      <h2 class="section-heading">Your Progress</h2>
-      <div class="grid">
-        <article class="card">
-          <h2>Questions Answered</h2>
-          <div class="stat-value" id="stat-answered">0</div>
-          <p class="muted">Accuracy: <span id="stat-accuracy">0</span>%</p>
-          <a class="page-directory" href="progress.html">View full progress</a>
-        </article>
+  <h2 class="section-heading">Your Progress</h2>
+  <div class="grid">
+    <article class="card">
+      <h2>Questions Answered</h2>
+      <div class="stat-value" id="stat-answered">0</div>
+      <p class="muted">Accuracy: <span id="stat-accuracy">0</span>%</p>
+      <a class="page-directory" href="progress.html">View full progress</a>
+    </article>
 
-        <article class="card">
-          <h2>Rewards & XP</h2>
-          <div class="stat-value" id="stat-xp">0 XP</div>
-          <p class="muted">Points: <span id="stat-points">0</span></p>
-          <a class="page-directory" href="rewards.html">View rewards</a>
-        </article>
+    <article class="card">
+      <h2>Rewards &amp; XP</h2>
+      <div class="stat-value" id="stat-xp">0 XP</div>
+      <p class="muted">Points: <span id="stat-points">0</span></p>
+      <a class="page-directory" href="rewards.html">View rewards</a>
+    </article>
 
-        <article class="card">
-          <h2>Learning Levels</h2>
-          <p>View the planned learning levels and advancement system.</p>
-          <a class="action" href="levels.html">View levels</a>
-        </article>
+    <article class="card">
+      <h2>Learning Levels</h2>
+      <p>View the learning levels and advancement system.</p>
+      <a class="action" href="levels.html">View levels</a>
+    </article>
 
-        <article class="card">
-          <h2>Question Review</h2>
-          <p>Open the page for reviewing questions you answered incorrectly.</p>
-          <a class="action" href="mistakes.html">Review questions</a>
-        </article>
-      </div>
+    <article class="card">
+      <h2>Question Review</h2>
+      <p>Review questions you answered incorrectly.</p>
+      <a class="action" href="mistakes.html">Review questions</a>
+    </article>
+  </div>
 
-      <h2 class="section-heading">Account</h2>
-      <div class="grid">
-        <article class="card">
-          <h2>My Profile</h2>
-          <p>View your account details and faction information.</p>
-          <a class="action" href="profile.html">Open profile</a>
-        </article>
+  <h2 class="section-heading">Account</h2>
+  <div class="grid">
+    <article class="card">
+      <h2>My Profile</h2>
+      <p>View your account details and faction information.</p>
+      <a class="action" href="profile.html">Open profile</a>
+    </article>
 
-        <article class="card">
-          <h2>Settings</h2>
-          <p>Open your learning preferences.</p>
-          <a class="action" href="settings.html">Open settings</a>
-        </article>
+    <article class="card">
+      <h2>Settings</h2>
+      <p>Open your learning preferences.</p>
+      <a class="action" href="settings.html">Open settings</a>
+    </article>
 
-        <article class="card">
-          <h2>All Pages</h2>
-          <p>Find the student and administration pages in one directory.</p>
-          <a class="action" href="pages.html">View all pages</a>
-        </article>
-      </div>
+    <article class="card">
+      <h2>All Pages</h2>
+      <p>Find the student and administration pages in one directory.</p>
+      <a class="action" href="pages.html">View all pages</a>
+    </article>
+  </div>
 
-      <section class="mistakes-section">
-        <h2>Your Mistake Bank</h2>
-        <p class="muted">
-          Review questions you missed during practice so you can learn from them.
-        </p>
-        <div id="mistakes-container">
-          <p class="muted">Loading your mistakes...</p>
-        </div>
-      </section>
-    </section>
-  </main>
+  <section class="mistakes-section">
+    <h2>Your Mistake Bank</h2>
+    <p class="muted">
+      Review questions you missed during practice so you can learn from them.
+    </p>
+    <div id="mistakes-container">
+      <p class="muted">Loading your mistakes...</p>
+    </div>
+  </section>
+</section>
 
-  <footer>
+  </main>  <footer>
     Hysteria's Cure — Your potential has no ceiling.
-  </footer>
-
-  <script type="module">
+  </footer>  <script type="module">
     import { auth, database } from "./js/firebase-client.js";
+
     import {
       onAuthStateChanged,
       signOut
     } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
+
     import {
       ref,
       get
@@ -317,6 +339,7 @@
     const pageMessage = document.getElementById("page-message");
     const dashboard = document.getElementById("dashboard");
     const studentName = document.getElementById("student-name");
+    const studentFaction = document.getElementById("student-faction");
     const logoutButton = document.getElementById("logout-button");
 
     const statAnswered = document.getElementById("stat-answered");
@@ -325,16 +348,43 @@
     const statPoints = document.getElementById("stat-points");
     const mistakesContainer = document.getElementById("mistakes-container");
 
+    const factionNames = {
+      readers: "Readers",
+      gamers: "Gamers",
+      "movie-lovers": "Movie Lovers",
+      independent: "Independent"
+    };
+
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
         window.location.replace("login.html");
         return;
       }
 
-      const displayName = user.displayName ||
+      logoutButton.hidden = false;
+
+      studentName.textContent =
+        user.displayName ||
         (user.email ? user.email.split("@")[0] : "Student");
 
-      studentName.textContent = displayName;
+      // Load faction independently so a faction read failure
+      // does not prevent the rest of the dashboard from loading.
+      try {
+        const factionSnapshot = await get(
+          ref(database, `users/${user.uid}/faction`)
+        );
+
+        const faction = factionSnapshot.val();
+
+        if (factionNames[faction]) {
+          studentFaction.textContent = factionNames[faction];
+        } else {
+          studentFaction.textContent = "Faction not set";
+        }
+      } catch (error) {
+        console.error("Failed to load faction:", error);
+        studentFaction.textContent = "Could not load faction";
+      }
 
       try {
         const progressSnapshot = await get(
@@ -385,9 +435,12 @@
             const answer = document.createElement("p");
             const answerLabel = document.createElement("strong");
             answerLabel.textContent = "Correct Answer: ";
-            answer.append(answerLabel, document.createTextNode(
-              String(mistake.correctAnswer ?? "Not recorded")
-            ));
+            answer.append(
+              answerLabel,
+              document.createTextNode(
+                String(mistake.correctAnswer ?? "Not recorded")
+              )
+            );
 
             card.append(heading, subject, answer);
 
@@ -414,14 +467,13 @@
           mistakesContainer.appendChild(reviewLink);
         }
       } catch (error) {
-        console.error("Failed to load user progress or mistakes:", error);
+        console.error("Failed to load progress or mistakes:", error);
         mistakesContainer.textContent =
-          "Could not load your mistakes. Your other dashboard pages are still available.";
+          "Could not load your progress or mistakes. You can still use the other dashboard pages.";
       }
 
       pageMessage.hidden = true;
       dashboard.hidden = false;
-      logoutButton.hidden = false;
     });
 
     logoutButton.addEventListener("click", async () => {
@@ -440,8 +492,5 @@
         logoutButton.textContent = "Log out";
       }
     });
-  </script>
-
-  <script type="module" src="js/faction-theme.js"></script>
-</body>
+  </script>  <script type="module" src="js/faction-theme.js"></script></body>
 </html>
