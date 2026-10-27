@@ -1,14 +1,3 @@
-/*
- * Hysteria's Cure — Question Bank Manager
- * Features:
- * - Administrator-only question management
- * - Add, edit, delete and search questions
- * - Seven-star difficulty system
- * - Source and syllabus metadata
- * - Question-engine-compatible Firebase records
- * - Verification status and error handling
- */
-
 import { auth, database } from "./firebase-client.js";
 
 import {
@@ -25,7 +14,6 @@ import {
   onValue
 } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-database.js";
 
-// Keep this UID consistent with the authorised administrator account.
 const ADMIN_UID = "RtaLjBtKSUgRnWB7ag06CLRCStM2";
 
 const statusBox = document.getElementById("status");
@@ -43,13 +31,7 @@ let questions = {};
 let editingId = null;
 let stopListening = null;
 
-// --------------------------------------------------
-// HELPERS
-// --------------------------------------------------
-
 function showStatus(message, type = "") {
-  if (!statusBox) return;
-
   statusBox.textContent = message;
   statusBox.className = "status" + (type ? ` ${type}` : "");
 }
@@ -68,30 +50,15 @@ function field(id) {
   return document.getElementById(id);
 }
 
-function isAuthorisedAdmin() {
-  return Boolean(currentUser && currentUser.uid === ADMIN_UID);
-}
-
-function makeQuestionId() {
-  // Firebase push keys are suitable for stable question IDs.
-  return push(ref(database, "questionBank")).key;
-}
-
 function resetForm() {
-  form?.reset();
+  form.reset();
   editingId = null;
-
-  if (formHeading) formHeading.textContent = "Add a question";
-  if (saveButton) saveButton.textContent = "Save question";
-  if (cancelButton) cancelButton.hidden = true;
+  formHeading.textContent = "Add a question";
+  saveButton.textContent = "Save question";
+  cancelButton.hidden = true;
 }
 
 function beginEditing(id) {
-  if (!isAuthorisedAdmin()) {
-    showStatus("You are not authorised to edit questions.", "error");
-    return;
-  }
-
   const question = questions[id];
   if (!question) return;
 
@@ -122,13 +89,7 @@ function beginEditing(id) {
   form.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
-// --------------------------------------------------
-// QUESTION LIST
-// --------------------------------------------------
-
 function renderQuestions() {
-  if (!questionList || !questionCount || !searchInput) return;
-
   const query = searchInput.value.trim().toLowerCase();
 
   const entries = Object.entries(questions).filter(([, question]) => {
@@ -136,8 +97,7 @@ function renderQuestions() {
       question.subject,
       question.topic,
       question.question,
-      question.sourceType,
-      question.sourceDetails
+      question.sourceType
     ].join(" ").toLowerCase();
 
     return text.includes(query);
@@ -146,14 +106,9 @@ function renderQuestions() {
   questionCount.textContent =
     `${entries.length} question${entries.length === 1 ? "" : "s"} shown`;
 
-  if (!entries.length) {
-    questionList.replaceChildren();
-
-    const message = document.createElement("p");
-    message.className = "muted";
-    message.textContent = "No questions found. Add one using the form above.";
-
-    questionList.appendChild(message);
+  if (entries.length === 0) {
+    questionList.innerHTML =
+      '<p class="muted">No questions found. Add one using the form above.</p>';
     return;
   }
 
@@ -188,13 +143,16 @@ function renderQuestions() {
 
         <p class="hint">
           Source: ${escapeHTML(question.sourceType || "unspecified")}
-          ${question.sourceDetails ? " — " + escapeHTML(question.sourceDetails) : ""}
+          ${question.sourceDetails
+            ? " — " + escapeHTML(question.sourceDetails)
+            : ""}
         </p>
 
         ${question.syllabusObjective ? `
           <p class="hint">
             Syllabus objective: ${escapeHTML(question.syllabusObjective)}
-          </p>` : ""}
+          </p>
+        ` : ""}
 
         <div class="actions">
           <button type="button" class="edit-button" data-id="${escapeHTML(id)}">
@@ -214,14 +172,10 @@ function renderQuestions() {
 
   questionList.querySelectorAll(".delete-button").forEach(button => {
     button.addEventListener("click", async () => {
-      if (!isAuthorisedAdmin()) {
-        showStatus("You are not authorised to delete questions.", "error");
-        return;
-      }
-
       const id = button.dataset.id;
+      const question = questions[id];
 
-      if (!questions[id]) return;
+      if (!question) return;
       if (!confirm("Delete this question permanently?")) return;
 
       button.disabled = true;
@@ -233,22 +187,16 @@ function renderQuestions() {
 
         showStatus("Question deleted.", "success");
       } catch (error) {
-        console.error("Question deletion failed:", error);
-
+        console.error(error);
         showStatus(
           "Could not delete the question. Check your connection and Firebase permissions.",
           "error"
         );
-
         button.disabled = false;
       }
     });
   });
 }
-
-// --------------------------------------------------
-// ADMIN AUTHENTICATION
-// --------------------------------------------------
 
 onAuthStateChanged(auth, user => {
   if (stopListening) {
@@ -259,29 +207,23 @@ onAuthStateChanged(auth, user => {
   currentUser = user;
 
   if (!user) {
-    if (appContent) appContent.style.display = "none";
-
+    appContent.style.display = "none";
     showStatus("Please sign in with the authorised administrator account.");
     window.location.replace("login.html");
     return;
   }
 
   if (user.uid !== ADMIN_UID) {
-    if (appContent) appContent.style.display = "none";
-
+    appContent.style.display = "none";
     showStatus(
       "Access denied. This account is not authorised to manage questions.",
       "error"
     );
-
     return;
   }
 
-  if (appContent) appContent.style.display = "block";
-
-  const emailField = field("admin-email");
-  if (emailField) emailField.textContent = user.email || "Administrator";
-
+  appContent.style.display = "block";
+  field("admin-email").textContent = user.email || "Administrator";
   showStatus("Administrator access confirmed.", "success");
 
   stopListening = onValue(
@@ -291,30 +233,25 @@ onAuthStateChanged(auth, user => {
       renderQuestions();
     },
     error => {
-      console.error("Question loading failed:", error);
-
+      console.error(error);
       showStatus(
-        "Could not load questions. Check Firebase rules and your connection.",
+        "Could not load questions. Check Firebase Realtime Database rules and your connection.",
         "error"
       );
     }
   );
 });
 
-// --------------------------------------------------
-// VALIDATE AND SAVE QUESTIONS
-// --------------------------------------------------
-
-form?.addEventListener("submit", async event => {
+form.addEventListener("submit", async event => {
   event.preventDefault();
 
-  if (!isAuthorisedAdmin()) {
+  if (!currentUser || currentUser.uid !== ADMIN_UID) {
     showStatus("You are not authorised to save questions.", "error");
     return;
   }
 
-  const options = [0, 1, 2, 3].map(index =>
-    field(`option${index}`).value.trim()
+  const options = [0, 1, 2, 3].map(i =>
+    field(`option${i}`).value.trim()
   );
 
   if (options.some(option => !option)) {
@@ -335,25 +272,22 @@ form?.addEventListener("submit", async event => {
     return;
   }
 
+  const now = Date.now();
+
   const data = {
+    type: "multiple-choice",
     subject: field("subject").value.trim(),
     topic: field("topic").value.trim(),
     question: field("question").value.trim(),
     difficulty,
-
-    type: "multiple-choice",
-
     sourceType: field("sourceType").value,
     sourceDetails: field("sourceDetails").value.trim(),
     syllabusObjective: field("syllabusObjective").value.trim(),
-
     options,
     answerIndex,
     explanation: field("explanation").value.trim(),
-
     verified: field("verified").checked,
-
-    updatedAt: Date.now(),
+    updatedAt: now,
     updatedBy: currentUser.uid
   };
 
@@ -362,35 +296,19 @@ form?.addEventListener("submit", async event => {
     return;
   }
 
-  if (!data.sourceType) {
-    showStatus("Select a question source type.", "error");
-    return;
-  }
-
   saveButton.disabled = true;
 
   try {
     if (editingId) {
-      const existingQuestion = questions[editingId];
-
-      if (!existingQuestion) {
-        throw new Error("This question no longer exists. Refresh and try again.");
-      }
-
       await update(ref(database, `questionBank/${editingId}`), data);
-
       showStatus("Question updated successfully.", "success");
     } else {
-      const newId = makeQuestionId();
+      const newQuestionRef = push(ref(database, "questionBank"));
 
-      if (!newId) {
-        throw new Error("Could not generate a question ID.");
-      }
-
-      await set(ref(database, `questionBank/${newId}`), {
+      await set(newQuestionRef, {
         ...data,
-        id: newId,
-        createdAt: Date.now(),
+        id: newQuestionRef.key,
+        createdAt: now,
         createdBy: currentUser.uid
       });
 
@@ -399,11 +317,9 @@ form?.addEventListener("submit", async event => {
 
     resetForm();
   } catch (error) {
-    console.error("Question saving failed:", error);
-
+    console.error(error);
     showStatus(
-      error.message ||
-        "Saving failed. Check your internet connection, account and Firebase rules.",
+      "Saving failed. Check your internet connection, signed-in account and Firebase rules.",
       "error"
     );
   } finally {
@@ -411,20 +327,15 @@ form?.addEventListener("submit", async event => {
   }
 });
 
-// --------------------------------------------------
-// FORM CONTROLS AND LOGOUT
-// --------------------------------------------------
+cancelButton.addEventListener("click", resetForm);
+searchInput.addEventListener("input", renderQuestions);
 
-cancelButton?.addEventListener("click", resetForm);
-
-searchInput?.addEventListener("input", renderQuestions);
-
-field("logout-button")?.addEventListener("click", async () => {
+field("logout-button").addEventListener("click", async () => {
   try {
     await signOut(auth);
     window.location.replace("login.html");
   } catch (error) {
-    console.error("Sign-out failed:", error);
+    console.error(error);
     showStatus("Could not sign out. Please try again.", "error");
   }
 });
