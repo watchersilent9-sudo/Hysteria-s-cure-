@@ -1,16 +1,25 @@
-/* Hysteria's Cure — Faction Themes */
+/* =========================================
+HYSTERIA'S CURE — FACTION THEMES
+========================================= */
 
 /* Default theme */
 :root {
+color-scheme: dark;
+
 --bg-primary: #0e0e16;
 --bg-secondary: #151521;
 --bg-card: #1b1b2a;
+
 --text-primary: #f4f2ff;
 --text-secondary: #aaa9c0;
+
 --accent: #a78bfa;
 --accent-bright: #c4b5fd;
 --accent-dark: #7c3aed;
+
 --border: rgba(255, 255, 255, 0.09);
+--accent-glow: rgba(167, 139, 250, 0.12);
+
 }
 
 /* Readers */
@@ -18,12 +27,17 @@
 --bg-primary: #101711;
 --bg-secondary: #17231a;
 --bg-card: #1d2c21;
+
 --text-primary: #f0f8ef;
 --text-secondary: #b4c9b3;
+
 --accent: #83c995;
 --accent-bright: #b0e5b9;
 --accent-dark: #347a4a;
+
 --border: rgba(131, 201, 149, 0.2);
+--accent-glow: rgba(131, 201, 149, 0.12);
+
 }
 
 /* Gamers */
@@ -31,12 +45,17 @@
 --bg-primary: #160e12;
 --bg-secondary: #24131d;
 --bg-card: #301927;
+
 --text-primary: #fff1f5;
 --text-secondary: #d1aeba;
+
 --accent: #f078a0;
 --accent-bright: #ffb0c8;
 --accent-dark: #a92f5b;
+
 --border: rgba(240, 120, 160, 0.22);
+--accent-glow: rgba(240, 120, 160, 0.13);
+
 }
 
 /* Movie Lovers */
@@ -44,12 +63,17 @@
 --bg-primary: #10131c;
 --bg-secondary: #191f2d;
 --bg-card: #222b3c;
+
 --text-primary: #f1f5ff;
 --text-secondary: #b4c1d8;
+
 --accent: #78baff;
 --accent-bright: #b1d9ff;
 --accent-dark: #326cb4;
+
 --border: rgba(120, 186, 255, 0.22);
+--accent-glow: rgba(120, 186, 255, 0.12);
+
 }
 
 /* Independent */
@@ -57,45 +81,243 @@
 --bg-primary: #15120e;
 --bg-secondary: #211b14;
 --bg-card: #2c2419;
+
 --text-primary: #fff8ec;
 --text-secondary: #d0c0a5;
+
 --accent: #d6ad68;
 --accent-bright: #f1d49d;
 --accent-dark: #936b31;
+
 --border: rgba(214, 173, 104, 0.22);
+--accent-glow: rgba(214, 173, 104, 0.12);
+
 }
 
-/* Apply theme variables consistently */
-body {
+/* =========================================
+GLOBAL THEME
+========================================= */
+
+html {
 background: var(--bg-primary);
+}
+
+body {
+background-color: var(--bg-primary);
 color: var(--text-primary);
 }
 
 .site-header,
 .site-footer {
-background: var(--bg-primary);
+background-color: var(--bg-primary);
 border-color: var(--border);
 }
 
+.about {
+border-color: var(--border);
+}
+
+.section-heading h2,
+.about-content h2,
+.get-started h2,
+.hero h1,
+.feature-card h3,
+.level-card h3,
+.visual-card h2 {
+color: var(--text-primary);
+}
+
+.eyebrow,
+.hero h1 span,
+.feature-number,
+.level-number,
+.visual-symbol {
+color: var(--accent-bright);
+}
+
+.hero-description,
+.hero-note,
+.feature-card p,
+.level-card p,
+.levels-note,
+.about-content > p:last-child,
+.get-started > p:not(.eyebrow),
+.site-footer > p,
+.visual-card p {
+color: var(--text-secondary);
+}
+
+/* =========================================
+CARDS AND PANELS
+========================================= */
+
+.feature-card,
+.level-card,
+.visual-card,
 .auth-card,
+.engine,
+.question-card,
+.result-card,
+.practice-card,
+.dashboard-card,
+.stat-card,
+.profile-card,
+.panel,
+.modal-content {
+background-color: var(--bg-card);
+border-color: var(--border);
+color: var(--text-primary);
+}
+
 .feature-card,
 .level-card,
 .visual-card {
-background-color: var(--bg-secondary);
-border-color: var(--border);
+border: 1px solid var(--border);
 }
 
-.button-primary {
-background: var(--accent);
+.feature-card:hover,
+.level-card:hover {
+border-color: var(--accent);
+}
+
+.visual-card {
+background-image:
+radial-gradient(
+circle at top right,
+var(--accent-glow),
+transparent 65%
+);
+}
+
+/* =========================================
+BUTTONS AND LINKS
+========================================= */
+
+.button-primary,
+.button-primary:visited {
+background-color: var(--accent);
+border-color: var(--accent);
 color: var(--bg-primary);
 }
 
 .button-primary:hover {
-background: var(--accent-bright);
+background-color: var(--accent-bright);
+border-color: var(--accent-bright);
 }
 
-a:focus-visible,
+.button-secondary {
+border-color: var(--border);
+color: var(--text-primary);
+}
+
+.button-secondary:hover {
+border-color: var(--accent);
+}
+
+a:hover {
+color: var(--accent-bright);
+}
+
 button:focus-visible,
-input:focus-visible {
-outline-color: var(--accent-bright);
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+outline: 2px solid var(--accent-bright);
+outline-offset: 3px;
+}
+
+/* =========================================
+FORMS AND QUESTION ENGINE
+========================================= */
+
+input,
+select,
+textarea {
+background-color: var(--bg-secondary);
+border: 1px solid var(--border);
+border-radius: 8px;
+color: var(--text-primary);
+}
+
+input::placeholder,
+textarea::placeholder {
+color: var(--text-secondary);
+}
+
+option {
+background-color: var(--bg-secondary);
+color: var(--text-primary);
+}
+
+#star-selector button,
+.star-button,
+[data-level] {
+border-color: var(--border);
+}
+
+#star-selector button.selected,
+.star-button.selected,
+[data-level].selected {
+background-color: var(--accent);
+border-color: var(--accent);
+color: var(--bg-primary);
+}
+
+#engine-message,
+#catalogue-status,
+#star-description,
+#file-list {
+color: var(--text-secondary);
+}
+
+/* Question and answer choices */
+.question-card button,
+.question-card label,
+.answer-option,
+.question-option {
+border-color: var(--border);
+}
+
+.question-card button:hover,
+.answer-option:hover,
+.question-option:hover {
+border-color: var(--accent);
+}
+
+.correct,
+.answer-correct {
+border-color: #48b879 !important;
+}
+
+.incorrect,
+.answer-incorrect {
+border-color: #e16d7a !important;
+}
+
+/* =========================================
+TABLES AND SEPARATORS
+========================================= */
+
+table {
+color: var(--text-primary);
+border-color: var(--border);
+}
+
+th,
+td {
+border-color: var(--border);
+}
+
+hr {
+border-color: var(--border);
+}
+
+/* =========================================
+ACCESSIBILITY
+========================================= */
+
+::selection {
+background: var(--accent);
+color: var(--bg-primary);
 }
