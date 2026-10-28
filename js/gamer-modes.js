@@ -1,24 +1,30 @@
 /*
  * Hysteria's Cure — Gamer Modes
  * Quick Duel: student versus simulated bot.
- * Survival and Ranked Challenge will be implemented separately.
+ * Survival and Ranked Challenge remain separate future modes.
  */
 
-const modeSelect = document.getElementById("game-mode");
-const modeDescription = document.getElementById("game-mode-description");
-const modePanel = document.getElementById("gamer-modes");
+import { auth, database } from "./firebase-client.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
+import { get, ref } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-database.js";
 
-const duelArea = document.getElementById("duel-area");
-const duelTitle = document.getElementById("duel-title");
-const duelPlayerScore = document.getElementById("duel-player-score");
-const duelBotScore = document.getElementById("duel-bot-score");
-const duelProgress = document.getElementById("duel-progress");
-const duelTimer = document.getElementById("duel-timer");
-const duelQuestion = document.getElementById("duel-question");
-const duelOptions = document.getElementById("duel-options");
-const duelFeedback = document.getElementById("duel-feedback");
-const duelNext = document.getElementById("duel-next");
-const duelExit = document.getElementById("duel-exit");
+const $ = id => document.getElementById(id);
+
+const modeSelect = $("game-mode");
+const modeDescription = $("game-mode-description");
+const modePanel = $("gamer-modes");
+
+const duelArea = $("duel-area");
+const duelTitle = $("duel-title");
+const duelPlayerScore = $("duel-player-score");
+const duelBotScore = $("duel-bot-score");
+const duelProgress = $("duel-progress");
+const duelTimer = $("duel-timer");
+const duelQuestion = $("duel-question");
+const duelOptions = $("duel-options");
+const duelFeedback = $("duel-feedback");
+const duelNext = $("duel-next");
+const duelExit = $("duel-exit");
 
 const MODE_DESCRIPTIONS = {
   practice: "Practise at your own pace.",
@@ -55,6 +61,7 @@ let duelRunning = false;
 let roundEnded = false;
 let roundDeadline = 0;
 let currentFaction = "independent";
+let factionCheckVersion = 0;
 
 function clearDuelTimers() {
   clearInterval(roundTimer);
@@ -70,16 +77,89 @@ function updateModeDescription() {
   if (!modeSelect || !modeDescription) return;
 
   modeDescription.textContent =
-    MODE_DESCRIPTIONS[modeSelect.value] ||
-    MODE_DESCRIPTIONS.practice;
+    MODE_DESCRIPTIONS[modeSelect.value] || MODE_DESCRIPTIONS.practice;
 }
 
-modeSelect?.addEventListener("change", updateModeDescription);
+function setFaction(faction) {
+  const validFactions = ["readers", "gamers", "movie-lovers", "independent"];
+
+  currentFaction = validFactions.includes(faction) ? faction : "independent";
+
+  if (modePanel) {
+    modePanel.hidden = currentFaction !== "gamers";
+  }
+
+  // If a non-Gamer account is detected, don't leave a Gamer challenge running.
+  if (currentFaction !== "gamers" && duelRunning) {
+    exitDuel();
+  }
+}
+
+async function detectFaction(user) {
+  const version = ++factionCheckVersion;
+
+  if (!user) {
+    setFaction("independent");
+    return;
+  }
+
+  try {
+    const snapshot = await get(ref(database, `users/${user.uid}/faction`));
+
+    // Ignore an old request if the account changed while it was loading.
+    if (version !== factionCheckVersion) return;
+
+    setFaction(snapshot.val());
+  } catch (error) {
+    console.error("Gamer mode: faction lookup failed.", error);
+
+    if (version !== factionCheckVersion) return;
+
+    // Keep a faction already received from the question engine.
+    if (currentFaction !== "gamers") {
+      setFaction("independent");
+    }
+  }
+}
+
+modeSelect?.addEventListener("change", () => {
+  updateModeDescription();
+
+  if (modeSelect.value !== "practice" && currentFaction !== "gamers") {
+    modeSelect.value = "practice";
+    updateModeDescription();
+
+    const message = $("engine-message");
+    if (message) {
+      message.textContent = "Gamer modes are available only to Gamer accounts.";
+    }
+  }
+
+  if (modeSelect.value === "practice") {
+    hideDuel();
+  }
+});
+
 updateModeDescription();
 
+// Listen for Firebase authentication, then check the account's faction.
+onAuthStateChanged(auth, user => {
+  detectFaction(user);
+});
+
+// Receive faction updates from the question engine.
+window.addEventListener("hc:faction-loaded", event => {
+  const faction = event.detail?.faction;
+
+  if (faction) {
+    setFaction(faction);
+  }
+});
+
+// Hide the regular question interface when a duel starts.
 function hideNormalQuestionInterface() {
-  const normalQuestionArea = document.getElementById("question-area");
-  const normalResults = document.getElementById("question-results");
+  const normalQuestionArea = $("question-area");
+  const normalResults = $("question-results");
 
   if (normalQuestionArea) normalQuestionArea.hidden = true;
   if (normalResults) normalResults.hidden = true;
@@ -102,6 +182,11 @@ function hideDuel() {
 }
 
 function startQuickDuel(questions) {
+  if (currentFaction !== "gamers") {
+    alert("Quick Duel is available only to Gamer accounts.");
+    return;
+  }
+
   if (!Array.isArray(questions) || questions.length === 0) {
     alert("No questions are available for this duel.");
     return;
@@ -116,10 +201,8 @@ function startQuickDuel(questions) {
   duelRunning = true;
 
   if (duelTitle) duelTitle.textContent = "Quick Duel";
-
   if (duelPlayerScore) duelPlayerScore.textContent = "0";
   if (duelBotScore) duelBotScore.textContent = "0";
-
   if (duelNext) duelNext.hidden = true;
 
   showDuel();
@@ -149,20 +232,10 @@ function startRound() {
       `Question ${duelIndex + 1} of ${duelQuestions.length}`;
   }
 
-  if (duelPlayerScore) {
-    duelPlayerScore.textContent = String(playerScore);
-  }
-
-  if (duelBotScore) {
-    duelBotScore.textContent = String(botScore);
-  }
-
-  if (duelQuestion) {
-    duelQuestion.textContent = question.question;
-  }
-
+  if (duelPlayerScore) duelPlayerScore.textContent = String(playerScore);
+  if (duelBotScore) duelBotScore.textContent = String(botScore);
+  if (duelQuestion) duelQuestion.textContent = question.question;
   if (duelFeedback) duelFeedback.textContent = "";
-
   if (duelNext) duelNext.hidden = true;
 
   if (duelOptions) {
@@ -173,19 +246,15 @@ function startRound() {
 
       button.type = "button";
       button.className = "duel-option";
-      button.textContent =
-        `${String.fromCharCode(65 + index)}. ${option}`;
+      button.textContent = `${String.fromCharCode(65 + index)}. ${option}`;
 
-      button.addEventListener("click", () => {
-        submitPlayerAnswer(index);
-      });
+      button.addEventListener("click", () => submitPlayerAnswer(index));
 
       duelOptions.appendChild(button);
     });
   }
 
   roundDeadline = Date.now() + 5000;
-
   updateTimer();
 
   roundTimer = setInterval(() => {
@@ -196,7 +265,6 @@ function startRound() {
     }
   }, 100);
 
-  // The bot responds after a simulated thinking delay.
   const botDelay = 1000 + Math.random() * 3000;
 
   botTimer = setTimeout(() => {
@@ -207,11 +275,7 @@ function startRound() {
 function updateTimer() {
   if (!duelTimer || roundEnded) return;
 
-  const remaining = Math.max(
-    0,
-    (roundDeadline - Date.now()) / 1000
-  );
-
+  const remaining = Math.max(0, (roundDeadline - Date.now()) / 1000);
   duelTimer.textContent = remaining.toFixed(1);
 }
 
@@ -230,7 +294,6 @@ function submitPlayerAnswer(selectedIndex) {
   playerAnswered = true;
 
   const question = duelQuestions[duelIndex];
-
   playerRoundCorrect = selectedIndex === question.answerIndex;
 
   if (playerRoundCorrect) {
@@ -256,14 +319,10 @@ function submitPlayerAnswer(selectedIndex) {
   if (duelFeedback) {
     duelFeedback.textContent = playerRoundCorrect
       ? `Correct! +${getPoints(question)} points.`
-      : `Incorrect. −2 points where available. Correct answer: ${
-          question.options[question.answerIndex]
-        }`;
+      : `Incorrect. −2 points where available. Correct answer: ${question.options[question.answerIndex]}`;
   }
 
-  if (duelPlayerScore) {
-    duelPlayerScore.textContent = String(playerScore);
-  }
+  if (duelPlayerScore) duelPlayerScore.textContent = String(playerScore);
 
   resolveRoundIfReady();
 }
@@ -273,7 +332,6 @@ function submitBotAnswer(question) {
 
   botAnswered = true;
 
-  // The bot's chance of answering correctly varies with difficulty.
   const difficulty = Number(question.difficulty) || 1;
 
   const accuracy = Math.max(
@@ -287,9 +345,7 @@ function submitBotAnswer(question) {
     botScore += getPoints(question);
   }
 
-  if (duelBotScore) {
-    duelBotScore.textContent = String(botScore);
-  }
+  if (duelBotScore) duelBotScore.textContent = String(botScore);
 
   resolveRoundIfReady();
 }
@@ -305,21 +361,18 @@ function handleTimeout() {
     playerRoundCorrect = false;
 
     const buttons = duelOptions?.querySelectorAll("button") || [];
-
     buttons.forEach(button => {
       button.disabled = true;
     });
 
     if (duelFeedback) {
-      duelFeedback.textContent =
-        "Time's up! You didn't answer in time.";
+      duelFeedback.textContent = "Time's up! You didn't answer in time.";
     }
   }
 
   if (!botAnswered) {
     clearTimeout(botTimer);
     botTimer = null;
-
     submitBotAnswer(duelQuestions[duelIndex]);
   }
 
@@ -328,7 +381,6 @@ function handleTimeout() {
 
 function resolveRoundIfReady() {
   if (!duelRunning || roundEnded) return;
-
   if (!playerAnswered || !botAnswered) return;
 
   roundEnded = true;
@@ -337,24 +389,22 @@ function resolveRoundIfReady() {
   if (duelTimer) duelTimer.textContent = "Done";
 
   if (duelFeedback) {
-    const outcome = playerRoundCorrect && botRoundCorrect
-      ? "Both answered correctly."
-      : playerRoundCorrect
-        ? "You won this round!"
-        : botRoundCorrect
-          ? "The bot won this round."
-          : "Neither scored on this question.";
+    const outcome =
+      playerRoundCorrect && botRoundCorrect
+        ? "Both answered correctly."
+        : playerRoundCorrect
+          ? "You won this round!"
+          : botRoundCorrect
+            ? "The bot won this round."
+            : "Neither scored on this question.";
 
     duelFeedback.textContent += ` ${outcome}`;
   }
 
   if (duelNext) {
     duelNext.hidden = false;
-
     duelNext.textContent =
-      duelIndex === duelQuestions.length - 1
-        ? "View Results"
-        : "Next Question";
+      duelIndex === duelQuestions.length - 1 ? "View Results" : "Next Question";
   }
 }
 
@@ -363,12 +413,10 @@ function finishDuel() {
   duelRunning = false;
 
   if (duelQuestion) duelQuestion.textContent = "Duel complete";
-
   if (duelOptions) duelOptions.replaceChildren();
 
   if (duelProgress) {
-    duelProgress.textContent =
-      `${duelQuestions.length} questions completed`;
+    duelProgress.textContent = `${duelQuestions.length} questions completed`;
   }
 
   if (duelTimer) duelTimer.textContent = "—";
@@ -389,7 +437,6 @@ function finishDuel() {
   }
 
   if (duelNext) duelNext.hidden = true;
-
   if (duelExit) duelExit.textContent = "Return to Practice";
 }
 
@@ -402,19 +449,6 @@ function exitDuel() {
   hideDuel();
 
   if (duelExit) duelExit.textContent = "Exit Challenge";
-
-  const normalQuestionArea = document.getElementById("question-area");
-
-  if (normalQuestionArea) {
-    normalQuestionArea.hidden = true;
-  }
-
-  const normalResults = document.getElementById("question-results");
-
-  if (normalResults) {
-    normalResults.hidden = true;
-  }
-
   if (modeSelect) modeSelect.value = "practice";
 
   updateModeDescription();
@@ -427,28 +461,15 @@ duelNext?.addEventListener("click", () => {
   startRound();
 });
 
-duelExit?.addEventListener("click", () => {
-  exitDuel();
-});
+duelExit?.addEventListener("click", exitDuel);
 
-// Receive the selected questions from the existing question engine.
+// Start a duel when the engine supplies the selected questions.
 window.addEventListener("hc:questions-loaded", event => {
   const { questions, faction, mode } = event.detail || {};
 
-  currentFaction = faction || "independent";
+  if (faction) setFaction(faction);
 
-  if (currentFaction !== "gamers" || mode !== "quick-duel") {
-    return;
-  }
+  if (currentFaction !== "gamers" || mode !== "quick-duel") return;
 
   startQuickDuel(questions);
-});
-
-// Reveal game-mode controls only for Gamers.
-window.addEventListener("hc:faction-loaded", event => {
-  currentFaction = event.detail?.faction || "independent";
-
-  if (modePanel) {
-    modePanel.hidden = currentFaction !== "gamers";
-  }
 });
