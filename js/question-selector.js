@@ -1,18 +1,20 @@
-
 /*
- * Hysteria's Cure — Question Selection Engine
- *
- * Combines the original catalogue with questions saved in Firebase.
- * Preserves the original synchronous selector for existing callers.
+ * Hysteria's Cure — reliable question selector
+ * Local questions remain available if Firebase is slow or unavailable.
  */
 
 import { questionCatalogue } from "./question-catalogue.js";
 import { database } from "./firebase-client.js";
-
 import {
   get,
   ref
 } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-database.js";
+
+const FIREBASE_TIMEOUT_MS = 7000;
+
+function normalize(value) {
+  return String(value ?? "").trim().toLowerCase();
+}
 
 function shuffle(items) {
   const result = [...items];
@@ -25,102 +27,23 @@ function shuffle(items) {
   return result;
 }
 
-function normalize(value) {
-  return String(value ?? "").trim().toLowerCase();
-}
-
-function matchesFilters(question, filters = {}) {
-  const subject = normalize(filters.subject);
-  const topic = normalize(filters.topic);
-  const types = filters.types;
-
-  if (subject && !normalize(question.subject).includes(subject)) {
-    return false;
-  }
-
-  if (topic && !normalize(question.topic).includes(topic)) {
-    return false;
-  }
-
-  if (
-    Array.isArray(types) &&
-    types.length > 0 &&
-    !types.includes(question.type)
-  ) {
-    return false;
-  }
-
-  if (
-    filters.minDifficulty != null &&
-    Number(question.difficulty) < Number(filters.minDifficulty)
-  ) {
-    return false;
-  }
-
-  if (
-    filters.maxDifficulty != null &&
-    Number(question.difficulty) > Number(filters.maxDifficulty)
-  ) {
-    return false;
-  }
-
-  return true;
-}
-
-function validateOptions({
-  minDifficulty,
-  maxDifficulty,
-  count,
-  strategy
-}) {
-  if (
-    !Number.isFinite(Number(minDifficulty)) ||
-    minDifficulty < 1 ||
-    minDifficulty > 7
-  ) {
-    throw new Error("minDifficulty must be between 1 and 7.");
-  }
-
-  if (
-    !Number.isFinite(Number(maxDifficulty)) ||
-    maxDifficulty < 1 ||
-    maxDifficulty > 7
-  ) {
-    throw new Error("maxDifficulty must be between 1 and 7.");
-  }
-
-  if (minDifficulty > maxDifficulty) {
-    throw new Error("Minimum difficulty cannot exceed maximum difficulty.");
-  }
-
-  if (!Number.isFinite(Number(count)) || Number(count) < 0) {
-    throw new Error("Question count must be zero or greater.");
-  }
-
-  if (!["random", "progressive", "challenge"].includes(strategy)) {
-    throw new Error(
-      'strategy must be "random", "progressive", or "challenge".'
-    );
-  }
-}
-
-function prepareQuestion(question, id = question.id) {
+function prepareQuestion(question, id = question?.id) {
   return {
     ...question,
-    id: String(id),
-    subject: String(question.subject ?? ""),
-    topic: String(question.topic ?? ""),
-    question: String(question.question ?? ""),
-    difficulty: Number(question.difficulty ?? 1),
-    type: question.type || "multiple-choice",
-    options: Array.isArray(question.options) ? question.options : [],
-    answerIndex: Number(question.answerIndex ?? 0),
-    explanation: String(question.explanation ?? "")
+    id: String(id ?? ""),
+    subject: String(question?.subject ?? ""),
+    topic: String(question?.topic ?? ""),
+    question: String(question?.question ?? ""),
+    difficulty: Number(question?.difficulty ?? 1),
+    type: question?.type || "multiple-choice",
+    options: Array.isArray(question?.options) ? question.options : [],
+    answerIndex: Number(question?.answerIndex ?? 0),
+    explanation: String(question?.explanation ?? "")
   };
 }
 
 function isUsableQuestion(question) {
-  return (
+  return Boolean(
     question.id &&
     question.subject.trim() &&
     question.topic.trim() &&
@@ -129,8 +52,10 @@ function isUsableQuestion(question) {
     question.difficulty >= 1 &&
     question.difficulty <= 7 &&
     question.options.length >= 2 &&
-    question.options.every(option =>
-      typeof option === "string" && option.trim().length > 0
+    question.options.every(
+      option =>
+        typeof option === "string" &&
+        option.trim().length > 0
     ) &&
     Number.isInteger(question.answerIndex) &&
     question.answerIndex >= 0 &&
@@ -138,22 +63,23 @@ function isUsableQuestion(question) {
   );
 }
 
-function combineQuestions(localQuestions, remoteQuestions) {
+function combineQuestions(localQuestions, remoteQuestions = []) {
   const combined = new Map();
 
-  for (const original of localQuestions) {
-    const question = prepareQuestion(original);
+  // Add local questions first so the site can work without Firebase.
+  for (const item of localQuestions) {
+    const question = prepareQuestion(item);
 
     if (isUsableQuestion(question)) {
       combined.set(question.id, question);
     }
   }
 
-  for (const original of remoteQuestions) {
-    const question = prepareQuestion(original);
+  // Add shared Firebase questions. Matching IDs replace local copies.
+  for (const item of remoteQuestions) {
+    const question = prepareQuestion(item, item?.id);
 
     if (isUsableQuestion(question)) {
-      // Firebase records replace matching IDs if an ID is duplicated.
       combined.set(question.id, question);
     }
   }
@@ -161,39 +87,86 @@ function combineQuestions(localQuestions, remoteQuestions) {
   return [...combined.values()];
 }
 
-function selectFromQuestions(questions, {
-  subject = "",
-  topic = "",
-  minDifficulty = 1,
-  maxDifficulty = 7,
-  count = 10,
-  types = [],
-  excludeIds = [],
-  strategy = "random"
-} = {}) {
-  validateOptions({
-    minDifficulty,
-    maxDifficulty,
-    count,
+function validateOptions(options = {}) {
+  const min = Number(options.minDifficulty ?? 1);
+  const max = Number(options.maxDifficulty ?? 7);
+  const count = Number(options.count ?? 10);
+  const strategy = options.strategy ?? "random";
+
+  if (!Number.isInteger(min) || min < 1 || min > 7) {
+    throw new Error("Choose a star level from 1 to 7.");
+  }
+
+  if (!Number.isInteger(max) || max < 1 || max > 7) {
+    throw new Error("Choose a star level from 1 to 7.");
+  }
+
+  if (min > max) {
+    throw new Error(
+      "Minimum difficulty cannot exceed maximum difficulty."
+    );
+  }
+
+  if (!Number.isFinite(count) || count < 1) {
+    throw new Error("Choose at least one question.");
+  }
+
+  if (!["random", "progressive", "challenge"].includes(strategy)) {
+    throw new Error("Choose a valid question order.");
+  }
+
+  return {
+    min,
+    max,
+    count: Math.min(100, Math.floor(count)),
     strategy
+  };
+}
+
+function selectFromQuestions(questions, options = {}) {
+  const { min, max, count, strategy } = validateOptions(options);
+
+  const subject = normalize(options.subject);
+  const topic = normalize(options.topic);
+
+  const excluded = new Set(
+    (options.excludeIds || []).map(String)
+  );
+
+  const types = Array.isArray(options.types) ? options.types : [];
+
+  const candidates = questions.filter(question => {
+    if (
+      subject &&
+      !normalize(question.subject).includes(subject)
+    ) {
+      return false;
+    }
+
+    if (
+      topic &&
+      !normalize(question.topic).includes(topic)
+    ) {
+      return false;
+    }
+
+    if (
+      question.difficulty < min ||
+      question.difficulty > max
+    ) {
+      return false;
+    }
+
+    if (types.length && !types.includes(question.type)) {
+      return false;
+    }
+
+    if (excluded.has(String(question.id))) {
+      return false;
+    }
+
+    return true;
   });
-
-  const safeCount = Math.max(
-    0,
-    Math.min(100, Math.floor(Number(count)))
-  );
-
-  const excluded = new Set(excludeIds.map(String));
-
-  const candidates = questions.filter(question =>
-    matchesFilters(question, {
-      subject,
-      topic,
-      types,
-      minDifficulty,
-      maxDifficulty
-    }) && !excluded.has(String(question.id))
-  );
 
   let selected = shuffle(candidates);
 
@@ -203,60 +176,74 @@ function selectFromQuestions(questions, {
     selected.sort((a, b) => b.difficulty - a.difficulty);
   }
 
-  return selected.slice(0, safeCount);
+  return selected.slice(0, count);
 }
 
-/*
- * Original synchronous selector.
- * Keeps compatibility with existing code using the local catalogue.
+/**
+ * Select from the local catalogue only.
+ * This remains available as a reliable fallback.
  */
 export function selectPracticeSet(options = {}) {
-  return selectFromQuestions(questionCatalogue, options);
+  return selectFromQuestions(
+    combineQuestions(questionCatalogue),
+    options
+  );
 }
 
-/*
- * New asynchronous selector.
- * Loads the shared Firebase question bank and combines it with the
- * local catalogue before applying the same filters and strategies.
+/**
+ * Load shared questions from Firebase when possible.
+ * If Firebase is unavailable or times out, use local questions instead.
  */
 export async function selectPracticeSetAsync(options = {}) {
   let remoteQuestions = [];
 
   try {
-    const snapshot = await get(ref(database, "questionBank"));
+    const snapshot = await Promise.race([
+      get(ref(database, "questionBank")),
+
+      new Promise((_, reject) => {
+        setTimeout(() => {
+          reject(
+            new Error("Firebase question-bank request timed out.")
+          );
+        }, FIREBASE_TIMEOUT_MS);
+      })
+    ]);
 
     if (snapshot.exists()) {
       const records = snapshot.val();
 
-      remoteQuestions = Object.entries(records).map(([id, question]) => ({
-        ...question,
-        id
-      }));
+      if (records && typeof records === "object") {
+        remoteQuestions = Object.entries(records).map(
+          ([id, question]) => ({
+            ...(question || {}),
+            id
+          })
+        );
+      }
     }
   } catch (error) {
-    console.error("Firebase question bank could not be loaded:", error);
-
-    throw new Error(
-      "Could not load the shared question bank. Check your internet connection and Firebase permissions, then try again."
+    console.warn(
+      "Using local questions because Firebase could not be loaded:",
+      error
     );
   }
 
-  const combined = combineQuestions(
-    questionCatalogue,
-    remoteQuestions
+  // This runs even when Firebase fails.
+  return selectFromQuestions(
+    combineQuestions(questionCatalogue, remoteQuestions),
+    options
   );
-
-  return selectFromQuestions(combined, options);
 }
 
-/*
- * Summarize the original local catalogue.
+/**
+ * Useful for checking the contents of the local catalogue.
  */
 export function getCatalogueStats() {
-  const subjects = {};
-  const difficulties = {};
   const ids = new Set();
   const duplicateIds = [];
+  const subjects = {};
+  const difficulties = {};
 
   for (const question of questionCatalogue) {
     subjects[question.subject] =
