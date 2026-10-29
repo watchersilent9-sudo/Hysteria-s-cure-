@@ -1,0 +1,1376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#11111b">
+<title>Reward Shop | Hysteria's Cure</title>
+
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/faction-themes.css">
+
+<style>
+:root {
+  --bg: #101018;
+  --panel: #191925;
+  --panel2: #242238;
+  --text: #f5f3ff;
+  --muted: #aaa7c2;
+  --line: rgba(255,255,255,.09);
+  --accent: #b99aff;
+  --purple: #7c5cff;
+  --green: #71e0b1;
+  --gold: #ffcf78;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.wrap {
+  width: min(1180px, calc(100% - 28px));
+  margin: auto;
+  padding: 20px 0 55px;
+}
+
+nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 8px 0 22px;
+}
+
+.brand {
+  font-weight: 900;
+}
+
+.brand span {
+  color: var(--accent);
+}
+
+.links {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+.links a {
+  color: var(--muted);
+  text-decoration: none;
+  padding: 9px 11px;
+  border-radius: 10px;
+}
+
+.links a:hover,
+.links .active {
+  background: var(--panel2);
+  color: white;
+}
+
+.hero {
+  padding: clamp(24px, 5vw, 46px);
+  border: 1px solid var(--line);
+  border-radius: 26px;
+  background:
+    radial-gradient(circle at 90% 10%, #9d6fff44, transparent 35%),
+    linear-gradient(135deg, #241d3b, #171725 65%, #292039);
+}
+
+.eyebrow {
+  color: var(--accent);
+  font-size: .78rem;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+h1 {
+  font-size: clamp(2.1rem, 5vw, 3.5rem);
+  line-height: 1.05;
+  margin: 12px 0;
+}
+
+.hero p {
+  color: #d1cde3;
+  line-height: 1.65;
+  max-width: 730px;
+}
+
+.wallet {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 22px;
+}
+
+.wallet div {
+  background: #09091170;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 13px 16px;
+  min-width: 140px;
+}
+
+.wallet small {
+  display: block;
+  color: var(--muted);
+  margin-bottom: 5px;
+}
+
+.wallet strong {
+  font-size: 1.15rem;
+}
+
+.status {
+  color: var(--muted);
+  font-size: .85rem;
+  margin-top: 13px;
+}
+
+.notice {
+  margin: 18px 0 26px;
+  padding: 13px 15px;
+  border-radius: 13px;
+  border: 1px solid #ffcf7844;
+  background: #ffcf780d;
+  color: #f7dfb2;
+  font-size: .9rem;
+  line-height: 1.55;
+}
+
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 32px 0 15px;
+}
+
+.head h2 {
+  margin: 0 0 5px;
+}
+
+.head p {
+  margin: 0;
+  color: var(--muted);
+  font-size: .9rem;
+}
+
+.tabs,
+.tools {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 15px 0;
+}
+
+.tab {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--muted);
+  padding: 10px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 750;
+}
+
+.tab.active {
+  color: white;
+  border-color: #b99aff99;
+  background: #7c5cff33;
+}
+
+.tools input,
+.tools select {
+  min-width: 0;
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  padding: 12px;
+}
+
+.tools input {
+  flex: 1 1 230px;
+}
+
+.tools select {
+  flex: 0 1 190px;
+}
+
+.tools option {
+  background: var(--panel);
+}
+
+.strip {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  padding: 14px 16px;
+  margin: 21px 0 13px;
+}
+
+.icon {
+  width: 45px;
+  height: 45px;
+  display: grid;
+  place-items: center;
+  border-radius: 13px;
+  background: #b99aff20;
+  font-size: 1.4rem;
+}
+
+.strip h3 {
+  margin: 0 0 4px;
+}
+
+.strip p {
+  margin: 0;
+  color: var(--muted);
+  font-size: .87rem;
+}
+
+.strip .spacer {
+  flex: 1;
+}
+
+.count {
+  font-size: .8rem;
+  color: var(--muted);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.card {
+  background: linear-gradient(160deg, var(--panel), #15151f);
+  border: 1px solid var(--line);
+  border-radius: 19px;
+  padding: 17px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  transition: transform .18s, border-color .18s;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  border-color: #b99aff77;
+}
+
+.cardtop {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 10px;
+}
+
+.producticon {
+  width: 50px;
+  height: 50px;
+  border-radius: 14px;
+  background: var(--panel2);
+  display: grid;
+  place-items: center;
+  font-size: 1.5rem;
+}
+
+.badge {
+  font-size: .7rem;
+  font-weight: 850;
+  padding: 6px 8px;
+  border-radius: 99px;
+  background: #ffcf7818;
+  color: var(--gold);
+}
+
+.badge.available {
+  background: #71e0b118;
+  color: var(--green);
+}
+
+.card h3 {
+  font-size: 1.04rem;
+  margin: 15px 0 7px;
+}
+
+.desc {
+  color: var(--muted);
+  font-size: .88rem;
+  line-height: 1.5;
+  margin: 0 0 14px;
+  flex: 1;
+}
+
+.cat {
+  color: var(--muted);
+  font-size: .76rem;
+  margin-bottom: 12px;
+}
+
+.cardfoot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border-top: 1px solid var(--line);
+  padding-top: 13px;
+}
+
+.cost {
+  font-weight: 850;
+}
+
+.cost small {
+  display: block;
+  color: var(--muted);
+  font-size: .7rem;
+  font-weight: 500;
+  margin-top: 3px;
+}
+
+.card button {
+  border: 0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: linear-gradient(135deg, var(--purple), #9d6fff);
+  color: white;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.card button:disabled {
+  background: #343344;
+  color: #aaa7b9;
+  cursor: not-allowed;
+}
+
+.empty,
+.history {
+  padding: 20px;
+  border: 1px dashed var(--line);
+  border-radius: 15px;
+  color: var(--muted);
+}
+
+.history {
+  border-style: solid;
+  background: var(--panel);
+}
+
+.historyrow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.historyrow:last-child {
+  border: 0;
+}
+
+.historyrow p {
+  margin: 4px 0 0;
+  font-size: .82rem;
+  color: var(--muted);
+}
+
+.foot {
+  color: var(--muted);
+  font-size: .8rem;
+  line-height: 1.55;
+}
+
+.toast {
+  display: none;
+  position: fixed;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: calc(100% - 24px);
+  padding: 12px 16px;
+  background: #28243a;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  z-index: 5;
+}
+
+.toast.show {
+  display: block;
+}
+
+@media (max-width: 850px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .wrap {
+    width: calc(100% - 20px);
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .count {
+    display: none;
+  }
+
+  .links a {
+    padding: 8px;
+    font-size: .85rem;
+  }
+
+  .wallet div {
+    flex: 1;
+    min-width: 110px;
+  }
+}
+</style>
+</head>
+
+<body>
+<main class="wrap">
+
+<nav>
+  <div class="brand">HYSTERIA'S <span>CURE</span></div>
+
+  <div class="links">
+    <a href="index.html">Home</a>
+    <a href="student-dashboard.html">Dashboard</a>
+    <a href="practice.html">Practice</a>
+    <a href="rewards.html">Rewards</a>
+    <a class="active" href="reward-shop.html">Shop</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="eyebrow">Your progress, your rewards</div>
+  <h1>Reward Shop</h1>
+
+  <p>
+    Explore digital perks, subscriptions, game top-ups, learning tools,
+    and exclusive Hysteria's Cure rewards. Browse the whole marketplace
+    or start with your faction.
+  </p>
+
+  <div class="wallet">
+    <div>
+      <small>Available points</small>
+      <strong id="points">—</strong>
+    </div>
+
+    <div>
+      <small>Lifetime points</small>
+      <strong id="lifetime">—</strong>
+    </div>
+
+    <div>
+      <small>Your faction</small>
+      <strong id="faction">—</strong>
+    </div>
+  </div>
+
+  <div class="status" id="accountStatus">
+    Connecting to your account…
+  </div>
+</section>
+
+<div class="notice">
+  <strong>Availability:</strong>
+  Products marked “Coming soon” are catalogue ideas, not redeemable
+  products. External subscriptions and game top-ups will only be enabled
+  after regional availability and a legitimate fulfilment method are confirmed.
+</div>
+
+<section id="catalogue">
+  <div class="head">
+    <div>
+      <h2>Explore the catalogue</h2>
+      <p>Search products or filter by faction, category, and availability.</p>
+    </div>
+
+    <span id="count" style="color:var(--muted)">Loading…</span>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-faction="all">All rewards</button>
+    <button class="tab" data-faction="readers">📚 Readers</button>
+    <button class="tab" data-faction="gamers">🎮 Gamers</button>
+    <button class="tab" data-faction="movie-lovers">🎬 Movie Lovers</button>
+    <button class="tab" data-faction="shared">✨ Everyone</button>
+  </div>
+
+  <div class="tools">
+    <input
+      id="search"
+      type="search"
+      placeholder="Search apps, subscriptions, top-ups…"
+      aria-label="Search rewards"
+    >
+
+    <select id="category" aria-label="Filter by category">
+      <option value="all">All categories</option>
+      <option value="subscriptions">Subscriptions</option>
+      <option value="gaming">Gaming & top-ups</option>
+      <option value="reading">Books & reading</option>
+      <option value="entertainment">Entertainment</option>
+      <option value="learning">Learning & study</option>
+      <option value="creator">Creator tools</option>
+      <option value="hysteria">Hysteria's Cure</option>
+      <option value="vouchers">Vouchers & gift cards</option>
+    </select>
+
+    <select id="availability" aria-label="Filter by availability">
+      <option value="all">Any status</option>
+      <option value="available">Available</option>
+      <option value="soon">Coming soon</option>
+    </select>
+  </div>
+
+  <div id="catalogueOutput"></div>
+</section>
+
+<section>
+  <div class="head">
+    <div>
+      <h2>My redemption requests</h2>
+      <p>Requests submitted from this page appear below.</p>
+    </div>
+  </div>
+
+  <div class="history" id="historyOutput">
+    Sign in to view redemption history.
+  </div>
+
+  <p class="foot">
+    This first version records requests for review; it does not deduct
+    points or automatically deliver external products. Firebase client
+    configuration is public by design. Secure points deduction and
+    admin approval require suitable Realtime Database rules and trusted
+    validation.
+  </p>
+</section>
+
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script type="module">
+import { auth, database } from "./js/firebase-client.js";
+
+import {
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
+
+import {
+  ref,
+  get
+} from "https://www.gstatic.com/firebasejs/13.0.0/firebase-database.js";
+
+
+/*
+ * REWARD CATALOGUE
+ *
+ * Costs are planning values, not confirmed prices.
+ * Products remain unavailable until fulfilment is implemented.
+ */
+
+const rewards = [
+
+  // READERS
+
+  {
+    id: "webnovel",
+    name: "Webnovel Membership / Coins",
+    icon: "📖",
+    cat: "reading",
+    f: ["readers"],
+    cost: 1800,
+    desc: "Novel access or coin options, subject to legitimate regional availability.",
+    tags: "novel reading coins subscription"
+  },
+
+  {
+    id: "ebook",
+    name: "eBook Voucher",
+    icon: "📚",
+    cat: "reading",
+    f: ["readers"],
+    cost: 2200,
+    desc: "A digital book voucher from a supported store.",
+    tags: "book ebook voucher"
+  },
+
+  {
+    id: "audio",
+    name: "Audiobook Subscription",
+    icon: "🎧",
+    cat: "subscriptions",
+    f: ["readers"],
+    cost: 3500,
+    desc: "Planned audiobook membership reward.",
+    tags: "audio books audiobook"
+  },
+
+  {
+    id: "writing",
+    name: "Writing & Grammar Tools",
+    icon: "✍️",
+    cat: "creator",
+    f: ["readers"],
+    cost: 3000,
+    desc: "Potential premium writing, editing, and grammar tools.",
+    tags: "writing grammar editing"
+  },
+
+  {
+    id: "language",
+    name: "Language Learning Premium",
+    icon: "🌍",
+    cat: "learning",
+    f: ["readers"],
+    cost: 3200,
+    desc: "Language-learning app access where supported.",
+    tags: "language learning"
+  },
+
+  {
+    id: "webtoon",
+    name: "Comics & Webtoon Credits",
+    icon: "💬",
+    cat: "reading",
+    f: ["readers"],
+    cost: 2000,
+    desc: "Potential credits for supported comics platforms.",
+    tags: "comics manga webtoon"
+  },
+
+  {
+    id: "study-library",
+    name: "Digital Study Library",
+    icon: "🧠",
+    cat: "learning",
+    f: ["readers"],
+    cost: 1500,
+    desc: "Curated digital revision and study resources.",
+    tags: "study notes education"
+  },
+
+  {
+    id: "reader-pack",
+    name: "Reader Challenge Pack",
+    icon: "🏅",
+    cat: "hysteria",
+    f: ["readers"],
+    cost: 900,
+    desc: "Reading goals, badges, and special learning challenges.",
+    tags: "challenge badge"
+  },
+
+
+  // GAMERS
+
+  {
+    id: "freefire",
+    name: "Free Fire Diamonds",
+    icon: "💎",
+    cat: "gaming",
+    f: ["gamers"],
+    cost: 2500,
+    desc: "Game currency top-up after a supported fulfilment partner is confirmed.",
+    tags: "free fire diamonds topup"
+  },
+
+  {
+    id: "pubg",
+    name: "PUBG Mobile UC",
+    icon: "🎯",
+    cat: "gaming",
+    f: ["gamers"],
+    cost: 3500,
+    desc: "Potential UC top-up for supported regions and accounts.",
+    tags: "pubg mobile uc"
+  },
+
+  {
+    id: "cod",
+    name: "Call of Duty Points",
+    icon: "🪖",
+    cat: "gaming",
+    f: ["gamers"],
+    cost: 3500,
+    desc: "Potential COD Points top-up once delivery is confirmed.",
+    tags: "call of duty cod points"
+  },
+
+  {
+    id: "roblox",
+    name: "Roblox Gift Credit",
+    icon: "🧱",
+    cat: "vouchers",
+    f: ["gamers"],
+    cost: 3000,
+    desc: "Possible gift credit valid for the recipient's region.",
+    tags: "roblox gift card"
+  },
+
+  {
+    id: "xbox",
+    name: "Xbox Game Pass",
+    icon: "🟩",
+    cat: "subscriptions",
+    f: ["gamers"],
+    cost: 6000,
+    desc: "Gaming membership, subject to plan and region.",
+    tags: "xbox game pass"
+  },
+
+  {
+    id: "psplus",
+    name: "PlayStation Plus",
+    icon: "🎮",
+    cat: "subscriptions",
+    f: ["gamers"],
+    cost: 6500,
+    desc: "Potential gaming subscription for eligible accounts.",
+    tags: "playstation ps plus"
+  },
+
+  {
+    id: "cloud",
+    name: "Cloud Gaming Access",
+    icon: "☁️",
+    cat: "subscriptions",
+    f: ["gamers"],
+    cost: 5000,
+    desc: "Potential cloud gaming subscription or voucher.",
+    tags: "cloud gaming"
+  },
+
+  {
+    id: "pc-voucher",
+    name: "PC Game Gift Voucher",
+    icon: "🖥️",
+    cat: "vouchers",
+    f: ["gamers"],
+    cost: 5000,
+    desc: "Possible PC gaming voucher for a supported store.",
+    tags: "pc steam game voucher"
+  },
+
+  {
+    id: "gamer-pack",
+    name: "Gaming Profile Cosmetics",
+    icon: "🕹️",
+    cat: "hysteria",
+    f: ["gamers"],
+    cost: 1000,
+    desc: "Gamer badges, profile themes, and cosmetic rewards.",
+    tags: "gaming avatar badge"
+  },
+
+
+  // MOVIE LOVERS
+
+  {
+    id: "netflix",
+    name: "Netflix Subscription",
+    icon: "🍿",
+    cat: "subscriptions",
+    f: ["movie-lovers"],
+    cost: 6000,
+    desc: "Potential streaming subscription when a legitimate regional purchase method exists.",
+    tags: "netflix movies series"
+  },
+
+  {
+    id: "youtube",
+    name: "YouTube Premium",
+    icon: "▶️",
+    cat: "subscriptions",
+    f: ["movie-lovers"],
+    cost: 4500,
+    desc: "Planned subscription reward subject to regional eligibility.",
+    tags: "youtube premium video"
+  },
+
+  {
+    id: "crunchyroll",
+    name: "Crunchyroll Premium",
+    icon: "🍥",
+    cat: "subscriptions",
+    f: ["movie-lovers"],
+    cost: 4500,
+    desc: "Anime streaming membership or voucher where officially supported.",
+    tags: "crunchyroll anime"
+  },
+
+  {
+    id: "spotify",
+    name: "Spotify Premium",
+    icon: "🎵",
+    cat: "subscriptions",
+    f: ["movie-lovers"],
+    cost: 4000,
+    desc: "Music streaming membership where a valid plan is available.",
+    tags: "spotify music"
+  },
+
+  {
+    id: "applemusic",
+    name: "Apple Music",
+    icon: "🎼",
+    cat: "subscriptions",
+    f: ["movie-lovers"],
+    cost: 4000,
+    desc: "Potential music membership or voucher for eligible accounts.",
+    tags: "apple music"
+  },
+
+  {
+    id: "movie-rental",
+    name: "Movie Rental Voucher",
+    icon: "🎞️",
+    cat: "entertainment",
+    f: ["movie-lovers"],
+    cost: 2200,
+    desc: "Digital film rental voucher from a supported service.",
+    tags: "movie film rental"
+  },
+
+  {
+    id: "editor",
+    name: "Video Editing Premium",
+    icon: "🎬",
+    cat: "creator",
+    f: ["movie-lovers"],
+    cost: 3500,
+    desc: "Potential access to suitable video-editing tools.",
+    tags: "video editing creator"
+  },
+
+  {
+    id: "movie-pack",
+    name: "Entertainment Profile Pack",
+    icon: "🌟",
+    cat: "hysteria",
+    f: ["movie-lovers"],
+    cost: 1000,
+    desc: "Entertainment-themed profile styles and achievements.",
+    tags: "profile theme badge"
+  },
+
+
+  // SHARED REWARDS
+
+  {
+    id: "hc-premium",
+    name: "Hysteria's Cure Premium",
+    icon: "👑",
+    cat: "hysteria",
+    f: ["shared"],
+    cost: 8000,
+    desc: "Future membership; benefits and duration will be published before activation.",
+    tags: "premium membership"
+  },
+
+  {
+    id: "exam-pack",
+    name: "Exam Practice Pack",
+    icon: "📝",
+    cat: "learning",
+    f: ["shared"],
+    cost: 1800,
+    desc: "Extra practice sets and revision resources.",
+    tags: "exam waec jamb practice"
+  },
+
+  {
+    id: "ai-study",
+    name: "AI Study Benefits",
+    icon: "🤖",
+    cat: "learning",
+    f: ["shared"],
+    cost: 5000,
+    desc: "Potential additional AI study features once available.",
+    tags: "ai study assistant"
+  },
+
+  {
+    id: "giftcard",
+    name: "Digital Gift Card",
+    icon: "🎁",
+    cat: "vouchers",
+    f: ["shared"],
+    cost: 5000,
+    desc: "Gift cards for supported services and regions.",
+    tags: "gift card voucher"
+  },
+
+  {
+    id: "theme",
+    name: "Profile Theme Pack",
+    icon: "🎨",
+    cat: "hysteria",
+    f: ["shared"],
+    cost: 1200,
+    desc: "Custom colours and visual styles for your profile.",
+    tags: "profile theme cosmetics"
+  },
+
+  {
+    id: "nameplate",
+    name: "Exclusive Nameplate",
+    icon: "🏷️",
+    cat: "hysteria",
+    f: ["shared"],
+    cost: 900,
+    desc: "Profile nameplates unlocked through the rewards catalogue.",
+    tags: "badge nameplate"
+  },
+
+  {
+    id: "mystery",
+    name: "Mystery Reward Drop",
+    icon: "🎲",
+    cat: "hysteria",
+    f: ["shared"],
+    cost: 1500,
+    desc: "Future event reward with eligibility and prize details disclosed in advance.",
+    tags: "mystery event prize"
+  },
+
+  {
+    id: "seasonal",
+    name: "Seasonal Reward Bundle",
+    icon: "🎉",
+    cat: "hysteria",
+    f: ["shared"],
+    cost: 2000,
+    desc: "Event-themed rewards and challenges during seasonal events.",
+    tags: "seasonal event bundle"
+  }
+
+].map(reward => ({
+  ...reward,
+  status: "soon"
+}));
+
+
+const labels = {
+  readers: "Readers",
+  gamers: "Gamers",
+  "movie-lovers": "Movie Lovers",
+  independent: "Independent",
+  shared: "For everyone"
+};
+
+const factionMeta = {
+  readers: [
+    "📚",
+    "Readers",
+    "Books, novels, learning resources, and tools for readers and writers."
+  ],
+
+  gamers: [
+    "🎮",
+    "Gamers",
+    "Game currencies, gaming memberships, and gamer-focused perks."
+  ],
+
+  "movie-lovers": [
+    "🎬",
+    "Movie Lovers",
+    "Streaming, anime, music, and entertainment rewards."
+  ],
+
+  shared: [
+    "✨",
+    "For everyone",
+    "Hysteria's Cure benefits, study resources, vouchers, and shared rewards."
+  ]
+};
+
+const categoryNames = {
+  subscriptions: "Subscriptions",
+  gaming: "Gaming & top-ups",
+  reading: "Books & reading",
+  entertainment: "Entertainment",
+  learning: "Learning & study",
+  creator: "Creator tools",
+  hysteria: "Hysteria's Cure",
+  vouchers: "Vouchers & gift cards"
+};
+
+const state = {
+  faction: "all",
+  category: "all",
+  availability: "all",
+  search: "",
+  uid: null,
+  profile: {}
+};
+
+const $ = id => document.getElementById(id);
+
+const formatPoints = value =>
+  Number(value || 0).toLocaleString();
+
+
+function showToast(message) {
+  $("toast").textContent = message;
+  $("toast").classList.add("show");
+
+  clearTimeout(showToast.timer);
+
+  showToast.timer = setTimeout(() => {
+    $("toast").classList.remove("show");
+  }, 3500);
+}
+
+
+function getUserFaction() {
+  const profile = state.profile;
+
+  const faction =
+    profile.faction ||
+    profile.profile?.faction ||
+    profile.account?.faction ||
+    "independent";
+
+  return labels[faction] ? faction : "independent";
+}
+
+
+function getFilteredRewards() {
+  return rewards.filter(reward => {
+
+    const factionMatches =
+      state.faction === "all" ||
+      (
+        state.faction === "shared"
+          ? reward.f.includes("shared")
+          : reward.f.includes(state.faction)
+      );
+
+    const categoryMatches =
+      state.category === "all" ||
+      reward.cat === state.category;
+
+    const availabilityMatches =
+      state.availability === "all" ||
+      reward.status === state.availability;
+
+    const query = state.search.trim().toLowerCase();
+
+    const searchMatches =
+      !query ||
+      [
+        reward.name,
+        reward.desc,
+        reward.tags,
+        categoryNames[reward.cat]
+      ]
+        .join(" ")
+        .toLowerCase()
+        .includes(query);
+
+    return (
+      factionMatches &&
+      categoryMatches &&
+      availabilityMatches &&
+      searchMatches
+    );
+  });
+}
+
+
+function renderProduct(reward) {
+  const statusLabel =
+    reward.status === "available"
+      ? "Available"
+      : "Coming soon";
+
+  return `
+    <article class="card">
+
+      <div class="cardtop">
+        <div class="producticon">${reward.icon}</div>
+        <span class="badge ${reward.status}">
+          ${statusLabel}
+        </span>
+      </div>
+
+      <h3>${reward.name}</h3>
+
+      <p class="desc">${reward.desc}</p>
+
+      <div class="cat">
+        ${categoryNames[reward.cat]}
+      </div>
+
+      <div class="cardfoot">
+
+        <div class="cost">
+          ${formatPoints(reward.cost)} pts
+          <small>Planning cost · not final</small>
+        </div>
+
+        <button disabled title="Fulfilment is not set up">
+          Coming soon
+        </button>
+
+      </div>
+    </article>
+  `;
+}
+
+
+function renderCatalogue() {
+  const list = getFilteredRewards();
+
+  $("count").textContent =
+    `${list.length} reward${list.length === 1 ? "" : "s"}`;
+
+  if (!list.length) {
+    $("catalogueOutput").innerHTML = `
+      <div class="empty">
+        No rewards match. Try a different search or filter.
+      </div>
+    `;
+
+    return;
+  }
+
+  const groups =
+    state.faction === "all"
+      ? ["readers", "gamers", "movie-lovers", "shared"]
+      : [state.faction];
+
+  $("catalogueOutput").innerHTML = groups.map(key => {
+
+    const items = list.filter(reward =>
+      reward.f.includes(key)
+    );
+
+    if (!items.length) return "";
+
+    const meta = factionMeta[key];
+
+    return `
+      <section>
+
+        <div class="strip">
+
+          <div class="icon">${meta[0]}</div>
+
+          <div>
+            <h3>${meta[1]}</h3>
+            <p>${meta[2]}</p>
+          </div>
+
+          <div class="spacer"></div>
+
+          <span class="count">
+            ${items.length} items
+          </span>
+
+        </div>
+
+        <div class="grid">
+          ${items.map(renderProduct).join("")}
+        </div>
+
+      </section>
+    `;
+
+  }).join("");
+}
+
+
+function renderHistory(requests) {
+  const panel = $("historyOutput");
+
+  if (!requests.length) {
+    panel.textContent = "No redemption requests yet.";
+    return;
+  }
+
+  panel.innerHTML = requests
+    .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
+    .map(request => `
+      <div class="historyrow">
+
+        <div>
+          <strong>
+            ${request.rewardName || "Reward request"}
+          </strong>
+
+          <p>
+            ${new Date(request.createdAt || Date.now()).toLocaleString()}
+            · ${formatPoints(request.pointsCost)} points
+          </p>
+        </div>
+
+        <span>${request.status || "pending review"}</span>
+
+      </div>
+    `)
+    .join("");
+}
+
+
+async function loadHistory(uid) {
+  try {
+    const snapshot = await get(
+      ref(database, `rewardRequests/${uid}`)
+    );
+
+    renderHistory(
+      Object.values(snapshot.val() || {})
+    );
+
+  } catch (error) {
+    console.error("Could not load redemption history:", error);
+
+    $("historyOutput").textContent =
+      "History unavailable. Check Firebase Database rules.";
+  }
+}
+
+
+/*
+ * Search and filter controls.
+ */
+
+document.querySelectorAll(".tab").forEach(button => {
+
+  button.addEventListener("click", () => {
+
+    document.querySelectorAll(".tab").forEach(tab => {
+      tab.classList.remove("active");
+    });
+
+    button.classList.add("active");
+
+    state.faction = button.dataset.faction;
+
+    renderCatalogue();
+  });
+
+});
+
+
+$("search").addEventListener("input", event => {
+  state.search = event.target.value.trim().toLowerCase();
+  renderCatalogue();
+});
+
+
+$("category").addEventListener("change", event => {
+  state.category = event.target.value;
+  renderCatalogue();
+});
+
+
+$("availability").addEventListener("change", event => {
+  state.availability = event.target.value;
+  renderCatalogue();
+});
+
+
+/*
+ * Firebase account integration.
+ */
+
+onAuthStateChanged(auth, async user => {
+
+  state.uid = user?.uid || null;
+
+  if (!user) {
+
+    $("points").textContent = "Sign in";
+    $("lifetime").textContent = "—";
+    $("faction").textContent = "Independent";
+
+    $("accountStatus").textContent =
+      "Browsing as a guest. Sign in to view your account and redemption requests.";
+
+    $("historyOutput").textContent =
+      "Sign in to view redemption history.";
+
+    renderCatalogue();
+
+    return;
+  }
+
+  try {
+
+    const snapshot = await get(
+      ref(database, `users/${user.uid}`)
+    );
+
+    state.profile = snapshot.val() || {};
+
+    const profile = state.profile;
+
+    const progress =
+      profile.progress ||
+      profile.account?.progress ||
+      {};
+
+    $("points").textContent = formatPoints(
+      progress.points ?? profile.points ?? 0
+    );
+
+    $("lifetime").textContent = formatPoints(
+      progress.lifetimePoints ??
+      progress.totalPointsEarned ??
+      0
+    );
+
+    $("faction").textContent =
+      labels[getUserFaction()] || "Independent";
+
+    $("accountStatus").textContent =
+      `Signed in as ${user.displayName || user.email || "student"}.`;
+
+    await loadHistory(user.uid);
+
+  } catch (error) {
+
+    console.error("Could not load account:", error);
+
+    $("accountStatus").textContent =
+      "Signed in, but account data could not be loaded. Check Firebase Database rules.";
+  }
+
+  renderCatalogue();
+
+});
+
+
+renderCatalogue();
+</script>
+
+</body>
+</html>
