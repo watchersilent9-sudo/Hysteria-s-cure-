@@ -1,0 +1,1275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#11101b">
+  <title>Admin Dashboard | Hysteria's Cure</title>
+
+  <link rel="stylesheet" href="css/faction-themes.css">
+
+  <style>
+    :root {
+      color-scheme: dark;
+      --background: var(--bg-primary, #11101b);
+      --panel: var(--bg-card, #1c1a2b);
+      --text: var(--text-primary, #f7f4ff);
+      --muted: var(--text-secondary, #aaa4bd);
+      --accent: var(--accent-bright, #c6a7ff);
+      --border-color: var(--border, #39334e);
+      --green: #8ce0ad;
+      --red: #ff929d;
+      --yellow: #ffd479;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--background);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    a { color: inherit; }
+
+    button, a { -webkit-tap-highlight-color: transparent; }
+
+    button {
+      cursor: pointer;
+      font: inherit;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      padding: 18px 5%;
+      background: var(--bg-secondary, #171525);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .brand {
+      font-size: 1.05rem;
+      font-weight: 850;
+      letter-spacing: .4px;
+    }
+
+    .brand span { color: var(--accent); }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      border: 1px solid var(--border-color);
+      padding: 7px 11px;
+      border-radius: 999px;
+      font-size: .8rem;
+      color: var(--muted);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--yellow);
+      flex-shrink: 0;
+    }
+
+    .status-dot.ok { background: var(--green); }
+    .status-dot.bad { background: var(--red); }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+      background: var(--panel);
+      color: var(--text);
+      text-decoration: none;
+      font-size: .88rem;
+      font-weight: 700;
+    }
+
+    .button.primary {
+      background: var(--accent-dark, #7654aa);
+      color: #fff;
+      border-color: transparent;
+    }
+
+    .button:hover { border-color: var(--accent); }
+
+    .button:disabled {
+      opacity: .55;
+      cursor: wait;
+    }
+
+    main {
+      width: min(1200px, calc(100% - 32px));
+      margin: 32px auto 60px;
+    }
+
+    .welcome {
+      margin-bottom: 28px;
+    }
+
+    .eyebrow {
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 1.8px;
+      font-size: .74rem;
+      font-weight: 800;
+    }
+
+    h1 {
+      font-size: clamp(1.8rem, 4vw, 2.6rem);
+      margin: 8px 0;
+      line-height: 1.2;
+    }
+
+    h2 {
+      margin: 0 0 8px;
+      font-size: 1.2rem;
+    }
+
+    h3 {
+      margin: 0 0 8px;
+      font-size: 1rem;
+    }
+
+    p {
+      line-height: 1.6;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: .9rem;
+    }
+
+    .panel {
+      padding: 22px;
+      background: var(--panel);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      margin-bottom: 22px;
+      min-width: 0;
+    }
+
+    .section-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+
+    .stat-card {
+      min-width: 0;
+      padding: 19px;
+      background: var(--panel);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+    }
+
+    .stat-label {
+      color: var(--muted);
+      font-size: .82rem;
+      line-height: 1.5;
+    }
+
+    .stat-value {
+      font-size: clamp(1.5rem, 3vw, 2rem);
+      font-weight: 850;
+      margin: 9px 0 5px;
+      overflow-wrap: anywhere;
+    }
+
+    .stat-note {
+      color: var(--muted);
+      font-size: .75rem;
+      line-height: 1.5;
+    }
+
+    .content-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, .8fr);
+      gap: 22px;
+      align-items: start;
+    }
+
+    .quick-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .quick-card {
+      display: block;
+      padding: 16px;
+      background: var(--background);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      text-decoration: none;
+      min-width: 0;
+      transition: border-color .2s ease, transform .2s ease;
+    }
+
+    .quick-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .quick-icon {
+      font-size: 1.35rem;
+      margin-bottom: 10px;
+    }
+
+    .quick-card h3 { color: var(--accent); }
+
+    .quick-card p {
+      color: var(--muted);
+      font-size: .82rem;
+      line-height: 1.55;
+      margin: 0;
+    }
+
+    .faction-list {
+      display: grid;
+      gap: 15px;
+    }
+
+    .faction-row {
+      display: grid;
+      grid-template-columns: minmax(105px, .8fr) minmax(0, 1.5fr) 35px;
+      align-items: center;
+      gap: 12px;
+      font-size: .85rem;
+    }
+
+    .faction-name {
+      overflow-wrap: anywhere;
+    }
+
+    .bar {
+      height: 8px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: var(--background);
+    }
+
+    .bar-fill {
+      height: 100%;
+      width: 0;
+      background: var(--accent);
+      border-radius: inherit;
+      transition: width .25s ease;
+    }
+
+    .faction-count {
+      text-align: right;
+      font-weight: 750;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      width: 100%;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: .85rem;
+      text-align: left;
+    }
+
+    th, td {
+      padding: 13px 12px;
+      border-bottom: 1px solid var(--border-color);
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--muted);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    td { overflow-wrap: anywhere; }
+
+    tbody tr:last-child td { border-bottom: 0; }
+
+    .tag {
+      display: inline-block;
+      padding: 4px 8px;
+      border: 1px solid var(--border-color);
+      border-radius: 999px;
+      font-size: .75rem;
+      white-space: nowrap;
+    }
+
+    .tag.ok { color: var(--green); }
+    .tag.warn { color: var(--yellow); }
+    .tag.bad { color: var(--red); }
+
+    .health-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .health-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .health-row:last-child {
+      border-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .health-label {
+      font-size: .88rem;
+      font-weight: 700;
+    }
+
+    .health-description {
+      color: var(--muted);
+      font-size: .78rem;
+      line-height: 1.5;
+      margin-top: 4px;
+    }
+
+    .health-state {
+      flex-shrink: 0;
+      font-size: .78rem;
+      font-weight: 750;
+    }
+
+    .health-state.ok { color: var(--green); }
+    .health-state.warn { color: var(--yellow); }
+    .health-state.bad { color: var(--red); }
+
+    .empty-state {
+      padding: 18px 12px;
+      text-align: center;
+      color: var(--muted);
+      font-size: .88rem;
+      line-height: 1.6;
+    }
+
+    .notice {
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 13px 15px;
+      margin-bottom: 18px;
+      font-size: .86rem;
+      line-height: 1.6;
+      overflow-wrap: anywhere;
+    }
+
+    .notice.warn {
+      border-color: #826a35;
+      color: var(--yellow);
+    }
+
+    .notice.error {
+      border-color: #9b4d58;
+      color: var(--red);
+    }
+
+    .notice.success {
+      border-color: #386b4c;
+      color: var(--green);
+    }
+
+    footer {
+      padding: 22px 16px;
+      border-top: 1px solid var(--border-color);
+      text-align: center;
+      color: var(--muted);
+      font-size: .8rem;
+    }
+
+    [hidden] { display: none !important; }
+
+    @media (max-width: 900px) {
+      .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .content-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 520px) {
+      main { margin-top: 22px; }
+      .panel { padding: 16px; }
+      .stat-card { padding: 14px; }
+      .quick-grid { grid-template-columns: 1fr; }
+      .faction-row {
+        grid-template-columns: 95px minmax(0, 1fr) 25px;
+        gap: 8px;
+      }
+      .header-right { width: 100%; }
+      .header-right .button { flex: 1; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        transition: none !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="brand">
+      HYSTERIA'S <span>CURE</span> / ADMIN
+    </div>
+
+    <div class="header-right">
+      <span class="status-pill">
+        <span id="connection-dot" class="status-dot"></span>
+        <span id="connection-label">Checking connection</span>
+      </span>
+
+      <a href="student-dashboard.html" class="button">
+        Student View
+      </a>
+
+      <button id="logout-button" class="button" type="button">
+        Log out
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <div id="access-message" class="notice warn" role="status" aria-live="polite">
+      Verifying administrator access...
+    </div>
+
+    <div id="dashboard" hidden>
+      <section class="welcome">
+        <div class="eyebrow">Control centre</div>
+        <h1>Admin Dashboard</h1>
+        <p class="muted">
+          Monitor your platform, inspect available data, and access your
+          management tools from one place.
+        </p>
+        <p class="muted">
+          Last refreshed: <span id="last-refreshed">Waiting for data...</span>
+        </p>
+      </section>
+
+      <div id="dashboard-warning" class="notice warn" hidden></div>
+
+      <!-- OVERVIEW STATISTICS -->
+      <section aria-labelledby="overview-title">
+        <div class="section-heading">
+          <div>
+            <h2 id="overview-title">Platform Overview</h2>
+            <p class="muted">Live counts from your Firebase database.</p>
+          </div>
+
+          <button id="refresh-button" class="button" type="button">
+            Refresh
+          </button>
+        </div>
+
+        <div class="stats-grid">
+          <article class="stat-card">
+            <div class="stat-label">Registered Students</div>
+            <div class="stat-value" id="stat-users">—</div>
+            <div class="stat-note" id="note-users">Waiting for Firebase</div>
+          </article>
+
+          <article class="stat-card">
+            <div class="stat-label">Question Bank</div>
+            <div class="stat-value" id="stat-questions">—</div>
+            <div class="stat-note" id="note-questions">Waiting for Firebase</div>
+          </article>
+
+          <article class="stat-card">
+            <div class="stat-label">Achievements</div>
+            <div class="stat-value" id="stat-achievements">—</div>
+            <div class="stat-note" id="note-achievements">Waiting for Firebase</div>
+          </article>
+
+          <article class="stat-card">
+            <div class="stat-label">Questions Answered</div>
+            <div class="stat-value" id="stat-answered">—</div>
+            <div class="stat-note" id="note-answered">
+              Based on saved student progress
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- MANAGEMENT SHORTCUTS -->
+      <section class="panel">
+        <div class="section-heading">
+          <div>
+            <h2>Management Centre</h2>
+            <p class="muted">Open a tool without searching through your files.</p>
+          </div>
+        </div>
+
+        <div class="quick-grid">
+          <a class="quick-card" href="admin.html">
+            <div class="quick-icon">📝</div>
+            <h3>Questions & Achievements</h3>
+            <p>Publish questions and manage achievement definitions.</p>
+          </a>
+
+          <a class="quick-card" href="admin-materials.html">
+            <div class="quick-icon">📚</div>
+            <h3>Learning Materials</h3>
+            <p>Open the learning-material administration page.</p>
+          </a>
+
+          <a class="quick-card" href="admin-users.html">
+            <div class="quick-icon">👥</div>
+            <h3>Student Management</h3>
+            <p>Open student and faction management tools.</p>
+          </a>
+
+          <a class="quick-card" href="pages.html">
+            <div class="quick-icon">🗂️</div>
+            <h3>Page Directory</h3>
+            <p>Find the other pages available in the project.</p>
+          </a>
+
+          <a class="quick-card" href="rewards.html">
+            <div class="quick-icon">🏆</div>
+            <h3>Rewards Page</h3>
+            <p>Inspect the student-facing rewards interface.</p>
+          </a>
+
+          <a class="quick-card" href="question-bank.html">
+            <div class="quick-icon">📖</div>
+            <h3>Question Bank</h3>
+            <p>Inspect the question bank from the student side.</p>
+          </a>
+        </div>
+
+        <p class="muted">
+          These shortcuts open the corresponding pages. They do not imply
+          that every linked feature is fully implemented yet.
+        </p>
+      </section>
+
+      <div class="content-grid">
+        <!-- FACTION OVERVIEW -->
+        <section class="panel">
+          <div class="section-heading">
+            <div>
+              <h2>Faction Overview</h2>
+              <p class="muted">
+                Registered profiles grouped by their saved faction.
+              </p>
+            </div>
+          </div>
+
+          <div id="faction-list" class="faction-list">
+            <div class="empty-state">Waiting for student data...</div>
+          </div>
+
+          <p id="faction-note" class="muted"></p>
+        </section>
+
+        <!-- SYSTEM HEALTH -->
+        <section class="panel">
+          <div class="section-heading">
+            <div>
+              <h2>System Health</h2>
+              <p class="muted">Basic connectivity and data checks.</p>
+            </div>
+          </div>
+
+          <div class="health-list">
+            <div class="health-row">
+              <div>
+                <div class="health-label">Administrator Authentication</div>
+                <div class="health-description">
+                  Your account's administrator UID is checked.
+                </div>
+              </div>
+              <span id="health-auth" class="health-state warn">Checking</span>
+            </div>
+
+            <div class="health-row">
+              <div>
+                <div class="health-label">Firebase Database</div>
+                <div class="health-description">
+                  Based on whether database reads succeed.
+                </div>
+              </div>
+              <span id="health-database" class="health-state warn">Checking</span>
+            </div>
+
+            <div class="health-row">
+              <div>
+                <div class="health-label">Student Profiles</div>
+                <div class="health-description">
+                  Checks whether the users data can be read.
+                </div>
+              </div>
+              <span id="health-profiles" class="health-state warn">Checking</span>
+            </div>
+
+            <div class="health-row">
+              <div>
+                <div class="health-label">Question Bank</div>
+                <div class="health-description">
+                  Checks whether question records can be read.
+                </div>
+              </div>
+              <span id="health-questions" class="health-state warn">Checking</span>
+            </div>
+
+            <div class="health-row">
+              <div>
+                <div class="health-label">Achievement Data</div>
+                <div class="health-description">
+                  Checks the rewardSystem/achievements path.
+                </div>
+              </div>
+              <span id="health-achievements" class="health-state warn">Checking</span>
+            </div>
+          </div>
+
+          <p class="muted" style="margin-bottom:0;margin-top:18px;">
+            These checks do not prove that all writes, security rules, or
+            student-facing features work correctly. Those need separate tests.
+          </p>
+        </section>
+      </div>
+
+      <!-- RECENT QUESTIONS -->
+      <section class="panel">
+        <div class="section-heading">
+          <div>
+            <h2>Recently Added Questions</h2>
+            <p class="muted">
+              The most recent records, based on their saved creation timestamps.
+            </p>
+          </div>
+
+          <a href="admin.html" class="button">Manage Questions</a>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Question ID</th>
+                <th>Subject</th>
+                <th>Topic</th>
+                <th>Level</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="recent-questions">
+              <tr>
+                <td colspan="5" class="empty-state">
+                  Waiting for question data...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- STUDENT ACTIVITY SUMMARY -->
+      <section class="panel">
+        <div class="section-heading">
+          <div>
+            <h2>Learning Activity</h2>
+            <p class="muted">
+              Aggregated totals from saved student progress records.
+            </p>
+          </div>
+        </div>
+
+        <div class="stats-grid" style="margin-bottom:0;">
+          <article class="stat-card">
+            <div class="stat-label">Correct Answers</div>
+            <div class="stat-value" id="stat-correct">—</div>
+            <div class="stat-note">Combined saved progress</div>
+          </article>
+
+          <article class="stat-card">
+            <div class="stat-label">Lifetime XP</div>
+            <div class="stat-value" id="stat-xp">—</div>
+            <div class="stat-note">Combined saved XP</div>
+          </article>
+
+          <article class="stat-card">
+            <div class="stat-label">Points</div>
+            <div class="stat-value" id="stat-points">—</div>
+            <div class="stat-note">Current saved point balances</div>
+          </article>
+
+          <article class="stat-card">
+            <div class="stat-label">Completed Sessions</div>
+            <div class="stat-value" id="stat-sessions">—</div>
+            <div class="stat-note">Combined saved session totals</div>
+          </article>
+        </div>
+
+        <p class="muted">
+          These are database totals, not necessarily monthly totals.
+          Monthly earning limits and rank calculations are not enforced by
+          this dashboard.
+        </p>
+      </section>
+
+      <!-- KNOWN LIMITATIONS -->
+      <section class="panel">
+        <h2>Monitoring Notes</h2>
+
+        <div class="health-list">
+          <div class="health-row">
+            <div>
+              <div class="health-label">Recent Administrative Activity</div>
+              <div class="health-description">
+                A reliable audit log has not been connected to this dashboard.
+                Administrative actions cannot yet be listed here.
+              </div>
+            </div>
+            <span class="health-state warn">Not configured</span>
+          </div>
+
+          <div class="health-row">
+            <div>
+              <div class="health-label">Monthly Rewards</div>
+              <div class="health-description">
+                Monthly point allowances and monthly earnings require their
+                own implementation and validation.
+              </div>
+            </div>
+            <span class="health-state warn">Needs testing</span>
+          </div>
+
+          <div class="health-row">
+            <div>
+              <div class="health-label">Achievement Payouts</div>
+              <div class="health-description">
+                Saving an achievement definition does not automatically
+                implement student unlocking or secure bonus payouts.
+              </div>
+            </div>
+            <span class="health-state warn">Needs integration</span>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer>
+    Hysteria's Cure · Administration
+  </footer>
+
+  <script type="module">
+    import { auth, database } from "./js/firebase-client.js";
+
+    import {
+      onAuthStateChanged,
+      signOut
+    } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
+
+    import {
+      ref,
+      onValue,
+      get
+    } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-database.js";
+
+    const ADMIN_UID = "RtaLjBtKSUgRnWB7ag06CLRCStM2";
+
+    const $ = id => document.getElementById(id);
+
+    const accessMessage = $("access-message");
+    const dashboard = $("dashboard");
+    const logoutButton = $("logout-button");
+    const refreshButton = $("refresh-button");
+
+    let currentAdmin = null;
+    let listeners = [];
+    let loaded = {
+      users: false,
+      questions: false,
+      achievements: false
+    };
+
+    let latestData = {
+      users: null,
+      questions: null,
+      achievements: null
+    };
+
+    function setHealth(id, state, label) {
+      const element = $(id);
+      element.textContent = label;
+      element.className = `health-state ${state}`;
+    }
+
+    function setConnection(connected, label) {
+      $("connection-label").textContent = label;
+      $("connection-dot").className =
+        `status-dot ${connected ? "ok" : "bad"}`;
+    }
+
+    function setStat(id, value) {
+      $(id).textContent = Number(value || 0).toLocaleString();
+    }
+
+    function recordCount(data) {
+      if (!data || typeof data !== "object") return 0;
+      return Object.keys(data).length;
+    }
+
+    function validNumber(value) {
+      const number = Number(value);
+      return Number.isFinite(number) && number >= 0 ? number : 0;
+    }
+
+    function escapeHTML(value) {
+      return String(value ?? "").replace(/[&<>"']/g, character => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+      })[character]);
+    }
+
+    function showWarning(message, type = "warn") {
+      const box = $("dashboard-warning");
+      box.hidden = false;
+      box.className = `notice ${type}`;
+      box.textContent = message;
+    }
+
+    function clearWarning() {
+      $("dashboard-warning").hidden = true;
+      $("dashboard-warning").textContent = "";
+    }
+
+    function refreshTimestamp() {
+      $("last-refreshed").textContent =
+        new Date().toLocaleString();
+    }
+
+    function stopListeners() {
+      listeners.forEach(stop => {
+        if (typeof stop === "function") stop();
+      });
+
+      listeners = [];
+    }
+
+    function getProgress(user) {
+      return user && typeof user.progress === "object" &&
+        user.progress !== null
+        ? user.progress
+        : {};
+    }
+
+    function updateOverview() {
+      if (latestData.users !== null) {
+        const users = latestData.users;
+        const userCount = recordCount(users);
+
+        setStat("stat-users", userCount);
+        $("note-users").textContent =
+          "Profiles stored in the users path";
+
+        const factionKeys = [
+          "readers",
+          "gamers",
+          "movie-lovers",
+          "independent"
+        ];
+
+        const factionCounts = Object.fromEntries(
+          factionKeys.map(key => [key, 0])
+        );
+
+        let answered = 0;
+        let correct = 0;
+        let xp = 0;
+        let points = 0;
+        let sessions = 0;
+
+        Object.values(users || {}).forEach(user => {
+          if (!user || typeof user !== "object") return;
+
+          const faction = String(user.faction || "").toLowerCase();
+
+          if (Object.prototype.hasOwnProperty.call(factionCounts, faction)) {
+            factionCounts[faction]++;
+          }
+
+          const progress = getProgress(user);
+
+          answered += validNumber(progress.totalAnswered);
+          correct += validNumber(progress.totalCorrect);
+          xp += validNumber(progress.xp);
+          points += validNumber(progress.points);
+          sessions += validNumber(progress.sessionsCompleted);
+        });
+
+        setStat("stat-answered", answered);
+        setStat("stat-correct", correct);
+        setStat("stat-xp", xp);
+        setStat("stat-points", points);
+        setStat("stat-sessions", sessions);
+
+        renderFactions(factionCounts, userCount);
+
+        setHealth("health-profiles", "ok", "Readable");
+      }
+
+      if (latestData.questions !== null) {
+        const questions = latestData.questions;
+
+        setStat("stat-questions", recordCount(questions));
+        $("note-questions").textContent =
+          "Records stored in questionBank";
+
+        renderRecentQuestions(questions);
+
+        setHealth("health-questions", "ok", "Readable");
+      }
+
+      if (latestData.achievements !== null) {
+        const achievements = latestData.achievements;
+        const items = Object.values(achievements || {});
+        const active = items.filter(item =>
+          item && item.active === true
+        ).length;
+
+        setStat("stat-achievements", items.length);
+        $("note-achievements").textContent =
+          `${active.toLocaleString()} active · ${items.length.toLocaleString()} total`;
+
+        setHealth("health-achievements", "ok", "Readable");
+      }
+
+      const allLoaded =
+        loaded.users && loaded.questions && loaded.achievements;
+
+      setHealth(
+        "health-database",
+        allLoaded ? "ok" : "warn",
+        allLoaded ? "Reads successful" : "Partially checked"
+      );
+
+      if (allLoaded) {
+        setConnection(true, "Database connected");
+        clearWarning();
+      }
+
+      refreshTimestamp();
+    }
+
+    function renderFactions(counts, total) {
+      const names = {
+        readers: "Readers",
+        gamers: "Gamers",
+        "movie-lovers": "Movie Lovers",
+        independent: "Independent"
+      };
+
+      $("faction-list").innerHTML = Object.entries(names).map(
+        ([key, name]) => {
+          const count = counts[key] || 0;
+          const percent = total ? (count / total) * 100 : 0;
+
+          return `
+            <div class="faction-row">
+              <div class="faction-name">${name}</div>
+              <div
+                class="bar"
+                role="progressbar"
+                aria-label="${name} faction share"
+                aria-valuemin="0"
+                aria-valuemax="100"
+                aria-valuenow="${percent.toFixed(1)}"
+              >
+                <div class="bar-fill" style="width:${percent}%"></div>
+              </div>
+              <div class="faction-count">${count}</div>
+            </div>
+          `;
+        }
+      ).join("");
+
+      const missing = Math.max(
+        0,
+        total - Object.values(counts).reduce((sum, value) => sum + value, 0)
+      );
+
+      $("faction-note").textContent = missing
+        ? `${missing} profile(s) have no recognised faction.`
+        : "Counts are based on the saved faction field in each profile.";
+    }
+
+    function renderRecentQuestions(data) {
+      const tbody = $("recent-questions");
+
+      const questions = Object.entries(data || {})
+        .map(([key, value]) => ({
+          ...(value && typeof value === "object" ? value : {}),
+          id: value?.id || key
+        }))
+        .sort((a, b) => {
+          const dateA = Date.parse(a.createdAt || "") || 0;
+          const dateB = Date.parse(b.createdAt || "") || 0;
+          return dateB - dateA;
+        })
+        .slice(0, 8);
+
+      if (!questions.length) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="5" class="empty-state">
+              No questions found in the readable questionBank path.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = questions.map(question => {
+        const verified = question.verified === true;
+
+        return `
+          <tr>
+            <td><code>${escapeHTML(question.id)}</code></td>
+            <td>${escapeHTML(question.subject || "Not set")}</td>
+            <td>${escapeHTML(question.topic || "Not set")}</td>
+            <td>${escapeHTML(question.difficulty ?? "—")}</td>
+            <td>
+              <span class="tag ${verified ? "ok" : "warn"}">
+                ${verified ? "Verified" : "Unverified"}
+              </span>
+            </td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function startListeners() {
+      stopListeners();
+
+      loaded = {
+        users: false,
+        questions: false,
+        achievements: false
+      };
+
+      latestData = {
+        users: null,
+        questions: null,
+        achievements: null
+      };
+
+      setConnection(false, "Loading data");
+      setHealth("health-database", "warn", "Checking");
+      setHealth("health-profiles", "warn", "Checking");
+      setHealth("health-questions", "warn", "Checking");
+      setHealth("health-achievements", "warn", "Checking");
+
+      const paths = [
+        {
+          key: "users",
+          path: "users",
+          health: "health-profiles",
+          label: "student profiles"
+        },
+        {
+          key: "questions",
+          path: "questionBank",
+          health: "health-questions",
+          label: "question bank"
+        },
+        {
+          key: "achievements",
+          path: "rewardSystem/achievements",
+          health: "health-achievements",
+          label: "achievements"
+        }
+      ];
+
+      let failedPaths = [];
+
+      paths.forEach(item => {
+        const unsubscribe = onValue(
+          ref(database, item.path),
+          snapshot => {
+            loaded[item.key] = true;
+            latestData[item.key] = snapshot.val() || {};
+
+            if (item.key === "users") {
+              setHealth("health-profiles", "ok", "Readable");
+            }
+
+            if (item.key === "questions") {
+              setHealth("health-questions", "ok", "Readable");
+            }
+
+            if (item.key === "achievements") {
+              setHealth("health-achievements", "ok", "Readable");
+            }
+
+            failedPaths = failedPaths.filter(path => path !== item.path);
+
+            updateOverview();
+          },
+          error => {
+            console.error(`Dashboard read failed (${item.path}):`, error);
+
+            loaded[item.key] = false;
+            latestData[item.key] = null;
+
+            setHealth(item.health, "bad", "Read failed");
+
+            failedPaths = [
+              ...new Set([...failedPaths, item.path])
+            ];
+
+            setConnection(false, "Some reads failed");
+
+            showWarning(
+              `Could not read ${item.label}. Check your internet connection and Firebase Realtime Database Rules. The dashboard will not invent missing statistics.`,
+              "error"
+            );
+
+            if (failedPaths.length > 0) {
+              setHealth("health-database", "bad", "Read error");
+            }
+          }
+        );
+
+        listeners.push(unsubscribe);
+      });
+    }
+
+    onAuthStateChanged(auth, user => {
+      stopListeners();
+      currentAdmin = null;
+
+      if (!user) {
+        window.location.replace("login.html");
+        return;
+      }
+
+      if (user.uid !== ADMIN_UID) {
+        dashboard.hidden = true;
+        accessMessage.hidden = false;
+        accessMessage.className = "notice error";
+        accessMessage.textContent =
+          "Access denied. This account is not authorised to use the admin dashboard.";
+
+        setHealth("health-auth", "bad", "Denied");
+        setConnection(false, "Access denied");
+        return;
+      }
+
+      currentAdmin = user;
+
+      accessMessage.hidden = true;
+      dashboard.hidden = false;
+
+      setHealth("health-auth", "ok", "Verified");
+
+      startListeners();
+    });
+
+    refreshButton.addEventListener("click", async () => {
+      if (!currentAdmin || auth.currentUser?.uid !== ADMIN_UID) return;
+
+      refreshButton.disabled = true;
+      refreshButton.textContent = "Refreshing...";
+
+      try {
+        // Explicitly re-read each monitored path.
+        // The live listeners remain active afterwards.
+        await Promise.all([
+          get(ref(database, "users")),
+          get(ref(database, "questionBank")),
+          get(ref(database, "rewardSystem/achievements"))
+        ]);
+
+        refreshTimestamp();
+      } catch (error) {
+        console.error("Dashboard refresh failed:", error);
+
+        showWarning(
+          "Refresh failed. Check your connection and Firebase Database Rules.",
+          "error"
+        );
+      } finally {
+        refreshButton.disabled = false;
+        refreshButton.textContent = "Refresh";
+      }
+    });
+
+    logoutButton.addEventListener("click", async () => {
+      logoutButton.disabled = true;
+
+      try {
+        stopListeners();
+        await signOut(auth);
+        window.location.replace("login.html");
+      } catch (error) {
+        console.error("Logout failed:", error);
+
+        showWarning(
+          "Logout failed. Check your connection and try again.",
+          "error"
+        );
+
+        logoutButton.disabled = false;
+      }
+    });
+
+    // Check whether the browser has network access.
+    window.addEventListener("online", () => {
+      if (currentAdmin) startListeners();
+    });
+
+    window.addEventListener("offline", () => {
+      setConnection(false, "Browser offline");
+      showWarning(
+        "Your device appears to be offline. Live dashboard information may be outdated.",
+        "warn"
+      );
+    });
+  </script>
+
+  <script type="module" src="js/faction-theme.js"></script>
+</body>
+</html>
