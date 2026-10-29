@@ -1,56 +1,252 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Rewards | Hysteria's Cure</title>
+
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/faction-themes.css">
 
   <style>
+    :root {
+      --reward-bg: #101019;
+      --reward-card: #1a1a29;
+      --reward-border: rgba(255,255,255,.09);
+      --reward-text: #f5f3ff;
+      --reward-muted: #aaa9c0;
+      --reward-accent: #b39aff;
+      --reward-gold: #ffd477;
+      --reward-green: #7de5b0;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      background: var(--bg-main, var(--reward-bg));
+      color: var(--text-primary, var(--reward-text));
+    }
+
     .rewards-container {
-      width: min(100% - 32px, 900px);
-      margin: 40px auto;
+      width: min(1100px, calc(100% - 28px));
+      margin: 28px auto 60px;
     }
 
-    .rewards-header {
-      text-align: center;
-      margin-bottom: 28px;
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 30px 24px;
+      border: 1px solid var(--border, var(--reward-border));
+      border-radius: 22px;
+      background:
+        radial-gradient(ellipse at top right,
+          rgba(179,154,255,.18), transparent 55%),
+        var(--bg-card, var(--reward-card));
+      margin-bottom: 22px;
     }
 
-    .rewards-grid {
+    .eyebrow {
+      color: var(--reward-accent);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-size: .76rem;
+      font-weight: 800;
+    }
+
+    .hero h1 {
+      font-size: clamp(2rem, 6vw, 3.2rem);
+      margin: 12px 0;
+    }
+
+    .hero p, .muted {
+      color: var(--text-secondary, var(--reward-muted));
+      line-height: 1.6;
+    }
+
+    .rank-label {
+      display: inline-block;
+      padding: 7px 13px;
+      border: 1px solid rgba(179,154,255,.35);
+      border-radius: 30px;
+      background: rgba(179,154,255,.1);
+      color: var(--reward-accent);
+      font-weight: 800;
+    }
+
+    .progress-track {
+      height: 9px;
+      overflow: hidden;
+      background: rgba(255,255,255,.09);
+      border-radius: 20px;
+      margin: 13px 0 8px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #9474ff, #d3baff);
+      transition: width .5s ease;
+    }
+
+    .section-heading {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin: 30px 0 15px;
+    }
+
+    .section-heading h2 {
+      margin: 0;
+      font-size: 1.35rem;
+    }
+
+    .section-heading p {
+      margin: 0;
+      color: var(--text-secondary, var(--reward-muted));
+      font-size: .88rem;
+    }
+
+    .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 18px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
     }
 
-    .reward-card {
-      padding: 22px;
-      border-radius: 14px;
-      background: var(--bg-card, #1b1b2a);
-      color: var(--text-primary, #f4f2ff);
-      border: 1px solid var(--border, rgba(255,255,255,.1));
+    .card {
+      min-width: 0;
+      padding: 20px;
+      border: 1px solid var(--border, var(--reward-border));
+      border-radius: 17px;
+      background: var(--bg-card, var(--reward-card));
     }
 
-    .reward-card p {
-      color: var(--text-secondary, #aaa9c0);
-      line-height: 1.6;
+    .card h3 {
+      margin: 0 0 10px;
+      font-size: 1rem;
     }
 
-    .points-value {
-      font-size: 2rem;
-      font-weight: bold;
+    .value {
+      font-size: clamp(1.65rem, 5vw, 2.3rem);
+      font-weight: 850;
+      letter-spacing: -.5px;
+      overflow-wrap: anywhere;
     }
 
-    .reward-note {
-      margin-top: 24px;
-      line-height: 1.6;
+    .value.gold { color: var(--reward-gold); }
+    .value.green { color: var(--reward-green); }
+    .value.purple { color: var(--reward-accent); }
+
+    .card p {
+      color: var(--text-secondary, var(--reward-muted));
+      line-height: 1.55;
+      font-size: .9rem;
     }
+
+    .achievement-icon {
+      font-size: 1.8rem;
+      margin-bottom: 12px;
+    }
+
+    .achievement.locked {
+      opacity: .58;
+    }
+
+    .achievement.unlocked {
+      border-color: rgba(125,229,176,.35);
+    }
+
+    .status-tag {
+      display: inline-block;
+      margin-top: 7px;
+      font-size: .75rem;
+      font-weight: 800;
+      letter-spacing: .4px;
+      color: var(--reward-green);
+    }
+
+    .status-tag.locked-text {
+      color: var(--reward-muted);
+    }
+
+    .challenge {
+      margin-bottom: 12px;
+    }
+
+    .challenge:last-child { margin-bottom: 0; }
+
+    .challenge-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: .9rem;
+    }
+
+    .challenge-top strong {
+      overflow-wrap: anywhere;
+    }
+
+    .challenge-top span {
+      color: var(--reward-accent);
+      white-space: nowrap;
+    }
+
+    .shop-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border, var(--reward-border));
+    }
+
+    .shop-item:last-child { border-bottom: none; }
+
+    .shop-item p {
+      margin: 5px 0 0;
+    }
+
+    .shop-price {
+      color: var(--reward-gold);
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .coming-soon {
+      padding: 7px 10px;
+      border-radius: 8px;
+      background: rgba(255,255,255,.06);
+      color: var(--reward-muted);
+      font-size: .73rem;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .note {
+      margin-top: 25px;
+      padding: 16px;
+      border-left: 3px solid var(--reward-accent);
+      border-radius: 8px;
+      background: rgba(179,154,255,.06);
+      color: var(--text-secondary, var(--reward-muted));
+      line-height: 1.65;
+      font-size: .88rem;
+    }
+
+    .full-width { grid-column: 1 / -1; }
 
     #status {
-      text-align: center;
-      margin: 16px 0;
+      font-size: .9rem;
+      min-height: 24px;
+    }
+
+    @media (max-width: 560px) {
+      .grid { grid-template-columns: 1fr; }
+      .hero { padding: 23px 18px; }
+      .card { padding: 17px; }
+      .section-heading { margin-top: 25px; }
     }
   </style>
 </head>
@@ -67,159 +263,396 @@
   </header>
 
   <main class="rewards-container">
-    <section class="rewards-header">
-      <h1>Rewards</h1>
-      <p>Track your learning effort and achievements.</p>
-      <p id="status" role="status">Loading your rewards...</p>
+
+    <!-- RANK OVERVIEW -->
+    <section class="hero">
+      <span class="eyebrow">Your journey</span>
+      <h1>Rewards &amp; Achievements</h1>
+      <p>Every question answered is progress. Every challenge is an opportunity to advance.</p>
+
+      <p id="status" role="status" aria-live="polite">
+        Loading your progress...
+      </p>
+
+      <span class="rank-label" id="rank">Loading rank...</span>
+
+      <div class="section-heading">
+        <h2 id="xpHeading">0 XP</h2>
+        <p id="nextRank">Calculating next rank...</p>
+      </div>
+
+      <div
+        class="progress-track"
+        role="progressbar"
+        aria-label="Progress towards next rank"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        aria-valuenow="0"
+        id="rankProgressBar"
+      >
+        <div class="progress-fill" id="rankProgress"></div>
+      </div>
+
+      <p id="rankMessage" class="muted">Your next milestone awaits.</p>
     </section>
 
-    <section class="rewards-grid">
-      <article class="reward-card">
-        <h2>Available Points</h2>
-        <p class="points-value" id="availablePoints">—</p>
-        <p>Your current points balance.</p>
+    <!-- POINTS WALLET -->
+    <div class="section-heading">
+      <h2>Points Wallet</h2>
+      <p>Your learning rewards</p>
+    </div>
+
+    <section class="grid">
+      <article class="card">
+        <h3>Available Points</h3>
+        <div class="value gold" id="availablePoints">—</div>
+        <p>Points currently in your balance.</p>
       </article>
 
-      <article class="reward-card">
-        <h2>Lifetime Points</h2>
-        <p class="points-value" id="lifetimePoints">—</p>
-        <p>Total points earned over time. Historical tracking is not connected yet.</p>
+      <article class="card">
+        <h3>Lifetime Points</h3>
+        <div class="value purple" id="lifetimePoints">—</div>
+        <p>Total earned across your learning journey.</p>
       </article>
 
-      <article class="reward-card">
-        <h2>Your Rank</h2>
-        <p class="points-value" id="rank">—</p>
-        <p id="rankProgress">Calculated from your XP.</p>
+      <article class="card">
+        <h3>Monthly Earnings</h3>
+        <div class="value green" id="monthlyPoints">—</div>
+        <p id="monthlyLimit">Your monthly earning allowance.</p>
+        <div class="progress-track">
+          <div class="progress-fill" id="monthlyProgress"></div>
+        </div>
+        <p id="monthlyMessage">Monthly tracking is not connected yet.</p>
       </article>
 
-      <article class="reward-card">
-        <h2>Monthly Earnings</h2>
-        <p class="points-value" id="monthlyPoints">—</p>
-        <p id="monthlyLimit">Monthly tracking is not connected yet.</p>
-      </article>
-
-      <article class="reward-card">
-        <h2>Learning Progress</h2>
-        <p>Questions answered: <strong id="answered">—</strong></p>
-        <p>Correct answers: <strong id="correct">—</strong></p>
-        <p>Accuracy: <strong id="accuracy">—</strong></p>
-      </article>
-
-      <article class="reward-card">
-        <h2>Future Rewards</h2>
-        <p>Redemption options will be added after the points system is verified.</p>
+      <article class="card">
+        <h3>Learning Statistics</h3>
+        <p>Questions answered: <strong id="answered">0</strong></p>
+        <p>Correct answers: <strong id="correct">0</strong></p>
+        <p>Accuracy: <strong id="accuracy">0%</strong></p>
       </article>
     </section>
 
-    <section class="reward-note">
-      <h2>How points work</h2>
-      <p>Points depend on question difficulty. Incorrect answers may reduce your points balance, but it cannot fall below zero.</p>
-      <p>Monthly earning limits are planned to increase as you advance through the ranks. Unspent points will carry over.</p>
+    <!-- ACHIEVEMENTS -->
+    <div class="section-heading">
+      <h2>Achievements</h2>
+      <p id="achievementCount">Your milestones</p>
+    </div>
+
+    <section class="grid" id="achievements">
+      <article class="card achievement locked">
+        <div class="achievement-icon">🏅</div>
+        <h3>First Steps</h3>
+        <p>Complete your first practice question.</p>
+        <span class="status-tag locked-text">LOCKED</span>
+      </article>
     </section>
+
+    <!-- CHALLENGES -->
+    <div class="section-heading">
+      <h2>Learning Challenges</h2>
+      <p>Keep building your progress</p>
+    </div>
+
+    <section class="grid">
+      <article class="card">
+        <h3>Today's Goals</h3>
+        <div id="dailyChallenges">
+          <p>Loading challenges...</p>
+        </div>
+      </article>
+
+      <article class="card">
+        <h3>Your Practice Record</h3>
+        <div class="value purple" id="sessions">0</div>
+        <p>Practice sessions completed.</p>
+        <p id="practiceMessage">Your next session is another opportunity to improve.</p>
+      </article>
+    </section>
+
+    <!-- REWARD SHOP -->
+    <div class="section-heading">
+      <h2>Reward Shop</h2>
+      <p>Spend your points in the future</p>
+    </div>
+
+    <section class="grid">
+      <article class="card full-width">
+        <div class="shop-item">
+          <div>
+            <h3>Profile Customisation</h3>
+            <p>Unlock additional profile styles and visual effects.</p>
+          </div>
+          <span class="coming-soon">COMING SOON</span>
+        </div>
+
+        <div class="shop-item">
+          <div>
+            <h3>Exclusive Challenges</h3>
+            <p>Access special learning challenges and milestones.</p>
+          </div>
+          <span class="coming-soon">COMING SOON</span>
+        </div>
+
+        <div class="shop-item">
+          <div>
+            <h3>AI Learning Benefits</h3>
+            <p>Potential future benefits for personalised study support.</p>
+          </div>
+          <span class="coming-soon">COMING SOON</span>
+        </div>
+
+        <div class="shop-item">
+          <div>
+            <h3>Special Rewards</h3>
+            <p>Additional rewards when redemption becomes available.</p>
+          </div>
+          <span class="coming-soon">COMING SOON</span>
+        </div>
+      </article>
+    </section>
+
+    <div class="note">
+      <strong>Important:</strong> Your existing XP, points and learning statistics are read from your Firebase account. Monthly earning limits, lifetime-earned totals and reward redemption still need to be connected to the points system. This page does not reset or award points.
+    </div>
+
   </main>
 
   <script type="module">
     import { auth, database } from "./js/firebase-client.js";
-    import { onAuthStateChanged } from
-      "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
-    import { ref, get } from
-      "https://www.gstatic.com/firebasejs/13.0.0/firebase-database.js";
 
-    const $ = (id) => document.getElementById(id);
+    import {
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
 
-    function getRank(xp) {
-      if (xp >= 10000) return "Hell-Mastery";
-      if (xp >= 4000) return "Genius";
-      if (xp >= 1500) return "Mastery";
-      if (xp >= 500) return "Intermediate";
-      return "Basic";
+    import {
+      ref,
+      get
+    } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-database.js";
+
+    const $ = id => document.getElementById(id);
+
+    const ranks = [
+      { name: "Basic", min: 0, next: 500, limit: 250 },
+      { name: "Intermediate", min: 500, next: 1500, limit: 500 },
+      { name: "Mastery", min: 1500, next: 4000, limit: 1000 },
+      { name: "Genius", min: 4000, next: 10000, limit: 2000 },
+      { name: "Hell-Mastery", min: 10000, next: Infinity, limit: 4000 }
+    ];
+
+    const number = value =>
+      Math.max(0, Number(value) || 0);
+
+    const format = value =>
+      number(value).toLocaleString();
+
+    function showRank(xp) {
+      return [...ranks].reverse().find(rank => xp >= rank.min)
+        || ranks[0];
     }
 
-    const monthlyLimits = {
-      "Basic": 250,
-      "Intermediate": 500,
-      "Mastery": 1000,
-      "Genius": 2000,
-      "Hell-Mastery": 4000
-    };
+    function renderAchievements(answered, correct, sessions) {
+      const accuracy = answered > 0 ? correct / answered * 100 : 0;
 
-    onAuthStateChanged(auth, async (user) => {
+      const achievements = [
+        {
+          icon: "🌱",
+          title: "First Steps",
+          description: "Answer your first question.",
+          unlocked: answered >= 1
+        },
+        {
+          icon: "📚",
+          title: "Getting Started",
+          description: "Answer 10 questions.",
+          unlocked: answered >= 10
+        },
+        {
+          icon: "🎯",
+          title: "Sharpshooter",
+          description: "Answer 50 questions correctly.",
+          unlocked: correct >= 50
+        },
+        {
+          icon: "🔥",
+          title: "Dedicated Learner",
+          description: "Complete 5 practice sessions.",
+          unlocked: sessions >= 5
+        },
+        {
+          icon: "🧠",
+          title: "Hundred Club",
+          description: "Answer 100 questions.",
+          unlocked: answered >= 100
+        },
+        {
+          icon: "💎",
+          title: "Precision",
+          description: "Reach 80% accuracy after answering at least 20 questions.",
+          unlocked: answered >= 20 && accuracy >= 80
+        }
+      ];
+
+      $("achievements").innerHTML = achievements.map(item => `
+        <article class="card achievement ${item.unlocked ? "unlocked" : "locked"}">
+          <div class="achievement-icon">${item.icon}</div>
+          <h3>${item.title}</h3>
+          <p>${item.description}</p>
+          <span class="status-tag ${item.unlocked ? "" : "locked-text"}">
+            ${item.unlocked ? "✓ UNLOCKED" : "LOCKED"}
+          </span>
+        </article>
+      `).join("");
+
+      const unlocked = achievements.filter(item => item.unlocked).length;
+
+      $("achievementCount").textContent =
+        `${unlocked} of ${achievements.length} unlocked`;
+    }
+
+    function renderChallenges(answered, correct, sessions) {
+      const goals = [
+        {
+          title: "Answer 10 questions",
+          current: answered,
+          target: 10
+        },
+        {
+          title: "Get 5 correct answers",
+          current: correct,
+          target: 5
+        },
+        {
+          title: "Complete 1 practice session",
+          current: sessions,
+          target: 1
+        }
+      ];
+
+      $("dailyChallenges").innerHTML = goals.map(goal => {
+        const current = Math.min(goal.current, goal.target);
+        const percent = Math.min(100, current / goal.target * 100);
+
+        return `
+          <div class="challenge">
+            <div class="challenge-top">
+              <strong>${goal.title}</strong>
+              <span>${current}/${goal.target}</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" style="width:${percent}%"></div>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    onAuthStateChanged(auth, async user => {
       if (!user) {
-        window.location.href = "login.html";
+        location.replace("login.html");
         return;
       }
 
+      $("status").textContent = "Loading your rewards...";
+
       try {
-        const snapshot = await get(ref(database, `users/${user.uid}`));
+        const snapshot = await get(
+          ref(database, `users/${user.uid}`)
+        );
 
-        if (!snapshot.exists()) {
-          $("status").textContent =
-            "Your account has no saved progress yet.";
-          $("availablePoints").textContent = "0";
-          $("rank").textContent = "Basic";
-          $("rankProgress").textContent = "0 XP";
-          $("answered").textContent = "0";
-          $("correct").textContent = "0";
-          $("accuracy").textContent = "0%";
-          return;
-        }
-
-        const account = snapshot.val();
+        const account = snapshot.val() || {};
         const progress = account.progress || {};
 
-        // Preserve compatibility with existing progress records.
-        const points = Math.max(0, Number(progress.points) || 0);
-        const xp = Math.max(0, Number(progress.xp) || 0);
-        const answered = Math.max(0, Number(progress.totalAnswered) || 0);
-        const correct = Math.max(0, Number(progress.totalCorrect) || 0);
-        const accuracy = answered > 0
-          ? Math.round((correct / answered) * 100)
-          : 0;
+        const xp = number(progress.xp);
+        const points = number(progress.points);
+        const answered = number(progress.totalAnswered);
+        const correct = number(progress.totalCorrect);
+        const sessions = number(progress.sessionsCompleted);
 
-        const rank = getRank(xp);
+        const rank = showRank(xp);
 
-        $("availablePoints").textContent = points.toLocaleString();
-        $("rank").textContent = rank;
-        $("rankProgress").textContent =
-          `${xp.toLocaleString()} XP · Next rank: ${
-            rank === "Hell-Mastery"
-              ? "Maximum rank"
-              : ({
-                  "Basic": "500 XP",
-                  "Intermediate": "1,500 XP",
-                  "Mastery": "4,000 XP",
-                  "Genius": "10,000 XP"
-                })[rank]
-          }`;
+        $("rank").textContent = rank.name;
+        $("xpHeading").textContent = `${format(xp)} XP`;
 
-        $("answered").textContent = answered.toLocaleString();
-        $("correct").textContent = correct.toLocaleString();
-        $("accuracy").textContent = `${accuracy}%`;
+        if (rank.next === Infinity) {
+          $("nextRank").textContent = "Highest rank reached";
+          $("rankProgress").style.width = "100%";
+          $("rankProgressBar").setAttribute("aria-valuenow", "100");
+          $("rankMessage").textContent =
+            "You have reached Hell-Mastery.";
+        } else {
+          const percent = Math.min(
+            100,
+            Math.max(0, (xp - rank.min) / (rank.next - rank.min) * 100)
+          );
 
-        // Only show lifetime/monthly values when those fields exist.
+          $("nextRank").textContent =
+            `${format(Math.max(0, rank.next - xp))} XP to ${ranks[ranks.indexOf(rank) + 1].name}`;
+
+          $("rankProgress").style.width = `${percent}%`;
+          $("rankProgressBar").setAttribute(
+            "aria-valuenow",
+            String(Math.round(percent))
+          );
+
+          $("rankMessage").textContent =
+            `${format(xp - rank.min)} of ${format(rank.next - rank.min)} XP earned at this rank.`;
+        }
+
+        $("availablePoints").textContent = format(points);
         $("lifetimePoints").textContent =
           progress.lifetimeEarned == null
             ? "Not tracked"
-            : Number(progress.lifetimeEarned).toLocaleString();
+            : format(progress.lifetimeEarned);
 
-        const currentMonth = new Date().toISOString().slice(0, 7);
+        const month = new Date().toISOString().slice(0, 7);
+        const monthlyTracked = progress.monthlyPeriod === month
+          && progress.monthlyEarned != null;
 
-        if (progress.monthlyPeriod === currentMonth &&
-            progress.monthlyEarned != null) {
-          $("monthlyPoints").textContent =
-            Number(progress.monthlyEarned).toLocaleString();
-        } else {
-          $("monthlyPoints").textContent = "Not tracked";
-        }
+        $("monthlyPoints").textContent = monthlyTracked
+          ? format(progress.monthlyEarned)
+          : "Not tracked";
 
         $("monthlyLimit").textContent =
-          `Planned monthly limit for ${rank}: ${monthlyLimits[rank].toLocaleString()} points.`;
+          `${format(rank.limit)} points/month planned for ${rank.name}.`;
 
-        $("status").textContent = "Rewards loaded successfully.";
+        if (monthlyTracked) {
+          const monthlyEarned = number(progress.monthlyEarned);
+          const percent = Math.min(
+            100,
+            monthlyEarned / rank.limit * 100
+          );
+
+          $("monthlyProgress").style.width = `${percent}%`;
+          $("monthlyMessage").textContent =
+            `${format(Math.max(0, rank.limit - monthlyEarned))} points of this month's allowance remain.`;
+        } else {
+          $("monthlyProgress").style.width = "0%";
+          $("monthlyMessage").textContent =
+            "Monthly tracking will appear once connected.";
+        }
+
+        $("answered").textContent = format(answered);
+        $("correct").textContent = format(correct);
+
+        $("accuracy").textContent = answered
+          ? `${Math.round(correct / answered * 100)}%`
+          : "0%";
+
+        $("sessions").textContent = format(sessions);
+
+        $("practiceMessage").textContent = sessions
+          ? "Keep going to strengthen your learning record."
+          : "Complete your first practice session to get started.";
+
+        renderAchievements(answered, correct, sessions);
+        renderChallenges(answered, correct, sessions);
+
+        $("status").textContent = "Your progress is up to date.";
       } catch (error) {
-        console.error("Rewards loading error:", error);
+        console.error("Rewards error:", error);
         $("status").textContent =
-          "Could not load rewards. Check your connection and try again.";
+          "Couldn't load your progress. Check your connection and Firebase permissions.";
       }
     });
   </script>
