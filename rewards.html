@@ -1,84 +1,144 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Rewards | Hysteria's Cure</title>
-
-  <link rel="stylesheet" href="css/style.css">
-  <link rel="stylesheet" href="css/faction-themes.css">
-
-  <style>
+  <meta name="theme-color" content="#101019">
+  <title>Rewards | Hysteria's Cure</title>  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/faction-themes.css">  <style>
     :root {
       --reward-bg: #101019;
       --reward-card: #1a1a29;
+      --reward-card-light: #222238;
       --reward-border: rgba(255,255,255,.09);
       --reward-text: #f5f3ff;
       --reward-muted: #aaa9c0;
       --reward-accent: #b39aff;
       --reward-gold: #ffd477;
       --reward-green: #7de5b0;
+      --reward-red: #ff8eaa;
     }
 
     * { box-sizing: border-box; }
 
     body {
-      background: var(--bg-main, var(--reward-bg));
+      background:
+        radial-gradient(ellipse at 15% 0%, rgba(112,75,195,.12), transparent 35%),
+        var(--bg-main, var(--reward-bg));
       color: var(--text-primary, var(--reward-text));
     }
 
+    a { color: inherit; }
+
     .rewards-container {
-      width: min(1100px, calc(100% - 28px));
-      margin: 28px auto 60px;
+      width: min(1120px, calc(100% - 28px));
+      margin: 28px auto 65px;
     }
 
     .hero {
       position: relative;
+      isolation: isolate;
       overflow: hidden;
-      padding: 30px 24px;
-      border: 1px solid var(--border, var(--reward-border));
-      border-radius: 22px;
+      padding: clamp(24px, 5vw, 42px);
+      border: 1px solid rgba(179,154,255,.22);
+      border-radius: 24px;
       background:
-        radial-gradient(ellipse at top right,
-          rgba(179,154,255,.18), transparent 55%),
+        radial-gradient(ellipse at 95% 0%, rgba(179,154,255,.24), transparent 43%),
+        radial-gradient(ellipse at 0% 100%, rgba(255,212,119,.08), transparent 45%),
         var(--bg-card, var(--reward-card));
-      margin-bottom: 22px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.15);
+      margin-bottom: 30px;
+    }
+
+    .hero::after {
+      content: "✦";
+      position: absolute;
+      z-index: -1;
+      right: 7%;
+      top: 12%;
+      color: rgba(179,154,255,.12);
+      font-size: clamp(7rem, 20vw, 13rem);
+      line-height: 1;
+      pointer-events: none;
     }
 
     .eyebrow {
       color: var(--reward-accent);
       text-transform: uppercase;
       letter-spacing: 2px;
-      font-size: .76rem;
-      font-weight: 800;
+      font-size: .74rem;
+      font-weight: 850;
     }
 
     .hero h1 {
-      font-size: clamp(2rem, 6vw, 3.2rem);
+      max-width: 650px;
+      font-size: clamp(2rem, 6vw, 3.3rem);
+      line-height: 1.1;
       margin: 12px 0;
+    }
+
+    .hero > p {
+      max-width: 650px;
     }
 
     .hero p, .muted {
       color: var(--text-secondary, var(--reward-muted));
-      line-height: 1.6;
+      line-height: 1.7;
+    }
+
+    #status {
+      font-size: .88rem;
+      min-height: 22px;
+    }
+
+    .rank-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 22px;
     }
 
     .rank-label {
-      display: inline-block;
-      padding: 7px 13px;
-      border: 1px solid rgba(179,154,255,.35);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 15px;
+      border: 1px solid rgba(179,154,255,.4);
       border-radius: 30px;
-      background: rgba(179,154,255,.1);
+      background: rgba(179,154,255,.12);
       color: var(--reward-accent);
-      font-weight: 800;
+      font-weight: 850;
+    }
+
+    .rank-symbol {
+      font-size: 1.15rem;
+    }
+
+    .xp-summary {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 25px;
+    }
+
+    .xp-summary h2 {
+      margin: 0;
+      font-size: clamp(1.5rem, 4vw, 2.15rem);
+    }
+
+    .xp-summary p {
+      margin: 0;
+      font-size: .88rem;
     }
 
     .progress-track {
-      height: 9px;
+      height: 10px;
       overflow: hidden;
       background: rgba(255,255,255,.09);
       border-radius: 20px;
-      margin: 13px 0 8px;
+      margin: 14px 0 9px;
     }
 
     .progress-fill {
@@ -86,7 +146,15 @@
       width: 0;
       border-radius: inherit;
       background: linear-gradient(90deg, #9474ff, #d3baff);
-      transition: width .5s ease;
+      transition: width .45s ease;
+    }
+
+    .gold-fill {
+      background: linear-gradient(90deg, #c18b34, #ffe5a1);
+    }
+
+    .green-fill {
+      background: linear-gradient(90deg, #36ad7b, #a1f4cb);
     }
 
     .section-heading {
@@ -95,7 +163,7 @@
       justify-content: space-between;
       gap: 12px;
       flex-wrap: wrap;
-      margin: 30px 0 15px;
+      margin: 34px 0 15px;
     }
 
     .section-heading h2 {
@@ -106,21 +174,24 @@
     .section-heading p {
       margin: 0;
       color: var(--text-secondary, var(--reward-muted));
-      font-size: .88rem;
+      font-size: .86rem;
     }
 
     .grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 14px;
+      gap: 15px;
     }
 
     .card {
       min-width: 0;
-      padding: 20px;
+      padding: 21px;
       border: 1px solid var(--border, var(--reward-border));
-      border-radius: 17px;
-      background: var(--bg-card, var(--reward-card));
+      border-radius: 18px;
+      background:
+        linear-gradient(145deg, rgba(255,255,255,.018), transparent 65%),
+        var(--bg-card, var(--reward-card));
+      transition: border-color .2s, transform .2s;
     }
 
     .card h3 {
@@ -129,9 +200,9 @@
     }
 
     .value {
-      font-size: clamp(1.65rem, 5vw, 2.3rem);
+      font-size: clamp(1.7rem, 5vw, 2.4rem);
       font-weight: 850;
-      letter-spacing: -.5px;
+      letter-spacing: -.6px;
       overflow-wrap: anywhere;
     }
 
@@ -141,29 +212,63 @@
 
     .card p {
       color: var(--text-secondary, var(--reward-muted));
-      line-height: 1.55;
-      font-size: .9rem;
+      line-height: 1.6;
+      font-size: .89rem;
+    }
+
+    .card p:last-child {
+      margin-bottom: 0;
+    }
+
+    .wallet-card {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .wallet-card::after {
+      content: "";
+      position: absolute;
+      width: 100px;
+      height: 100px;
+      right: -35px;
+      top: -40px;
+      border-radius: 50%;
+      background: rgba(179,154,255,.06);
+      pointer-events: none;
     }
 
     .achievement-icon {
-      font-size: 1.8rem;
-      margin-bottom: 12px;
+      display: grid;
+      place-items: center;
+      width: 48px;
+      height: 48px;
+      margin-bottom: 15px;
+      border-radius: 14px;
+      background: rgba(179,154,255,.1);
+      font-size: 1.65rem;
     }
 
     .achievement.locked {
-      opacity: .58;
+      opacity: .7;
     }
 
     .achievement.unlocked {
-      border-color: rgba(125,229,176,.35);
+      border-color: rgba(125,229,176,.4);
+      background:
+        linear-gradient(145deg, rgba(125,229,176,.06), transparent 65%),
+        var(--bg-card, var(--reward-card));
+    }
+
+    .achievement.unlocked .achievement-icon {
+      background: rgba(125,229,176,.12);
     }
 
     .status-tag {
       display: inline-block;
-      margin-top: 7px;
-      font-size: .75rem;
-      font-weight: 800;
-      letter-spacing: .4px;
+      margin-top: 9px;
+      font-size: .72rem;
+      font-weight: 850;
+      letter-spacing: .5px;
       color: var(--reward-green);
     }
 
@@ -172,16 +277,19 @@
     }
 
     .challenge {
-      margin-bottom: 12px;
+      margin-bottom: 19px;
     }
 
-    .challenge:last-child { margin-bottom: 0; }
+    .challenge:last-child {
+      margin-bottom: 0;
+    }
 
     .challenge-top {
       display: flex;
       justify-content: space-between;
+      align-items: baseline;
       gap: 12px;
-      font-size: .9rem;
+      font-size: .88rem;
     }
 
     .challenge-top strong {
@@ -191,67 +299,178 @@
     .challenge-top span {
       color: var(--reward-accent);
       white-space: nowrap;
-    }
-
-    .shop-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      padding: 14px 0;
-      border-bottom: 1px solid var(--border, var(--reward-border));
-    }
-
-    .shop-item:last-child { border-bottom: none; }
-
-    .shop-item p {
-      margin: 5px 0 0;
-    }
-
-    .shop-price {
-      color: var(--reward-gold);
       font-weight: 800;
-      white-space: nowrap;
+    }
+
+    .challenge .progress-track {
+      height: 7px;
+      margin-top: 10px;
+    }
+
+    .shop-intro {
+      padding: 22px;
+      border: 1px solid rgba(179,154,255,.2);
+      border-radius: 19px;
+      background:
+        radial-gradient(ellipse at 100% 0%, rgba(179,154,255,.14), transparent 50%),
+        var(--bg-card, var(--reward-card));
+      margin-bottom: 15px;
+    }
+
+    .shop-intro h3 {
+      margin: 0 0 8px;
+      font-size: 1.2rem;
+    }
+
+    .shop-intro p {
+      margin-bottom: 0;
+      color: var(--text-secondary, var(--reward-muted));
+      line-height: 1.65;
+      font-size: .9rem;
+    }
+
+    .shop-categories {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .shop-category {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-width: 0;
+      padding: 18px;
+      border: 1px solid var(--border, var(--reward-border));
+      border-radius: 16px;
+      background: var(--bg-card, var(--reward-card));
+    }
+
+    .category-icon {
+      display: grid;
+      place-items: center;
+      width: 45px;
+      height: 45px;
+      border-radius: 13px;
+      background: rgba(179,154,255,.11);
+      font-size: 1.5rem;
+    }
+
+    .shop-category h3 {
+      font-size: .98rem;
+      margin: 0;
+    }
+
+    .shop-category p {
+      flex: 1;
+      margin: 0;
+      color: var(--text-secondary, var(--reward-muted));
+      line-height: 1.55;
+      font-size: .83rem;
     }
 
     .coming-soon {
-      padding: 7px 10px;
+      align-self: flex-start;
+      padding: 6px 9px;
       border-radius: 8px;
       background: rgba(255,255,255,.06);
       color: var(--reward-muted);
-      font-size: .73rem;
-      font-weight: 800;
-      white-space: nowrap;
+      font-size: .68rem;
+      font-weight: 850;
+      letter-spacing: .4px;
     }
 
     .note {
-      margin-top: 25px;
-      padding: 16px;
+      margin-top: 28px;
+      padding: 17px;
+      border: 1px solid rgba(179,154,255,.15);
       border-left: 3px solid var(--reward-accent);
-      border-radius: 8px;
-      background: rgba(179,154,255,.06);
+      border-radius: 10px;
+      background: rgba(179,154,255,.055);
       color: var(--text-secondary, var(--reward-muted));
-      line-height: 1.65;
-      font-size: .88rem;
+      line-height: 1.7;
+      font-size: .86rem;
     }
 
-    .full-width { grid-column: 1 / -1; }
+    .note strong {
+      color: var(--text-primary, var(--reward-text));
+    }
 
-    #status {
+    .full-width {
+      grid-column: 1 / -1;
+    }
+
+    .empty-state {
+      color: var(--reward-muted);
       font-size: .9rem;
-      min-height: 24px;
+      line-height: 1.6;
+    }
+
+    @media (hover: hover) {
+      .card:hover {
+        border-color: rgba(179,154,255,.24);
+      }
+
+      .shop-category:hover {
+        border-color: rgba(179,154,255,.35);
+        transform: translateY(-2px);
+      }
+    }
+
+    @media (max-width: 700px) {
+      .shop-categories {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
     }
 
     @media (max-width: 560px) {
-      .grid { grid-template-columns: 1fr; }
-      .hero { padding: 23px 18px; }
-      .card { padding: 17px; }
-      .section-heading { margin-top: 25px; }
-    }
-  </style>
-</head>
+      .grid,
+      .shop-categories {
+        grid-template-columns: 1fr;
+      }
 
-<body>
+      .hero {
+        padding: 24px 19px;
+        border-radius: 19px;
+      }
+
+      .card {
+        padding: 18px;
+      }
+
+      .section-heading {
+        margin-top: 28px;
+      }
+
+      .shop-category {
+        flex-direction: row;
+        align-items: flex-start;
+        flex-wrap: wrap;
+      }
+
+      .shop-category .category-icon {
+        flex-shrink: 0;
+      }
+
+      .shop-category .category-content {
+        flex: 1;
+        min-width: 150px;
+      }
+
+      .shop-category .coming-soon {
+        margin-left: 57px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+      }
+    }
+  </style></head><body>
   <header class="site-header">
     <h2>Hysteria's Cure</h2>
     <nav>
@@ -260,165 +479,207 @@
       <a href="practice.html">Practice</a>
       <a href="towers.html">Towers</a>
     </nav>
-  </header>
+  </header>  <main class="rewards-container"><section class="hero">
+  <span class="eyebrow">Your journey</span>
+  <h1>Rewards &amp; Achievements</h1>
+  <p>
+    Every question answered is progress.
+    Every challenge is an opportunity to advance.
+  </p>
 
-  <main class="rewards-container">
+  <p id="status" role="status" aria-live="polite">
+    Loading your progress...
+  </p>
 
-    <!-- RANK OVERVIEW -->
-    <section class="hero">
-      <span class="eyebrow">Your journey</span>
-      <h1>Rewards &amp; Achievements</h1>
-      <p>Every question answered is progress. Every challenge is an opportunity to advance.</p>
+  <div class="rank-row">
+    <span class="rank-label">
+      <span class="rank-symbol" aria-hidden="true">✦</span>
+      <span id="rank">Loading rank...</span>
+    </span>
+  </div>
 
-      <p id="status" role="status" aria-live="polite">
-        Loading your progress...
-      </p>
+  <div class="xp-summary">
+    <h2 id="xpHeading">0 XP</h2>
+    <p id="nextRank">Calculating next rank...</p>
+  </div>
 
-      <span class="rank-label" id="rank">Loading rank...</span>
+  <div
+    class="progress-track"
+    id="rankProgressBar"
+    role="progressbar"
+    aria-label="Progress towards next rank"
+    aria-valuemin="0"
+    aria-valuemax="100"
+    aria-valuenow="0"
+  >
+    <div class="progress-fill" id="rankProgress"></div>
+  </div>
 
-      <div class="section-heading">
-        <h2 id="xpHeading">0 XP</h2>
-        <p id="nextRank">Calculating next rank...</p>
+  <p id="rankMessage" class="muted">
+    Your next milestone awaits.
+  </p>
+</section>
+
+<div class="section-heading">
+  <h2>Points Wallet</h2>
+  <p>Your learning rewards</p>
+</div>
+
+<section class="grid">
+  <article class="card wallet-card">
+    <h3>Available Points</h3>
+    <div class="value gold" id="availablePoints">—</div>
+    <p>Points currently in your balance.</p>
+  </article>
+
+  <article class="card wallet-card">
+    <h3>Lifetime Points</h3>
+    <div class="value purple" id="lifetimePoints">—</div>
+    <p>Total earned across your learning journey.</p>
+  </article>
+
+  <article class="card wallet-card">
+    <h3>Monthly Earnings</h3>
+    <div class="value green" id="monthlyPoints">—</div>
+    <p id="monthlyLimit">Monthly earning allowance.</p>
+
+    <div class="progress-track">
+      <div class="progress-fill gold-fill" id="monthlyProgress"></div>
+    </div>
+
+    <p id="monthlyMessage">
+      Monthly tracking is not connected yet.
+    </p>
+  </article>
+
+  <article class="card">
+    <h3>Learning Statistics</h3>
+    <p>Questions answered: <strong id="answered">0</strong></p>
+    <p>Correct answers: <strong id="correct">0</strong></p>
+    <p>Accuracy: <strong id="accuracy">0%</strong></p>
+  </article>
+</section>
+
+<div class="section-heading">
+  <h2>Achievements</h2>
+  <p id="achievementCount">Your milestones</p>
+</div>
+
+<section class="grid" id="achievements" aria-live="polite">
+  <article class="card achievement locked">
+    <div class="achievement-icon">🏅</div>
+    <h3>First Steps</h3>
+    <p>Complete your first practice question.</p>
+    <span class="status-tag locked-text">LOCKED</span>
+  </article>
+</section>
+
+<div class="section-heading">
+  <h2>Learning Challenges</h2>
+  <p>Build your progress every day</p>
+</div>
+
+<section class="grid">
+  <article class="card">
+    <h3>Today's Goals</h3>
+    <div id="dailyChallenges">
+      <p class="empty-state">Checking today's activity...</p>
+    </div>
+  </article>
+
+  <article class="card">
+    <h3>Your Practice Record</h3>
+    <div class="value purple" id="sessions">0</div>
+    <p>Practice sessions completed.</p>
+    <p id="practiceMessage">
+      Your next session is another opportunity to improve.
+    </p>
+  </article>
+</section>
+
+<div class="section-heading">
+  <h2>Reward Shop</h2>
+  <p>Explore future rewards</p>
+</div>
+
+<section aria-label="Reward shop">
+  <div class="shop-intro">
+    <span class="eyebrow">Your points. Your progress.</span>
+    <h3>A reward for the work you put in.</h3>
+    <p>
+      The shop is being prepared for learning perks, Premium,
+      subscriptions and supported gaming top-ups. Items will become
+      redeemable when their prices, payment or points requirements,
+      and fulfilment processes are ready.
+    </p>
+  </div>
+
+  <div class="shop-categories">
+    <article class="shop-category">
+      <div class="category-icon" aria-hidden="true">👑</div>
+      <div class="category-content">
+        <h3>Premium</h3>
+        <p>Explore future membership benefits and additional learning features.</p>
       </div>
+      <span class="coming-soon">COMING SOON</span>
+    </article>
 
-      <div
-        class="progress-track"
-        role="progressbar"
-        aria-label="Progress towards next rank"
-        aria-valuemin="0"
-        aria-valuemax="100"
-        aria-valuenow="0"
-        id="rankProgressBar"
-      >
-        <div class="progress-fill" id="rankProgress"></div>
+    <article class="shop-category">
+      <div class="category-icon" aria-hidden="true">🎮</div>
+      <div class="category-content">
+        <h3>Gaming Top-Ups</h3>
+        <p>Supported game credits and top-ups, subject to availability.</p>
       </div>
+      <span class="coming-soon">COMING SOON</span>
+    </article>
 
-      <p id="rankMessage" class="muted">Your next milestone awaits.</p>
-    </section>
+    <article class="shop-category">
+      <div class="category-icon" aria-hidden="true">📖</div>
+      <div class="category-content">
+        <h3>Reading</h3>
+        <p>Potential novel-platform subscriptions, coins and vouchers.</p>
+      </div>
+      <span class="coming-soon">COMING SOON</span>
+    </article>
 
-    <!-- POINTS WALLET -->
-    <div class="section-heading">
-      <h2>Points Wallet</h2>
-      <p>Your learning rewards</p>
-    </div>
+    <article class="shop-category">
+      <div class="category-icon" aria-hidden="true">🍿</div>
+      <div class="category-content">
+        <h3>Entertainment</h3>
+        <p>Potential streaming subscriptions and supported vouchers.</p>
+      </div>
+      <span class="coming-soon">COMING SOON</span>
+    </article>
 
-    <section class="grid">
-      <article class="card">
-        <h3>Available Points</h3>
-        <div class="value gold" id="availablePoints">—</div>
-        <p>Points currently in your balance.</p>
-      </article>
+    <article class="shop-category">
+      <div class="category-icon" aria-hidden="true">✨</div>
+      <div class="category-content">
+        <h3>Profile Customisation</h3>
+        <p>Additional profile styles and visual customisation.</p>
+      </div>
+      <span class="coming-soon">COMING SOON</span>
+    </article>
 
-      <article class="card">
-        <h3>Lifetime Points</h3>
-        <div class="value purple" id="lifetimePoints">—</div>
-        <p>Total earned across your learning journey.</p>
-      </article>
+    <article class="shop-category">
+      <div class="category-icon" aria-hidden="true">🏆</div>
+      <div class="category-content">
+        <h3>Exclusive Rewards</h3>
+        <p>Special challenges, achievements and future reward options.</p>
+      </div>
+      <span class="coming-soon">COMING SOON</span>
+    </article>
+  </div>
+</section>
 
-      <article class="card">
-        <h3>Monthly Earnings</h3>
-        <div class="value green" id="monthlyPoints">—</div>
-        <p id="monthlyLimit">Your monthly earning allowance.</p>
-        <div class="progress-track">
-          <div class="progress-fill" id="monthlyProgress"></div>
-        </div>
-        <p id="monthlyMessage">Monthly tracking is not connected yet.</p>
-      </article>
+<div class="note">
+  <strong>Progress and rewards:</strong>
+  Your XP, points and learning statistics are read from Firebase.
+  Monthly earning limits, daily activity tracking, persistent
+  achievement rewards and shop redemption are not fully connected
+  yet. This page does not award points or reset your balance.
+</div>
 
-      <article class="card">
-        <h3>Learning Statistics</h3>
-        <p>Questions answered: <strong id="answered">0</strong></p>
-        <p>Correct answers: <strong id="correct">0</strong></p>
-        <p>Accuracy: <strong id="accuracy">0%</strong></p>
-      </article>
-    </section>
-
-    <!-- ACHIEVEMENTS -->
-    <div class="section-heading">
-      <h2>Achievements</h2>
-      <p id="achievementCount">Your milestones</p>
-    </div>
-
-    <section class="grid" id="achievements">
-      <article class="card achievement locked">
-        <div class="achievement-icon">🏅</div>
-        <h3>First Steps</h3>
-        <p>Complete your first practice question.</p>
-        <span class="status-tag locked-text">LOCKED</span>
-      </article>
-    </section>
-
-    <!-- CHALLENGES -->
-    <div class="section-heading">
-      <h2>Learning Challenges</h2>
-      <p>Keep building your progress</p>
-    </div>
-
-    <section class="grid">
-      <article class="card">
-        <h3>Today's Goals</h3>
-        <div id="dailyChallenges">
-          <p>Loading challenges...</p>
-        </div>
-      </article>
-
-      <article class="card">
-        <h3>Your Practice Record</h3>
-        <div class="value purple" id="sessions">0</div>
-        <p>Practice sessions completed.</p>
-        <p id="practiceMessage">Your next session is another opportunity to improve.</p>
-      </article>
-    </section>
-
-    <!-- REWARD SHOP -->
-    <div class="section-heading">
-      <h2>Reward Shop</h2>
-      <p>Spend your points in the future</p>
-    </div>
-
-    <section class="grid">
-      <article class="card full-width">
-        <div class="shop-item">
-          <div>
-            <h3>Profile Customisation</h3>
-            <p>Unlock additional profile styles and visual effects.</p>
-          </div>
-          <span class="coming-soon">COMING SOON</span>
-        </div>
-
-        <div class="shop-item">
-          <div>
-            <h3>Exclusive Challenges</h3>
-            <p>Access special learning challenges and milestones.</p>
-          </div>
-          <span class="coming-soon">COMING SOON</span>
-        </div>
-
-        <div class="shop-item">
-          <div>
-            <h3>AI Learning Benefits</h3>
-            <p>Potential future benefits for personalised study support.</p>
-          </div>
-          <span class="coming-soon">COMING SOON</span>
-        </div>
-
-        <div class="shop-item">
-          <div>
-            <h3>Special Rewards</h3>
-            <p>Additional rewards when redemption becomes available.</p>
-          </div>
-          <span class="coming-soon">COMING SOON</span>
-        </div>
-      </article>
-    </section>
-
-    <div class="note">
-      <strong>Important:</strong> Your existing XP, points and learning statistics are read from your Firebase account. Monthly earning limits, lifetime-earned totals and reward redemption still need to be connected to the points system. This page does not reset or award points.
-    </div>
-
-  </main>
-
-  <script type="module">
+  </main>  <script type="module">
     import { auth, database } from "./js/firebase-client.js";
 
     import {
@@ -432,12 +693,20 @@
 
     const $ = id => document.getElementById(id);
 
+    /*
+     * Confirmed threshold:
+     * Hell-Mastery begins at 100,000 XP.
+     *
+     * The lower thresholds are provisional and retained from the
+     * previous progression system until the final rank structure
+     * is decided.
+     */
     const ranks = [
       { name: "Basic", min: 0, next: 500, limit: 250 },
       { name: "Intermediate", min: 500, next: 1500, limit: 500 },
       { name: "Mastery", min: 1500, next: 4000, limit: 1000 },
-      { name: "Genius", min: 4000, next: 10000, limit: 2000 },
-      { name: "Hell-Mastery", min: 10000, next: Infinity, limit: 4000 }
+      { name: "Genius", min: 4000, next: 100000, limit: 2000 },
+      { name: "Hell-Mastery", min: 100000, next: Infinity, limit: 4000 }
     ];
 
     const number = value =>
@@ -447,12 +716,15 @@
       number(value).toLocaleString();
 
     function showRank(xp) {
-      return [...ranks].reverse().find(rank => xp >= rank.min)
-        || ranks[0];
+      return [...ranks]
+        .reverse()
+        .find(rank => xp >= rank.min) || ranks[0];
     }
 
     function renderAchievements(answered, correct, sessions) {
-      const accuracy = answered > 0 ? correct / answered * 100 : 0;
+      const accuracy = answered > 0
+        ? (correct / answered) * 100
+        : 0;
 
       const achievements = [
         {
@@ -488,21 +760,38 @@
         {
           icon: "💎",
           title: "Precision",
-          description: "Reach 80% accuracy after answering at least 20 questions.",
+          description:
+            "Reach 80% accuracy after answering at least 20 questions.",
           unlocked: answered >= 20 && accuracy >= 80
         }
       ];
 
-      $("achievements").innerHTML = achievements.map(item => `
-        <article class="card achievement ${item.unlocked ? "unlocked" : "locked"}">
-          <div class="achievement-icon">${item.icon}</div>
-          <h3>${item.title}</h3>
-          <p>${item.description}</p>
-          <span class="status-tag ${item.unlocked ? "" : "locked-text"}">
-            ${item.unlocked ? "✓ UNLOCKED" : "LOCKED"}
-          </span>
-        </article>
-      `).join("");
+      const container = $("achievements");
+      container.replaceChildren();
+
+      for (const item of achievements) {
+        const card = document.createElement("article");
+        card.className =
+          `card achievement ${item.unlocked ? "unlocked" : "locked"}`;
+
+        const icon = document.createElement("div");
+        icon.className = "achievement-icon";
+        icon.textContent = item.icon;
+
+        const title = document.createElement("h3");
+        title.textContent = item.title;
+
+        const description = document.createElement("p");
+        description.textContent = item.description;
+
+        const status = document.createElement("span");
+        status.className =
+          `status-tag ${item.unlocked ? "" : "locked-text"}`;
+        status.textContent = item.unlocked ? "✓ UNLOCKED" : "LOCKED";
+
+        card.append(icon, title, description, status);
+        container.appendChild(card);
+      }
 
       const unlocked = achievements.filter(item => item.unlocked).length;
 
@@ -510,41 +799,94 @@
         `${unlocked} of ${achievements.length} unlocked`;
     }
 
-    function renderChallenges(answered, correct, sessions) {
-      const goals = [
-        {
-          title: "Answer 10 questions",
-          current: answered,
-          target: 10
-        },
-        {
-          title: "Get 5 correct answers",
-          current: correct,
-          target: 5
-        },
-        {
-          title: "Complete 1 practice session",
-          current: sessions,
-          target: 1
-        }
-      ];
+    function renderChallenges() {
+      const container = $("dailyChallenges");
+      container.replaceChildren();
 
-      $("dailyChallenges").innerHTML = goals.map(goal => {
-        const current = Math.min(goal.current, goal.target);
-        const percent = Math.min(100, current / goal.target * 100);
+      const message = document.createElement("p");
+      message.className = "empty-state";
+      message.textContent =
+        "Daily challenges will appear here when daily activity tracking is connected. Your lifetime totals won't be used as a substitute.";
 
-        return `
-          <div class="challenge">
-            <div class="challenge-top">
-              <strong>${goal.title}</strong>
-              <span>${current}/${goal.target}</span>
-            </div>
-            <div class="progress-track">
-              <div class="progress-fill" style="width:${percent}%"></div>
-            </div>
-          </div>
-        `;
-      }).join("");
+      container.appendChild(message);
+    }
+
+    function renderRank(xp) {
+      const rank = showRank(xp);
+      const rankIndex = ranks.findIndex(item => item.name === rank.name);
+
+      $("rank").textContent = rank.name;
+      $("xpHeading").textContent = `${format(xp)} XP`;
+
+      const progress = $("rankProgress");
+      const progressBar = $("rankProgressBar");
+
+      if (rank.next === Infinity) {
+        $("nextRank").textContent = "Highest rank reached";
+        progress.style.width = "100%";
+        progressBar.setAttribute("aria-valuenow", "100");
+
+        $("rankMessage").textContent =
+          "You've reached Hell-Mastery. Continue learning to maintain your mastery.";
+        return;
+      }
+
+      const next = ranks[rankIndex + 1];
+      const xpIntoRank = Math.max(0, xp - rank.min);
+      const xpRequired = rank.next - rank.min;
+
+      const percent = Math.min(
+        100,
+        Math.max(0, (xpIntoRank / xpRequired) * 100)
+      );
+
+      $("nextRank").textContent =
+        `${format(rank.next - xp)} XP to ${next.name}`;
+
+      progress.style.width = `${percent}%`;
+
+      progressBar.setAttribute(
+        "aria-valuenow",
+        String(Math.round(percent))
+      );
+
+      $("rankMessage").textContent =
+        `${format(xpIntoRank)} of ${format(xpRequired)} XP earned at this rank.`;
+    }
+
+    function renderMonthly(progress, rank) {
+      const month = new Date().toISOString().slice(0, 7);
+
+      const tracked =
+        progress.monthlyPeriod === month &&
+        progress.monthlyEarned != null;
+
+      $("monthlyLimit").textContent =
+        `${format(rank.limit)} points/month planned for ${rank.name}.`;
+
+      if (!tracked) {
+        $("monthlyPoints").textContent = "Not tracked";
+        $("monthlyProgress").style.width = "0%";
+
+        $("monthlyMessage").textContent =
+          "Monthly earnings will appear once monthly tracking is connected.";
+
+        return;
+      }
+
+      const earned = number(progress.monthlyEarned);
+      const percent = Math.min(
+        100,
+        (earned / rank.limit) * 100
+      );
+
+      $("monthlyPoints").textContent = format(earned);
+      $("monthlyProgress").style.width = `${percent}%`;
+
+      $("monthlyMessage").textContent =
+        earned >= rank.limit
+          ? "You've reached the planned monthly allowance. Enforcement still needs to be implemented."
+          : `${format(rank.limit - earned)} points remain under the planned monthly allowance.`;
     }
 
     onAuthStateChanged(auth, async user => {
@@ -571,72 +913,22 @@
 
         const rank = showRank(xp);
 
-        $("rank").textContent = rank.name;
-        $("xpHeading").textContent = `${format(xp)} XP`;
-
-        if (rank.next === Infinity) {
-          $("nextRank").textContent = "Highest rank reached";
-          $("rankProgress").style.width = "100%";
-          $("rankProgressBar").setAttribute("aria-valuenow", "100");
-          $("rankMessage").textContent =
-            "You have reached Hell-Mastery.";
-        } else {
-          const percent = Math.min(
-            100,
-            Math.max(0, (xp - rank.min) / (rank.next - rank.min) * 100)
-          );
-
-          $("nextRank").textContent =
-            `${format(Math.max(0, rank.next - xp))} XP to ${ranks[ranks.indexOf(rank) + 1].name}`;
-
-          $("rankProgress").style.width = `${percent}%`;
-          $("rankProgressBar").setAttribute(
-            "aria-valuenow",
-            String(Math.round(percent))
-          );
-
-          $("rankMessage").textContent =
-            `${format(xp - rank.min)} of ${format(rank.next - rank.min)} XP earned at this rank.`;
-        }
+        renderRank(xp);
 
         $("availablePoints").textContent = format(points);
+
         $("lifetimePoints").textContent =
           progress.lifetimeEarned == null
             ? "Not tracked"
             : format(progress.lifetimeEarned);
 
-        const month = new Date().toISOString().slice(0, 7);
-        const monthlyTracked = progress.monthlyPeriod === month
-          && progress.monthlyEarned != null;
-
-        $("monthlyPoints").textContent = monthlyTracked
-          ? format(progress.monthlyEarned)
-          : "Not tracked";
-
-        $("monthlyLimit").textContent =
-          `${format(rank.limit)} points/month planned for ${rank.name}.`;
-
-        if (monthlyTracked) {
-          const monthlyEarned = number(progress.monthlyEarned);
-          const percent = Math.min(
-            100,
-            monthlyEarned / rank.limit * 100
-          );
-
-          $("monthlyProgress").style.width = `${percent}%`;
-          $("monthlyMessage").textContent =
-            `${format(Math.max(0, rank.limit - monthlyEarned))} points of this month's allowance remain.`;
-        } else {
-          $("monthlyProgress").style.width = "0%";
-          $("monthlyMessage").textContent =
-            "Monthly tracking will appear once connected.";
-        }
+        renderMonthly(progress, rank);
 
         $("answered").textContent = format(answered);
         $("correct").textContent = format(correct);
 
         $("accuracy").textContent = answered
-          ? `${Math.round(correct / answered * 100)}%`
+          ? `${Math.round((correct / answered) * 100)}%`
           : "0%";
 
         $("sessions").textContent = format(sessions);
@@ -646,17 +938,16 @@
           : "Complete your first practice session to get started.";
 
         renderAchievements(answered, correct, sessions);
-        renderChallenges(answered, correct, sessions);
+        renderChallenges();
 
         $("status").textContent = "Your progress is up to date.";
       } catch (error) {
         console.error("Rewards error:", error);
+
         $("status").textContent =
           "Couldn't load your progress. Check your connection and Firebase permissions.";
       }
     });
-  </script>
 
-  <script type="module" src="js/faction-theme.js"></script>
-</body>
+  </script>  <script type="module" src="js/faction-theme.js"></script></body>
 </html>
