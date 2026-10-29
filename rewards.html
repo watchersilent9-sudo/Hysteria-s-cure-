@@ -5,7 +5,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Rewards | Hysteria's Cure</title>
-
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/faction-themes.css">
 
@@ -48,6 +47,11 @@
       margin-top: 24px;
       line-height: 1.6;
     }
+
+    #status {
+      text-align: center;
+      margin: 16px 0;
+    }
   </style>
 </head>
 
@@ -66,38 +70,159 @@
     <section class="rewards-header">
       <h1>Rewards</h1>
       <p>Track your learning effort and achievements.</p>
+      <p id="status" role="status">Loading your rewards...</p>
     </section>
 
     <section class="rewards-grid">
       <article class="reward-card">
         <h2>Available Points</h2>
-        <p class="points-value">—</p>
-        <p>Points you can use when rewards become available.</p>
+        <p class="points-value" id="availablePoints">—</p>
+        <p>Your current points balance.</p>
       </article>
 
       <article class="reward-card">
         <h2>Lifetime Points</h2>
-        <p class="points-value">—</p>
-        <p>Your total points earned over time, including points already spent.</p>
+        <p class="points-value" id="lifetimePoints">—</p>
+        <p>Total points earned over time. Historical tracking is not connected yet.</p>
       </article>
 
       <article class="reward-card">
-        <h2>Achievements</h2>
-        <p>Achievements will recognise milestones such as completing practice sessions and improving your results.</p>
+        <h2>Your Rank</h2>
+        <p class="points-value" id="rank">—</p>
+        <p id="rankProgress">Calculated from your XP.</p>
+      </article>
+
+      <article class="reward-card">
+        <h2>Monthly Earnings</h2>
+        <p class="points-value" id="monthlyPoints">—</p>
+        <p id="monthlyLimit">Monthly tracking is not connected yet.</p>
+      </article>
+
+      <article class="reward-card">
+        <h2>Learning Progress</h2>
+        <p>Questions answered: <strong id="answered">—</strong></p>
+        <p>Correct answers: <strong id="correct">—</strong></p>
+        <p>Accuracy: <strong id="accuracy">—</strong></p>
       </article>
 
       <article class="reward-card">
         <h2>Future Rewards</h2>
-        <p>Rewards and redemption options will be added after the points system is connected and verified.</p>
+        <p>Redemption options will be added after the points system is verified.</p>
       </article>
     </section>
 
     <section class="reward-note">
-      <h2>How points are earned</h2>
-      <p>Points depend on question difficulty. Incorrect answers may reduce available points, but the balance cannot fall below zero.</p>
-      <p>The displayed balances will be connected to your account in a later development step.</p>
+      <h2>How points work</h2>
+      <p>Points depend on question difficulty. Incorrect answers may reduce your points balance, but it cannot fall below zero.</p>
+      <p>Monthly earning limits are planned to increase as you advance through the ranks. Unspent points will carry over.</p>
     </section>
   </main>
+
+  <script type="module">
+    import { auth, database } from "./js/firebase-client.js";
+    import { onAuthStateChanged } from
+      "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
+    import { ref, get } from
+      "https://www.gstatic.com/firebasejs/13.0.0/firebase-database.js";
+
+    const $ = (id) => document.getElementById(id);
+
+    function getRank(xp) {
+      if (xp >= 10000) return "Hell-Mastery";
+      if (xp >= 4000) return "Genius";
+      if (xp >= 1500) return "Mastery";
+      if (xp >= 500) return "Intermediate";
+      return "Basic";
+    }
+
+    const monthlyLimits = {
+      "Basic": 250,
+      "Intermediate": 500,
+      "Mastery": 1000,
+      "Genius": 2000,
+      "Hell-Mastery": 4000
+    };
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
+
+      try {
+        const snapshot = await get(ref(database, `users/${user.uid}`));
+
+        if (!snapshot.exists()) {
+          $("status").textContent =
+            "Your account has no saved progress yet.";
+          $("availablePoints").textContent = "0";
+          $("rank").textContent = "Basic";
+          $("rankProgress").textContent = "0 XP";
+          $("answered").textContent = "0";
+          $("correct").textContent = "0";
+          $("accuracy").textContent = "0%";
+          return;
+        }
+
+        const account = snapshot.val();
+        const progress = account.progress || {};
+
+        // Preserve compatibility with existing progress records.
+        const points = Math.max(0, Number(progress.points) || 0);
+        const xp = Math.max(0, Number(progress.xp) || 0);
+        const answered = Math.max(0, Number(progress.totalAnswered) || 0);
+        const correct = Math.max(0, Number(progress.totalCorrect) || 0);
+        const accuracy = answered > 0
+          ? Math.round((correct / answered) * 100)
+          : 0;
+
+        const rank = getRank(xp);
+
+        $("availablePoints").textContent = points.toLocaleString();
+        $("rank").textContent = rank;
+        $("rankProgress").textContent =
+          `${xp.toLocaleString()} XP · Next rank: ${
+            rank === "Hell-Mastery"
+              ? "Maximum rank"
+              : ({
+                  "Basic": "500 XP",
+                  "Intermediate": "1,500 XP",
+                  "Mastery": "4,000 XP",
+                  "Genius": "10,000 XP"
+                })[rank]
+          }`;
+
+        $("answered").textContent = answered.toLocaleString();
+        $("correct").textContent = correct.toLocaleString();
+        $("accuracy").textContent = `${accuracy}%`;
+
+        // Only show lifetime/monthly values when those fields exist.
+        $("lifetimePoints").textContent =
+          progress.lifetimeEarned == null
+            ? "Not tracked"
+            : Number(progress.lifetimeEarned).toLocaleString();
+
+        const currentMonth = new Date().toISOString().slice(0, 7);
+
+        if (progress.monthlyPeriod === currentMonth &&
+            progress.monthlyEarned != null) {
+          $("monthlyPoints").textContent =
+            Number(progress.monthlyEarned).toLocaleString();
+        } else {
+          $("monthlyPoints").textContent = "Not tracked";
+        }
+
+        $("monthlyLimit").textContent =
+          `Planned monthly limit for ${rank}: ${monthlyLimits[rank].toLocaleString()} points.`;
+
+        $("status").textContent = "Rewards loaded successfully.";
+      } catch (error) {
+        console.error("Rewards loading error:", error);
+        $("status").textContent =
+          "Could not load rewards. Check your connection and try again.";
+      }
+    });
+  </script>
 
   <script type="module" src="js/faction-theme.js"></script>
 </body>
