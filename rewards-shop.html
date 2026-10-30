@@ -1,448 +1,83 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#11111b">
 <title>Reward Shop | Hysteria's Cure</title>
-
 <link rel="stylesheet" href="css/style.css">
 <link rel="stylesheet" href="css/faction-themes.css">
 
 <style>
-:root {
-  --bg: #101018;
-  --panel: #191925;
-  --panel2: #242238;
-  --text: #f5f3ff;
-  --muted: #aaa7c2;
-  --line: rgba(255,255,255,.09);
-  --accent: #b99aff;
-  --purple: #7c5cff;
-  --green: #71e0b1;
-  --gold: #ffcf78;
+:root{--bg:#101018;--panel:#191925;--panel2:#242238;--text:#f5f3ff;--muted:#aaa7c2;--line:#ffffff16;--accent:#b99aff;--purple:#7c5cff;--green:#71e0b1;--gold:#ffcf78}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text)}
+.wrap{width:min(1180px,calc(100% - 28px));margin:auto;padding:20px 0 55px}
+nav{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:8px 0 22px}
+.brand{font-weight:900}
+.brand span{color:var(--accent)}
+.links{display:flex;gap:7px;flex-wrap:wrap}
+.links a{color:var(--muted);text-decoration:none;padding:9px 11px;border-radius:10px}
+.links a:hover,.links .active{background:var(--panel2);color:white}
+.hero{padding:clamp(24px,5vw,46px);border:1px solid var(--line);border-radius:26px;background:radial-gradient(circle at 90% 10%,#9d6fff44,transparent 35%),linear-gradient(135deg,#241d3b,#171725 65%,#292039)}
+.eyebrow{color:var(--accent);font-size:.78rem;font-weight:800;letter-spacing:1.5px;text-transform:uppercase}
+h1{font-size:clamp(2.1rem,5vw,3.5rem);line-height:1.05;margin:12px 0}
+.hero p{color:#d1cde3;line-height:1.65;max-width:730px}
+.wallet{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+.wallet div{background:#09091170;border:1px solid var(--line);border-radius:14px;padding:13px 16px;min-width:140px}
+.wallet small{display:block;color:var(--muted);margin-bottom:5px}
+.wallet strong{font-size:1.15rem}
+.status{color:var(--muted);font-size:.85rem;margin-top:13px}
+.notice{margin:18px 0 26px;padding:13px 15px;border-radius:13px;border:1px solid #ffcf7844;background:#ffcf780d;color:#f7dfb2;font-size:.9rem;line-height:1.55}
+.head{display:flex;justify-content:space-between;align-items:end;gap:12px;flex-wrap:wrap;margin:32px 0 15px}
+.head h2{margin:0 0 5px}
+.head p{margin:0;color:var(--muted);font-size:.9rem}
+.tabs,.tools{display:flex;gap:8px;flex-wrap:wrap;margin:15px 0}
+.tab{border:1px solid var(--line);background:var(--panel);color:var(--muted);padding:10px 14px;border-radius:999px;cursor:pointer;font-weight:750}
+.tab.active{color:white;border-color:#b99aff99;background:#7c5cff33}
+.tools input,.tools select{min-width:0;background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:11px;padding:12px}
+.tools input{flex:1 1 230px}
+.tools select{flex:0 1 190px}
+.tools option{background:var(--panel)}
+.strip{display:flex;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:14px 16px;margin:21px 0 13px}
+.icon{width:45px;height:45px;display:grid;place-items:center;border-radius:13px;background:#b99aff20;font-size:1.4rem}
+.strip h3{margin:0 0 4px}
+.strip p{margin:0;color:var(--muted);font-size:.87rem}
+.strip .spacer{flex:1}
+.count{font-size:.8rem;color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.card{background:linear-gradient(160deg,var(--panel),#15151f);border:1px solid var(--line);border-radius:19px;padding:17px;display:flex;flex-direction:column;min-width:0;transition:.18s}
+.card:hover{transform:translateY(-3px);border-color:#b99aff77}
+.cardtop{display:flex;justify-content:space-between;align-items:start;gap:10px}
+.producticon{width:50px;height:50px;border-radius:14px;background:var(--panel2);display:grid;place-items:center;font-size:1.5rem}
+.badge{font-size:.7rem;font-weight:850;padding:6px 8px;border-radius:99px;background:#ffcf7818;color:var(--gold)}
+.badge.available{background:#71e0b118;color:var(--green)}
+.card h3{font-size:1.04rem;margin:15px 0 7px}
+.desc{color:var(--muted);font-size:.88rem;line-height:1.5;margin:0 0 14px;flex:1}
+.cat{color:var(--muted);font-size:.76rem;margin-bottom:12px}
+.cardfoot{display:flex;align-items:center;justify-content:space-between;gap:10px;border-top:1px solid var(--line);padding-top:13px}
+.cost{font-weight:850}
+.cost small{display:block;color:var(--muted);font-size:.7rem;font-weight:500;margin-top:3px}
+.card button{border:0;border-radius:10px;padding:10px 12px;background:linear-gradient(135deg,var(--purple),#9d6fff);color:white;font-weight:800;cursor:pointer}
+.card button:disabled{background:#343344;color:#aaa7b9;cursor:not-allowed}
+.empty,.history{padding:20px;border:1px dashed var(--line);border-radius:15px;color:var(--muted)}
+.history{border-style:solid;background:var(--panel)}
+.historyrow{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.historyrow:last-child{border:0}
+.historyrow p{margin:4px 0 0;font-size:.82rem;color:var(--muted)}
+.foot{color:var(--muted);font-size:.8rem;line-height:1.55}
+.toast{display:none;position:fixed;bottom:18px;left:50%;transform:translateX(-50%);max-width:calc(100% - 24px);padding:12px 16px;background:#28243a;border:1px solid var(--line);border-radius:12px;z-index:5}
+.toast.show{display:block}
+
+@media(max-width:850px){
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
-
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  background: var(--bg);
-  color: var(--text);
-}
-
-.wrap {
-  width: min(1180px, calc(100% - 28px));
-  margin: auto;
-  padding: 20px 0 55px;
-}
-
-nav {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-  padding: 8px 0 22px;
-}
-
-.brand {
-  font-weight: 900;
-}
-
-.brand span {
-  color: var(--accent);
-}
-
-.links {
-  display: flex;
-  gap: 7px;
-  flex-wrap: wrap;
-}
-
-.links a {
-  color: var(--muted);
-  text-decoration: none;
-  padding: 9px 11px;
-  border-radius: 10px;
-}
-
-.links a:hover,
-.links .active {
-  background: var(--panel2);
-  color: white;
-}
-
-.hero {
-  padding: clamp(24px, 5vw, 46px);
-  border: 1px solid var(--line);
-  border-radius: 26px;
-  background:
-    radial-gradient(circle at 90% 10%, #9d6fff44, transparent 35%),
-    linear-gradient(135deg, #241d3b, #171725 65%, #292039);
-}
-
-.eyebrow {
-  color: var(--accent);
-  font-size: .78rem;
-  font-weight: 800;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-}
-
-h1 {
-  font-size: clamp(2.1rem, 5vw, 3.5rem);
-  line-height: 1.05;
-  margin: 12px 0;
-}
-
-.hero p {
-  color: #d1cde3;
-  line-height: 1.65;
-  max-width: 730px;
-}
-
-.wallet {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-top: 22px;
-}
-
-.wallet div {
-  background: #09091170;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  padding: 13px 16px;
-  min-width: 140px;
-}
-
-.wallet small {
-  display: block;
-  color: var(--muted);
-  margin-bottom: 5px;
-}
-
-.wallet strong {
-  font-size: 1.15rem;
-}
-
-.status {
-  color: var(--muted);
-  font-size: .85rem;
-  margin-top: 13px;
-}
-
-.notice {
-  margin: 18px 0 26px;
-  padding: 13px 15px;
-  border-radius: 13px;
-  border: 1px solid #ffcf7844;
-  background: #ffcf780d;
-  color: #f7dfb2;
-  font-size: .9rem;
-  line-height: 1.55;
-}
-
-.head {
-  display: flex;
-  justify-content: space-between;
-  align-items: end;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin: 32px 0 15px;
-}
-
-.head h2 {
-  margin: 0 0 5px;
-}
-
-.head p {
-  margin: 0;
-  color: var(--muted);
-  font-size: .9rem;
-}
-
-.tabs,
-.tools {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin: 15px 0;
-}
-
-.tab {
-  border: 1px solid var(--line);
-  background: var(--panel);
-  color: var(--muted);
-  padding: 10px 14px;
-  border-radius: 999px;
-  cursor: pointer;
-  font-weight: 750;
-}
-
-.tab.active {
-  color: white;
-  border-color: #b99aff99;
-  background: #7c5cff33;
-}
-
-.tools input,
-.tools select {
-  min-width: 0;
-  background: var(--panel);
-  color: var(--text);
-  border: 1px solid var(--line);
-  border-radius: 11px;
-  padding: 12px;
-}
-
-.tools input {
-  flex: 1 1 230px;
-}
-
-.tools select {
-  flex: 0 1 190px;
-}
-
-.tools option {
-  background: var(--panel);
-}
-
-.strip {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 15px;
-  padding: 14px 16px;
-  margin: 21px 0 13px;
-}
-
-.icon {
-  width: 45px;
-  height: 45px;
-  display: grid;
-  place-items: center;
-  border-radius: 13px;
-  background: #b99aff20;
-  font-size: 1.4rem;
-}
-
-.strip h3 {
-  margin: 0 0 4px;
-}
-
-.strip p {
-  margin: 0;
-  color: var(--muted);
-  font-size: .87rem;
-}
-
-.strip .spacer {
-  flex: 1;
-}
-
-.count {
-  font-size: .8rem;
-  color: var(--muted);
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
-}
-
-.card {
-  background: linear-gradient(160deg, var(--panel), #15151f);
-  border: 1px solid var(--line);
-  border-radius: 19px;
-  padding: 17px;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  transition: transform .18s, border-color .18s;
-}
-
-.card:hover {
-  transform: translateY(-3px);
-  border-color: #b99aff77;
-}
-
-.cardtop {
-  display: flex;
-  justify-content: space-between;
-  align-items: start;
-  gap: 10px;
-}
-
-.producticon {
-  width: 50px;
-  height: 50px;
-  border-radius: 14px;
-  background: var(--panel2);
-  display: grid;
-  place-items: center;
-  font-size: 1.5rem;
-}
-
-.badge {
-  font-size: .7rem;
-  font-weight: 850;
-  padding: 6px 8px;
-  border-radius: 99px;
-  background: #ffcf7818;
-  color: var(--gold);
-}
-
-.badge.available {
-  background: #71e0b118;
-  color: var(--green);
-}
-
-.card h3 {
-  font-size: 1.04rem;
-  margin: 15px 0 7px;
-}
-
-.desc {
-  color: var(--muted);
-  font-size: .88rem;
-  line-height: 1.5;
-  margin: 0 0 14px;
-  flex: 1;
-}
-
-.cat {
-  color: var(--muted);
-  font-size: .76rem;
-  margin-bottom: 12px;
-}
-
-.cardfoot {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  border-top: 1px solid var(--line);
-  padding-top: 13px;
-}
-
-.cost {
-  font-weight: 850;
-}
-
-.cost small {
-  display: block;
-  color: var(--muted);
-  font-size: .7rem;
-  font-weight: 500;
-  margin-top: 3px;
-}
-
-.card button {
-  border: 0;
-  border-radius: 10px;
-  padding: 10px 12px;
-  background: linear-gradient(135deg, var(--purple), #9d6fff);
-  color: white;
-  font-weight: 800;
-  cursor: pointer;
-}
-
-.card button:disabled {
-  background: #343344;
-  color: #aaa7b9;
-  cursor: not-allowed;
-}
-
-.empty,
-.history {
-  padding: 20px;
-  border: 1px dashed var(--line);
-  border-radius: 15px;
-  color: var(--muted);
-}
-
-.history {
-  border-style: solid;
-  background: var(--panel);
-}
-
-.historyrow {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--line);
-}
-
-.historyrow:last-child {
-  border: 0;
-}
-
-.historyrow p {
-  margin: 4px 0 0;
-  font-size: .82rem;
-  color: var(--muted);
-}
-
-.foot {
-  color: var(--muted);
-  font-size: .8rem;
-  line-height: 1.55;
-}
-
-.toast {
-  display: none;
-  position: fixed;
-  bottom: 18px;
-  left: 50%;
-  transform: translateX(-50%);
-  max-width: calc(100% - 24px);
-  padding: 12px 16px;
-  background: #28243a;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  z-index: 5;
-}
-
-.toast.show {
-  display: block;
-}
-
-@media (max-width: 850px) {
-  .grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 560px) {
-  .wrap {
-    width: calc(100% - 20px);
-  }
-
-  .grid {
-    grid-template-columns: 1fr;
-  }
-
-  .count {
-    display: none;
-  }
-
-  .links a {
-    padding: 8px;
-    font-size: .85rem;
-  }
-
-  .wallet div {
-    flex: 1;
-    min-width: 110px;
-  }
+@media(max-width:560px){
+  .wrap{width:calc(100% - 20px)}
+  .grid{grid-template-columns:1fr}
+  .count{display:none}
+  .links a{padding:8px;font-size:.85rem}
+  .wallet div{flex:1;min-width:110px}
 }
 </style>
 </head>
@@ -452,7 +87,6 @@ h1 {
 
 <nav>
   <div class="brand">HYSTERIA'S <span>CURE</span></div>
-
   <div class="links">
     <a href="index.html">Home</a>
     <a href="student-dashboard.html">Dashboard</a>
@@ -465,7 +99,6 @@ h1 {
 <section class="hero">
   <div class="eyebrow">Your progress, your rewards</div>
   <h1>Reward Shop</h1>
-
   <p>
     Explore digital perks, subscriptions, game top-ups, learning tools,
     and exclusive Hysteria's Cure rewards. Browse the whole marketplace
@@ -477,28 +110,24 @@ h1 {
       <small>Available points</small>
       <strong id="points">—</strong>
     </div>
-
     <div>
       <small>Lifetime points</small>
       <strong id="lifetime">—</strong>
     </div>
-
     <div>
       <small>Your faction</small>
       <strong id="faction">—</strong>
     </div>
   </div>
 
-  <div class="status" id="accountStatus">
-    Connecting to your account…
-  </div>
+  <div class="status" id="accountStatus">Connecting to your account…</div>
 </section>
 
 <div class="notice">
   <strong>Availability:</strong>
-  Products marked “Coming soon” are catalogue ideas, not redeemable
-  products. External subscriptions and game top-ups will only be enabled
-  after regional availability and a legitimate fulfilment method are confirmed.
+  Products marked “Coming soon” are catalogue ideas, not redeemable products.
+  External subscriptions and game top-ups will only be enabled after regional
+  availability and a legitimate fulfilment method are confirmed.
 </div>
 
 <section id="catalogue">
@@ -507,7 +136,6 @@ h1 {
       <h2>Explore the catalogue</h2>
       <p>Search products or filter by faction, category, and availability.</p>
     </div>
-
     <span id="count" style="color:var(--muted)">Loading…</span>
   </div>
 
@@ -527,7 +155,7 @@ h1 {
       aria-label="Search rewards"
     >
 
-    <select id="category" aria-label="Filter by category">
+    <select id="category">
       <option value="all">All categories</option>
       <option value="subscriptions">Subscriptions</option>
       <option value="gaming">Gaming & top-ups</option>
@@ -539,7 +167,7 @@ h1 {
       <option value="vouchers">Vouchers & gift cards</option>
     </select>
 
-    <select id="availability" aria-label="Filter by availability">
+    <select id="availability">
       <option value="all">Any status</option>
       <option value="available">Available</option>
       <option value="soon">Coming soon</option>
@@ -562,11 +190,10 @@ h1 {
   </div>
 
   <p class="foot">
-    This first version records requests for review; it does not deduct
-    points or automatically deliver external products. Firebase client
-    configuration is public by design. Secure points deduction and
-    admin approval require suitable Realtime Database rules and trusted
-    validation.
+    This first version records requests for review; it does not deduct points
+    or automatically deliver external products. Firebase client configuration
+    is public by design. Secure points deduction and admin approval require
+    suitable Realtime Database rules and trusted validation.
   </p>
 </section>
 
@@ -583,16 +210,18 @@ import {
 
 import {
   ref,
-  get
+  get,
+  push,
+  set
 } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-database.js";
 
 
-/*
- * REWARD CATALOGUE
- *
- * Costs are planning values, not confirmed prices.
- * Products remain unavailable until fulfilment is implemented.
- */
+// ========================================
+// REWARD CATALOGUE
+// ========================================
+
+// These are catalogue costs, not automatically deducted points.
+// All external products remain unavailable until fulfilment is implemented.
 
 const rewards = [
 
@@ -970,21 +599,37 @@ const rewards = [
     tags: "seasonal event bundle"
   }
 
-].map(reward => ({
-  ...reward,
-  status: "soon"
-}));
+].map(reward => {
+  const internalRewards = [
+    "theme",
+    "nameplate",
+    "reader-pack",
+    "gamer-pack",
+    "movie-pack"
+  ];
 
+  const isInternal = internalRewards.includes(reward.id);
+
+  return {
+    ...reward,
+    status: isInternal ? "available" : "soon",
+    rewardType: isInternal ? "internal" : "external"
+  };
+});
+
+
+// ========================================
+// FACTION AND CATEGORY SETTINGS
+// ========================================
 
 const labels = {
   readers: "Readers",
   gamers: "Gamers",
   "movie-lovers": "Movie Lovers",
-  independent: "Independent",
   shared: "For everyone"
 };
 
-const factionMeta = {
+const meta = {
   readers: [
     "📚",
     "Readers",
@@ -1010,7 +655,7 @@ const factionMeta = {
   ]
 };
 
-const categoryNames = {
+const catNames = {
   subscriptions: "Subscriptions",
   gaming: "Gaming & top-ups",
   reading: "Books & reading",
@@ -1020,6 +665,11 @@ const categoryNames = {
   hysteria: "Hysteria's Cure",
   vouchers: "Vouchers & gift cards"
 };
+
+
+// ========================================
+// APPLICATION STATE
+// ========================================
 
 const state = {
   faction: "all",
@@ -1032,36 +682,46 @@ const state = {
 
 const $ = id => document.getElementById(id);
 
-const formatPoints = value =>
-  Number(value || 0).toLocaleString();
+const fmt = number =>
+  Number(number || 0).toLocaleString();
 
 
-function showToast(message) {
+// ========================================
+// NOTIFICATIONS
+// ========================================
+
+function toast(message) {
   $("toast").textContent = message;
   $("toast").classList.add("show");
 
-  clearTimeout(showToast.timer);
+  clearTimeout(toast.timer);
 
-  showToast.timer = setTimeout(() => {
+  toast.timer = setTimeout(() => {
     $("toast").classList.remove("show");
   }, 3500);
 }
 
 
-function getUserFaction() {
-  const profile = state.profile;
+// ========================================
+// USER FACTION
+// ========================================
 
+function userFaction() {
   const faction =
-    profile.faction ||
-    profile.profile?.faction ||
-    profile.account?.faction ||
+    state.profile.faction ||
+    state.profile.profile?.faction ||
+    state.profile.account?.faction ||
     "independent";
 
   return labels[faction] ? faction : "independent";
 }
 
 
-function getFilteredRewards() {
+// ========================================
+// FILTERING
+// ========================================
+
+function filtered() {
   return rewards.filter(reward => {
 
     const factionMatches =
@@ -1080,19 +740,17 @@ function getFilteredRewards() {
       state.availability === "all" ||
       reward.status === state.availability;
 
-    const query = state.search.trim().toLowerCase();
-
     const searchMatches =
-      !query ||
+      !state.search ||
       [
         reward.name,
         reward.desc,
         reward.tags,
-        categoryNames[reward.cat]
+        catNames[reward.cat]
       ]
         .join(" ")
         .toLowerCase()
-        .includes(query);
+        .includes(state.search.toLowerCase());
 
     return (
       factionMatches &&
@@ -1104,19 +762,29 @@ function getFilteredRewards() {
 }
 
 
-function renderProduct(reward) {
-  const statusLabel =
-    reward.status === "available"
-      ? "Available"
-      : "Coming soon";
+// ========================================
+// REWARD CARD
+// ========================================
+
+function card(reward) {
+  const available = reward.status === "available";
+
+  const buttonText = !available
+    ? "Coming soon"
+    : state.uid
+      ? "Request reward"
+      : "Sign in to redeem";
+
+  const buttonDisabled = !(available && state.uid);
 
   return `
     <article class="card">
 
       <div class="cardtop">
         <div class="producticon">${reward.icon}</div>
+
         <span class="badge ${reward.status}">
-          ${statusLabel}
+          ${available ? "Available" : "Coming soon"}
         </span>
       </div>
 
@@ -1125,28 +793,41 @@ function renderProduct(reward) {
       <p class="desc">${reward.desc}</p>
 
       <div class="cat">
-        ${categoryNames[reward.cat]}
+        ${catNames[reward.cat]}
+        ·
+        ${reward.rewardType === "internal"
+          ? "Internal reward"
+          : "External reward"}
       </div>
 
       <div class="cardfoot">
 
         <div class="cost">
-          ${formatPoints(reward.cost)} pts
-          <small>Planning cost · not final</small>
+          ${fmt(reward.cost)} pts
+          <small>Estimated cost</small>
         </div>
 
-        <button disabled title="Fulfilment is not set up">
-          Coming soon
+        <button
+          type="button"
+          data-reward-id="${reward.id}"
+          ${buttonDisabled ? "disabled" : ""}
+        >
+          ${buttonText}
         </button>
 
       </div>
+
     </article>
   `;
 }
 
 
-function renderCatalogue() {
-  const list = getFilteredRewards();
+// ========================================
+// RENDER THE CATALOGUE
+// ========================================
+
+function render() {
+  const list = filtered();
 
   $("count").textContent =
     `${list.length} reward${list.length === 1 ? "" : "s"}`;
@@ -1161,31 +842,34 @@ function renderCatalogue() {
     return;
   }
 
-  const groups =
-    state.faction === "all"
-      ? ["readers", "gamers", "movie-lovers", "shared"]
-      : [state.faction];
+  const groups = state.faction === "all"
+    ? ["readers", "gamers", "movie-lovers", "shared"]
+    : [state.faction];
 
-  $("catalogueOutput").innerHTML = groups.map(key => {
+  $("catalogueOutput").innerHTML = groups.map(faction => {
 
     const items = list.filter(reward =>
-      reward.f.includes(key)
+      reward.f.includes(faction)
     );
 
-    if (!items.length) return "";
+    if (!items.length) {
+      return "";
+    }
 
-    const meta = factionMeta[key];
+    const factionMeta = meta[faction];
 
     return `
       <section>
 
         <div class="strip">
 
-          <div class="icon">${meta[0]}</div>
+          <div class="icon">
+            ${factionMeta[0]}
+          </div>
 
           <div>
-            <h3>${meta[1]}</h3>
-            <p>${meta[2]}</p>
+            <h3>${factionMeta[1]}</h3>
+            <p>${factionMeta[2]}</p>
           </div>
 
           <div class="spacer"></div>
@@ -1197,7 +881,7 @@ function renderCatalogue() {
         </div>
 
         <div class="grid">
-          ${items.map(renderProduct).join("")}
+          ${items.map(card).join("")}
         </div>
 
       </section>
@@ -1207,35 +891,67 @@ function renderCatalogue() {
 }
 
 
-function renderHistory(requests) {
-  const panel = $("historyOutput");
+// ========================================
+// REDEMPTION HISTORY
+// ========================================
 
-  if (!requests.length) {
-    panel.textContent = "No redemption requests yet.";
+function escapeHTML(value) {
+  return String(value ?? "").replace(/[&<>"']/g, character => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  })[character]);
+}
+
+function renderHistory(rows) {
+  if (!rows.length) {
+    $("historyOutput").textContent =
+      "No redemption requests yet.";
+
     return;
   }
 
-  panel.innerHTML = requests
-    .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
-    .map(request => `
+  const sortedRows = rows.sort(
+    (a, b) => (b.createdAt || 0) - (a.createdAt || 0)
+  );
+
+  $("historyOutput").innerHTML = sortedRows.map(request => {
+
+    const rewardName = escapeHTML(
+      request.rewardName || "Reward request"
+    );
+
+    const createdAt = new Date(
+      request.createdAt || Date.now()
+    ).toLocaleString();
+
+    const cost = fmt(request.pointsCost);
+
+    const status = escapeHTML(
+      request.status || "pending review"
+    );
+
+    return `
       <div class="historyrow">
 
         <div>
-          <strong>
-            ${request.rewardName || "Reward request"}
-          </strong>
+          <strong>${rewardName}</strong>
 
           <p>
-            ${new Date(request.createdAt || Date.now()).toLocaleString()}
-            · ${formatPoints(request.pointsCost)} points
+            ${escapeHTML(createdAt)}
+            ·
+            ${cost} points
           </p>
         </div>
 
-        <span>${request.status || "pending review"}</span>
+        <span>${status}</span>
 
       </div>
-    `)
-    .join("");
+    `;
+
+  }).join("");
 }
 
 
@@ -1245,9 +961,9 @@ async function loadHistory(uid) {
       ref(database, `rewardRequests/${uid}`)
     );
 
-    renderHistory(
-      Object.values(snapshot.val() || {})
-    );
+    const requests = Object.values(snapshot.val() || {});
+
+    renderHistory(requests);
 
   } catch (error) {
     console.error("Could not load redemption history:", error);
@@ -1258,9 +974,172 @@ async function loadHistory(uid) {
 }
 
 
-/*
- * Search and filter controls.
- */
+// ========================================
+// REDEMPTION REQUESTS
+// ========================================
+
+// Only these five internal rewards can currently be requested.
+// External rewards remain unavailable.
+
+const INTERNAL_REWARDS = new Set([
+  "theme",
+  "nameplate",
+  "reader-pack",
+  "gamer-pack",
+  "movie-pack"
+]);
+
+let redemptionInProgress = false;
+
+
+async function requestReward(rewardId, button) {
+
+  if (!state.uid) {
+    toast("Please sign in before requesting a reward.");
+    return;
+  }
+
+  if (redemptionInProgress) {
+    return;
+  }
+
+  const reward = rewards.find(item => item.id === rewardId);
+
+  if (!reward || reward.status !== "available") {
+    toast("This reward is not currently available.");
+    return;
+  }
+
+  if (
+    !auth.currentUser ||
+    auth.currentUser.uid !== state.uid
+  ) {
+    toast("Please sign in again.");
+    return;
+  }
+
+  const confirmed = window.confirm(
+    `Request ${reward.name} for ${fmt(reward.cost)} points?\n\n` +
+    "This request will be reviewed. Points are not deducted by this page."
+  );
+
+  if (!confirmed) {
+    return;
+  }
+
+  redemptionInProgress = true;
+
+  if (button) {
+    button.disabled = true;
+    button.textContent = "Submitting...";
+  }
+
+  try {
+
+    const user = auth.currentUser;
+
+    // Read the user's current account record.
+    const accountSnapshot = await get(
+      ref(database, `users/${user.uid}`)
+    );
+
+    if (!accountSnapshot.exists()) {
+      throw new Error(
+        "Your account record could not be found."
+      );
+    }
+
+    const account = accountSnapshot.val() || {};
+
+    const progress =
+      account.progress ||
+      account.account?.progress ||
+      {};
+
+    const points = Number(
+      progress.points ??
+      account.points ??
+      0
+    );
+
+    if (!Number.isFinite(points) || points < 0) {
+      throw new Error("Your points balance is invalid.");
+    }
+
+    if (points < reward.cost) {
+      throw new Error(
+        `You need ${fmt(reward.cost)} points, ` +
+        `but have ${fmt(points)}.`
+      );
+    }
+
+    // Create a pending request under the authenticated user's UID.
+    const requestsRef = ref(
+      database,
+      `rewardRequests/${user.uid}`
+    );
+
+    const requestRef = push(requestsRef);
+
+    await set(requestRef, {
+      requestId: requestRef.key,
+      uid: user.uid,
+      rewardId: reward.id,
+      rewardName: reward.name,
+
+      rewardType: INTERNAL_REWARDS.has(reward.id)
+        ? "internal"
+        : "external",
+
+      pointsCost: reward.cost,
+      status: "pending",
+      createdAt: Date.now()
+    });
+
+    toast("Reward request submitted for review.");
+
+    await loadHistory(user.uid);
+
+  } catch (error) {
+
+    console.error("Reward request failed:", error);
+
+    toast(
+      error.message ||
+      "Unable to submit your request."
+    );
+
+  } finally {
+
+    redemptionInProgress = false;
+
+    render();
+  }
+}
+
+
+// ========================================
+// REWARD BUTTON EVENTS
+// ========================================
+
+$("catalogueOutput").addEventListener("click", event => {
+
+  const button = event.target.closest("[data-reward-id]");
+
+  if (!button || button.disabled) {
+    return;
+  }
+
+  requestReward(
+    button.dataset.rewardId,
+    button
+  );
+});
+
+
+// ========================================
+// FACTION TABS
+// ========================================
 
 document.querySelectorAll(".tab").forEach(button => {
 
@@ -1274,39 +1153,53 @@ document.querySelectorAll(".tab").forEach(button => {
 
     state.faction = button.dataset.faction;
 
-    renderCatalogue();
+    render();
   });
 
 });
 
 
+// ========================================
+// SEARCH AND FILTER CONTROLS
+// ========================================
+
 $("search").addEventListener("input", event => {
-  state.search = event.target.value.trim().toLowerCase();
-  renderCatalogue();
+
+  state.search = event.target.value
+    .trim()
+    .toLowerCase();
+
+  render();
 });
 
 
 $("category").addEventListener("change", event => {
+
   state.category = event.target.value;
-  renderCatalogue();
+
+  render();
 });
 
 
 $("availability").addEventListener("change", event => {
+
   state.availability = event.target.value;
-  renderCatalogue();
+
+  render();
 });
 
 
-/*
- * Firebase account integration.
- */
+// ========================================
+// FIREBASE AUTHENTICATION
+// ========================================
 
 onAuthStateChanged(auth, async user => {
 
   state.uid = user?.uid || null;
 
   if (!user) {
+
+    state.profile = {};
 
     $("points").textContent = "Sign in";
     $("lifetime").textContent = "—";
@@ -1318,7 +1211,7 @@ onAuthStateChanged(auth, async user => {
     $("historyOutput").textContent =
       "Sign in to view redemption history.";
 
-    renderCatalogue();
+    render();
 
     return;
   }
@@ -1331,25 +1224,27 @@ onAuthStateChanged(auth, async user => {
 
     state.profile = snapshot.val() || {};
 
-    const profile = state.profile;
-
     const progress =
-      profile.progress ||
-      profile.account?.progress ||
+      state.profile.progress ||
+      state.profile.account?.progress ||
       {};
 
-    $("points").textContent = formatPoints(
-      progress.points ?? profile.points ?? 0
-    );
+    const availablePoints =
+      progress.points ??
+      state.profile.points ??
+      0;
 
-    $("lifetime").textContent = formatPoints(
+    const lifetimePoints =
       progress.lifetimePoints ??
       progress.totalPointsEarned ??
-      0
-    );
+      0;
+
+    $("points").textContent = fmt(availablePoints);
+
+    $("lifetime").textContent = fmt(lifetimePoints);
 
     $("faction").textContent =
-      labels[getUserFaction()] || "Independent";
+      labels[userFaction()] || "Independent";
 
     $("accountStatus").textContent =
       `Signed in as ${user.displayName || user.email || "student"}.`;
@@ -1358,19 +1253,20 @@ onAuthStateChanged(auth, async user => {
 
   } catch (error) {
 
-    console.error("Could not load account:", error);
+    console.error("Account data could not be loaded:", error);
 
     $("accountStatus").textContent =
       "Signed in, but account data could not be loaded. Check Firebase Database rules.";
+
   }
 
-  renderCatalogue();
-
+  render();
 });
 
 
-renderCatalogue();
-</script>
+// Initial catalogue render.
+render();
 
+</script>
 </body>
 </html>
