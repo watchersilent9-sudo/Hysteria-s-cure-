@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -101,7 +102,7 @@ h1{font-size:clamp(2.1rem,5vw,3.5rem);line-height:1.05;margin:12px 0}
     <a href="student-dashboard.html">Dashboard</a>
     <a href="practice.html">Practice</a>
     <a href="rewards.html">Rewards</a>
-    <a class="active" href="rewards-shop.html">Reward Vault</a>
+    <a class="active" href="reward-vault.html">Reward Vault</a>
   </div>
 </nav>
 
@@ -141,11 +142,12 @@ h1{font-size:clamp(2.1rem,5vw,3.5rem);line-height:1.05;margin:12px 0}
   </div>
 
   <div class="tabs">
-    <button class="tab active" data-faction="all">All rewards</button>
-    <button class="tab" data-faction="readers">📚 Readers</button>
-    <button class="tab" data-faction="gamers">🎮 Gamers</button>
-    <button class="tab" data-faction="movie-lovers">🎬 Movie Lovers</button>
-    <button class="tab" data-faction="shared">✨ Everyone</button>
+    <button type="button" class="tab active" data-faction="all">All rewards</button>
+    <button type="button" class="tab" data-faction="readers">📚 Readers</button>
+    <button type="button" class="tab" data-faction="gamers">🎮 Gamers</button>
+    <button type="button" class="tab" data-faction="movie-lovers">🎬 Movie Lovers</button>
+    <button type="button" class="tab" data-faction="shared">✨ Everyone</button>
+    <button type="button" class="tab" data-faction="independent">Independent</button>
   </div>
 
   <div class="tools">
@@ -197,18 +199,20 @@ h1{font-size:clamp(2.1rem,5vw,3.5rem);line-height:1.05;margin:12px 0}
 
 <script type="module">
 import { auth, database } from "./js/firebase-client.js";
+
 import {
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
+
 import {
   ref, get, push, set
 } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-database.js";
 
 /*
  * REWARD VAULT
- * Keep this file named rewards-shop.html.
- * Catalogue prices are point costs, not real-world currency prices.
- * Only internal profile rewards are requestable in this version.
+ * Filename: reward-vault.html
+ * Catalogue costs are points, not real-world currency.
+ * Only internal profile rewards can currently be requested.
  */
 
 const internalIds = new Set([
@@ -503,6 +507,7 @@ const rawRewards = [
 
 const rewards = rawRewards.map(reward => {
   const isInternal = internalIds.has(reward.id);
+
   return {
     ...reward,
     status: isInternal ? "available" : "soon",
@@ -514,7 +519,8 @@ const factionLabels = {
   readers:"Readers",
   gamers:"Gamers",
   "movie-lovers":"Movie Lovers",
-  shared:"For everyone"
+  shared:"For everyone",
+  independent:"Independent"
 };
 
 const factionMeta = {
@@ -546,12 +552,20 @@ const state = {
 };
 
 const $ = id => document.getElementById(id);
-const formatNumber = value => Number(value || 0).toLocaleString();
+
+const formatNumber = value => {
+  const number = Number(value);
+  return Number.isFinite(number) && number >= 0
+    ? number.toLocaleString()
+    : "0";
+};
 
 function toast(message) {
   $("toast").textContent = message;
   $("toast").classList.add("show");
+
   clearTimeout(toast.timer);
+
   toast.timer = setTimeout(() => {
     $("toast").classList.remove("show");
   }, 3500);
@@ -574,14 +588,23 @@ function getUserFaction() {
     state.profile.account?.faction ??
     "independent";
 
-  return Object.hasOwn(factionLabels, value) ? value : "independent";
+  return Object.hasOwn(factionLabels, value)
+    ? value
+    : "independent";
 }
 
 function filteredRewards() {
   return rewards.filter(reward => {
-    const factionMatches =
-      state.faction === "all" ||
-      reward.f.includes(state.faction);
+    let factionMatches = true;
+
+    if (state.faction === "readers" ||
+        state.faction === "gamers" ||
+        state.faction === "movie-lovers" ||
+        state.faction === "shared") {
+      factionMatches = reward.f.includes(state.faction);
+    } else if (state.faction === "independent") {
+      factionMatches = reward.f.includes("shared");
+    }
 
     const categoryMatches =
       state.category === "all" ||
@@ -601,13 +624,16 @@ function filteredRewards() {
     const searchMatches =
       !state.search || searchText.includes(state.search);
 
-    return factionMatches && categoryMatches &&
-      availabilityMatches && searchMatches;
+    return factionMatches &&
+      categoryMatches &&
+      availabilityMatches &&
+      searchMatches;
   });
 }
 
 function renderCard(reward) {
   const available = reward.status === "available";
+
   const buttonText = !available
     ? "Coming soon"
     : state.uid
@@ -617,7 +643,8 @@ function renderCard(reward) {
   return `
     <article class="card">
       <div class="cardtop">
-        <div class="producticon">${reward.icon}</div>
+        <div class="producticon">${escapeHTML(reward.icon)}</div>
+
         <span class="badge ${available ? "available" : ""}">
           ${available ? "Available" : "Coming soon"}
         </span>
@@ -627,7 +654,7 @@ function renderCard(reward) {
       <p class="desc">${escapeHTML(reward.desc)}</p>
 
       <div class="cat">
-        ${escapeHTML(categoryNames[reward.cat])}
+        ${escapeHTML(categoryNames[reward.cat] || "Other")}
         · ${available ? "Internal reward" : "External / planned reward"}
       </div>
 
@@ -636,6 +663,7 @@ function renderCard(reward) {
           ${formatNumber(reward.cost)} pts
           <small>Catalogue cost</small>
         </div>
+
         <button type="button"
           data-reward-id="${escapeHTML(reward.id)}"
           ${available && state.uid ? "" : "disabled"}>
@@ -648,6 +676,7 @@ function renderCard(reward) {
 
 function render() {
   const list = filteredRewards();
+
   $("count").textContent =
     `${list.length} reward${list.length === 1 ? "" : "s"}`;
 
@@ -657,12 +686,24 @@ function render() {
     return;
   }
 
-  const groups = state.faction === "all"
-    ? ["readers","gamers","movie-lovers","shared"]
-    : [state.faction];
+  let groups;
+
+  if (state.faction === "all") {
+    groups = ["readers","gamers","movie-lovers","shared"];
+  } else if (
+    state.faction === "independent" ||
+    state.faction === "shared"
+  ) {
+    groups = ["shared"];
+  } else {
+    groups = [state.faction];
+  }
 
   $("catalogueOutput").innerHTML = groups.map(faction => {
-    const items = list.filter(reward => reward.f.includes(faction));
+    const items = list.filter(reward =>
+      reward.f.includes(faction)
+    );
+
     if (!items.length) return "";
 
     const info = factionMeta[faction];
@@ -671,11 +712,19 @@ function render() {
       <section>
         <div class="strip">
           <div class="icon">${info[0]}</div>
-          <div><h3>${info[1]}</h3><p>${info[2]}</p></div>
+
+          <div>
+            <h3>${info[1]}</h3>
+            <p>${info[2]}</p>
+          </div>
+
           <div class="spacer"></div>
           <span class="count">${items.length} items</span>
         </div>
-        <div class="grid">${items.map(renderCard).join("")}</div>
+
+        <div class="grid">
+          ${items.map(renderCard).join("")}
+        </div>
       </section>
     `;
   }).join("");
@@ -687,11 +736,18 @@ function renderHistory(rows) {
     return;
   }
 
-  rows.sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0));
+  rows.sort((a, b) =>
+    Number(b.createdAt || 0) - Number(a.createdAt || 0)
+  );
 
   $("historyOutput").innerHTML = rows.map(request => {
     const name = escapeHTML(request.rewardName || "Reward request");
-    const date = new Date(Number(request.createdAt || Date.now())).toLocaleString();
+
+    const timestamp = Number(request.createdAt);
+    const date = Number.isFinite(timestamp) && timestamp > 0
+      ? new Date(timestamp).toLocaleString()
+      : "Date unavailable";
+
     const cost = formatNumber(request.pointsCost);
     const status = escapeHTML(request.status || "pending");
 
@@ -701,6 +757,7 @@ function renderHistory(rows) {
           <strong>${name}</strong>
           <p>${escapeHTML(date)} · ${cost} points</p>
         </div>
+
         <span>${status}</span>
       </div>
     `;
@@ -708,17 +765,35 @@ function renderHistory(rows) {
 }
 
 async function loadHistory(uid) {
+  if (!uid || uid !== state.uid) return;
+
   try {
-    const snapshot = await get(ref(database, `rewardRequests/${uid}`));
-    const value = snapshot.val() || {};
-    const rows = Object.values(value).filter(
-      item => item && typeof item === "object"
+    const snapshot = await get(
+      ref(database, `rewardRequests/${uid}`)
     );
+
+    if (uid !== state.uid) return;
+
+    const value = snapshot.val() || {};
+
+    const rows = Object.entries(value)
+      .filter(([, item]) =>
+        item && typeof item === "object"
+      )
+      .map(([requestId, item]) => ({
+        ...item,
+        requestId
+      }));
+
     renderHistory(rows);
+
   } catch (error) {
     console.error("Could not load redemption history:", error);
-    $("historyOutput").textContent =
-      "History unavailable. Check Firebase Realtime Database rules.";
+
+    if (uid === state.uid) {
+      $("historyOutput").textContent =
+        "History unavailable. Check Firebase Realtime Database rules.";
+    }
   }
 }
 
@@ -732,7 +807,9 @@ async function requestReward(rewardId, button) {
 
   if (redemptionInProgress) return;
 
-  const reward = rewards.find(item => item.id === rewardId);
+  const reward = rewards.find(item =>
+    item.id === rewardId
+  );
 
   if (!reward || !internalIds.has(reward.id)) {
     toast("This reward is not currently available.");
@@ -761,15 +838,29 @@ async function requestReward(rewardId, button) {
   }
 
   try {
-    const accountSnapshot = await get(ref(database, `users/${user.uid}`));
+    const accountSnapshot = await get(
+      ref(database, `users/${user.uid}`)
+    );
+
+    if (user.uid !== state.uid || !auth.currentUser ||
+        auth.currentUser.uid !== user.uid) {
+      throw new Error("Your session changed. Please try again.");
+    }
 
     if (!accountSnapshot.exists()) {
       throw new Error("Your account record could not be found.");
     }
 
     const account = accountSnapshot.val() || {};
-    const progress = account.progress || account.account?.progress || {};
-    const points = Number(progress.points ?? account.points ?? 0);
+
+    const progress =
+      account.progress ||
+      account.account?.progress ||
+      {};
+
+    const points = Number(
+      progress.points ?? account.points ?? 0
+    );
 
     if (!Number.isFinite(points) || points < 0) {
       throw new Error("Your points balance is invalid.");
@@ -781,7 +872,9 @@ async function requestReward(rewardId, button) {
       );
     }
 
-    const requestRef = push(ref(database, `rewardRequests/${user.uid}`));
+    const requestRef = push(
+      ref(database, `rewardRequests/${user.uid}`)
+    );
 
     await set(requestRef, {
       requestId:requestRef.key,
@@ -795,28 +888,43 @@ async function requestReward(rewardId, button) {
     });
 
     toast("Your request has been submitted for review.");
+
     await loadHistory(user.uid);
 
   } catch (error) {
     console.error("Reward request failed:", error);
-    toast(error.message || "Unable to submit your request.");
+
+    toast(
+      error?.message || "Unable to submit your request."
+    );
+
   } finally {
     redemptionInProgress = false;
-    render();
+
+    if (state.uid) {
+      render();
+    }
   }
 }
 
 $("catalogueOutput").addEventListener("click", event => {
   const button = event.target.closest("[data-reward-id]");
+
   if (!button || button.disabled) return;
+
   requestReward(button.dataset.rewardId, button);
 });
 
 document.querySelectorAll(".tab").forEach(button => {
   button.addEventListener("click", () => {
-    document.querySelectorAll(".tab").forEach(tab => tab.classList.remove("active"));
+    document.querySelectorAll(".tab").forEach(tab => {
+      tab.classList.remove("active");
+    });
+
     button.classList.add("active");
+
     state.faction = button.dataset.faction;
+
     render();
   });
 });
@@ -836,52 +944,94 @@ $("availability").addEventListener("change", event => {
   render();
 });
 
+let authListenerVersion = 0;
+
 onAuthStateChanged(auth, async user => {
+  const listenerVersion = ++authListenerVersion;
+
   state.uid = user?.uid || null;
+  state.profile = {};
 
   if (!user) {
-    state.profile = {};
     $("points").textContent = "Sign in";
     $("lifetime").textContent = "—";
     $("faction").textContent = "Independent";
+
     $("accountStatus").textContent =
       "Browsing as a guest. Sign in to view your balance and requests.";
-    $("historyOutput").textContent = "Sign in to view redemption history.";
+
+    $("historyOutput").textContent =
+      "Sign in to view redemption history.";
+
     render();
     return;
   }
 
   $("accountStatus").textContent = "Loading your account…";
+  $("historyOutput").textContent = "Loading redemption history…";
+
+  render();
 
   try {
-    const snapshot = await get(ref(database, `users/${user.uid}`));
+    const snapshot = await get(
+      ref(database, `users/${user.uid}`)
+    );
+
+    if (listenerVersion !== authListenerVersion ||
+        state.uid !== user.uid) {
+      return;
+    }
+
     state.profile = snapshot.val() || {};
 
-    const progress = state.profile.progress ||
-      state.profile.account?.progress || {};
+    const progress =
+      state.profile.progress ||
+      state.profile.account?.progress ||
+      {};
 
-    const points = progress.points ?? state.profile.points ?? 0;
+    const points = progress.points ??
+      state.profile.points ??
+      0;
+
     const lifetime = progress.lifetimePoints ??
-      progress.totalPointsEarned ?? "—";
+      progress.totalPointsEarned ??
+      null;
 
     $("points").textContent = formatNumber(points);
+
     $("lifetime").textContent =
-      lifetime === "—" ? "Not recorded" : formatNumber(lifetime);
+      lifetime === null
+        ? "Not recorded"
+        : formatNumber(lifetime);
 
     const faction = getUserFaction();
-    $("faction").textContent = factionLabels[faction] || "Independent";
+
+    $("faction").textContent =
+      factionLabels[faction] || "Independent";
 
     $("accountStatus").textContent =
       `Signed in as ${user.displayName || user.email || "student"}.`;
 
     await loadHistory(user.uid);
+
   } catch (error) {
     console.error("Account data could not be loaded:", error);
-    $("accountStatus").textContent =
-      "Signed in, but account data could not be loaded. Check Firebase Database rules.";
-  }
 
-  render();
+    if (listenerVersion === authListenerVersion &&
+        state.uid === user.uid) {
+      $("accountStatus").textContent =
+        "Signed in, but account data could not be loaded. Check Firebase Database rules.";
+
+      $("historyOutput").textContent =
+        "History unavailable. Check Firebase Database rules.";
+    }
+
+  } finally {
+    if (listenerVersion === authListenerVersion &&
+        state.uid === user.uid) {
+      render();
+    }
+  }
 });
 
 render();
