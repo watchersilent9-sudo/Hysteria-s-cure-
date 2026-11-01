@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -85,6 +84,7 @@
             border: 1px solid var(--border);
             border-radius: 8px;
             color: var(--text-secondary);
+            overflow-wrap: anywhere;
         }
 
         .admin-links {
@@ -101,6 +101,15 @@
             text-decoration: none;
             color: var(--text-primary);
         }
+
+        [hidden] {
+            display: none !important;
+        }
+
+        #admin-access-message {
+            width: min(1100px, 92%);
+            margin: 30px auto;
+        }
     </style>
 </head>
 
@@ -115,7 +124,12 @@
         </div>
     </header>
 
-    <main class="admin-container">
+    <p id="admin-access-message" class="admin-notice"
+       role="status" aria-live="polite">
+        Verifying administrator access...
+    </p>
+
+    <main class="admin-container" id="admin-content" hidden>
         <h1>Materials Management</h1>
         <p class="muted">
             Prepare and organise academic resources for the learning platform.
@@ -260,9 +274,27 @@
             </div>
 
             <p class="admin-notice">
-                File selection is a placeholder. Uploading, storing, reviewing,
-                and publishing resources will require backend integration.
+                Resource uploading and publishing will be connected to the
+                existing Supabase upload system in a later update.
             </p>
+        </section>
+
+        <!-- PENDING STUDENT SUBMISSIONS -->
+        <section class="admin-section">
+            <h2>Pending Material Submissions</h2>
+
+            <p class="muted">
+                Review academic resources submitted by students before
+                publishing them to the learning library.
+            </p>
+
+            <div id="pending-materials-list"
+                 class="admin-notice"
+                 role="status"
+                 aria-live="polite">
+                Pending submissions will appear here once the Supabase
+                database connection is integrated.
+            </div>
         </section>
 
         <section class="admin-section">
@@ -275,16 +307,42 @@
                 <a href="admin.html">Admin Dashboard</a>
             </div>
         </section>
-
-        <p class="admin-notice">
-            This page is currently a preparation interface, not a secure
-            publishing system. Admin-only access and Firebase saving must be
-            enforced before it handles real content.
-        </p>
     </main>
 
     <script type="module" src="js/faction-theme.js"></script>
 
+    <!-- ADMIN AUTHENTICATION -->
+    <script type="module">
+        import { auth } from "./js/firebase-client.js";
+
+        import {
+            onAuthStateChanged
+        } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
+
+        const ADMIN_UID = "RtaLjBtKSUgRnWB7ag06CLRCStM2";
+
+        const message = document.getElementById("admin-access-message");
+        const content = document.getElementById("admin-content");
+
+        onAuthStateChanged(auth, user => {
+            if (!user) {
+                window.location.replace("login.html");
+                return;
+            }
+
+            if (user.uid !== ADMIN_UID) {
+                content.hidden = true;
+                message.textContent =
+                    "Access denied. Administrator privileges required.";
+                return;
+            }
+
+            message.hidden = true;
+            content.hidden = false;
+        });
+    </script>
+
+    <!-- QUESTION PREVIEW -->
     <script>
         const previewButton = document.getElementById("preview-question");
         const preview = document.getElementById("question-preview");
@@ -308,7 +366,8 @@
             if (!subject || !topic || !difficulty || !question ||
                 options.some(option => !option) || answer === "" || !explanation) {
                 preview.hidden = false;
-                preview.textContent = "Complete all question fields before previewing.";
+                preview.textContent =
+                    "Complete all question fields before previewing.";
                 return;
             }
 
@@ -324,7 +383,8 @@
 
             options.forEach((option, index) => {
                 const line = document.createElement("p");
-                line.textContent = String.fromCharCode(65 + index) + ". " + option;
+                line.textContent =
+                    String.fromCharCode(65 + index) + ". " + option;
                 preview.appendChild(line);
             });
 
