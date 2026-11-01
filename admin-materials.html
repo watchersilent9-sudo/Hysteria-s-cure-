@@ -70,6 +70,11 @@
             cursor: pointer;
         }
 
+        .admin-button:disabled {
+            opacity: .6;
+            cursor: not-allowed;
+        }
+
         .admin-list {
             padding-left: 20px;
             overflow-wrap: anywhere;
@@ -102,6 +107,59 @@
             color: var(--text-primary);
         }
 
+        .pending-material-card {
+            padding: 18px;
+            margin: 14px 0;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: var(--bg-secondary);
+        }
+
+        .pending-material-card h3 {
+            margin-top: 0;
+            overflow-wrap: anywhere;
+        }
+
+        .material-details {
+            white-space: pre-line;
+            overflow-wrap: anywhere;
+            line-height: 1.7;
+            font-size: .9rem;
+            color: var(--text-secondary);
+        }
+
+        .material-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        .material-actions button {
+            margin: 0;
+        }
+
+        .approve-button {
+            border-color: #368d59;
+        }
+
+        .reject-button {
+            border-color: #a94d5b;
+        }
+
+        .pending-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        #pending-materials-message {
+            margin-top: 12px;
+        }
+
         [hidden] {
             display: none !important;
         }
@@ -109,6 +167,12 @@
         #admin-access-message {
             width: min(1100px, 92%);
             margin: 30px auto;
+        }
+
+        @media (max-width: 600px) {
+            .admin-section {
+                padding: 16px;
+            }
         }
     </style>
 </head>
@@ -288,13 +352,32 @@
                 publishing them to the learning library.
             </p>
 
-            <div id="pending-materials-list"
-                 class="admin-notice"
-                 role="status"
-                 aria-live="polite">
-                Pending submissions will appear here once the Supabase
-                database connection is integrated.
+            <div class="pending-toolbar">
+                <p class="muted">
+                    Review materials submitted by students.
+                </p>
+
+                <button
+                    type="button"
+                    class="admin-button"
+                    id="refresh-pending-materials">
+                    Refresh Submissions
+                </button>
             </div>
+
+            <div id="pending-materials-list"
+                 role="region"
+                 aria-live="polite">
+                <p class="admin-notice">
+                    Waiting to load pending submissions...
+                </p>
+            </div>
+
+            <p id="pending-materials-message"
+               class="admin-notice"
+               role="status"
+               aria-live="polite"
+               hidden></p>
         </section>
 
         <section class="admin-section">
@@ -402,6 +485,350 @@
             preview.appendChild(explanationLine);
 
             preview.hidden = false;
+        });
+    </script>
+
+    <!-- SUPABASE PENDING MATERIAL MANAGEMENT -->
+    <script type="module">
+        import { auth } from "./js/firebase-client.js";
+
+        import {
+            onAuthStateChanged
+        } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
+
+        const ADMIN_UID = "RtaLjBtKSUgRnWB7ag06CLRCStM2";
+
+        const ADMIN_MATERIALS_URL =
+            "https://iltnklpuyifvnojiqrkh.supabase.co/functions/v1/admin-materials";
+
+        const listContainer =
+            document.getElementById("pending-materials-list");
+
+        const message =
+            document.getElementById("pending-materials-message");
+
+        const refreshButton =
+            document.getElementById("refresh-pending-materials");
+
+        let currentAdmin = null;
+        let loading = false;
+
+        function showMessage(text, isError = false) {
+            message.hidden = false;
+            message.textContent = text;
+            message.style.borderColor =
+                isError ? "#c75b68" : "var(--border)";
+        }
+
+        async function adminRequest(action, id = null) {
+            if (!currentAdmin || currentAdmin.uid !== ADMIN_UID) {
+                throw new Error("Administrator authentication required.");
+            }
+
+            const token = await currentAdmin.getIdToken();
+
+            const response = await fetch(ADMIN_MATERIALS_URL, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({ action, id })
+            });
+
+            let result;
+
+            try {
+                result = await response.json();
+            } catch {
+                throw new Error(
+                    `The server returned an unreadable response (${response.status}).`
+                );
+            }
+
+            if (!response.ok || !result.success) {
+                throw new Error(
+                    result.error || `Request failed (${response.status}).`
+                );
+            }
+
+            return result;
+        }
+
+        function createTextElement(tag, text, className = "") {
+            const element = document.createElement(tag);
+            element.textContent = text;
+
+            if (className) {
+                element.className = className;
+            }
+
+            return element;
+        }
+
+        function formatFileSize(bytes) {
+            const size = Number(bytes);
+
+            if (!Number.isFinite(size)) return "Unknown size";
+            if (size < 1024) return `${size} bytes`;
+            if (size < 1024 * 1024) {
+                return `${(size / 1024).toFixed(1)} KB`;
+            }
+
+            return `${(size / (1024 * 1024)).toFixed(2)} MB`;
+        }
+
+        function formatDate(value) {
+            const date = new Date(value);
+
+            if (Number.isNaN(date.getTime())) {
+                return "Unknown date";
+            }
+
+            return date.toLocaleString();
+        }
+
+        function createMaterialCard(material) {
+            const card = document.createElement("article");
+            card.className = "pending-material-card";
+
+            const title = createTextElement(
+                "h3",
+                material.title || material.original_filename || "Untitled material"
+            );
+
+            const details = createTextElement(
+                "p",
+                [
+                    `Subject: ${material.subject || "Not specified"}`,
+                    `Topic: ${material.topic || "Not specified"}`,
+                    `Filename: ${material.original_filename || "Unknown"}`,
+                    `Type: ${material.content_type || "Unknown"}`,
+                    `Size: ${formatFileSize(material.file_size)}`,
+                    `Uploader: ${material.uploaded_by || "Unknown"}`,
+                    `Uploader type: ${material.uploader_type || "Unknown"}`,
+                    `Submitted: ${formatDate(material.created_at)}`,
+                    `Notes: ${material.submission_notes || "None"}`
+                ].join("\n"),
+                "material-details"
+            );
+
+            const actions = document.createElement("div");
+            actions.className = "material-actions";
+
+            const previewButton = createTextElement(
+                "button",
+                "Preview",
+                "admin-button"
+            );
+
+            const approveButton = createTextElement(
+                "button",
+                "Approve",
+                "admin-button approve-button"
+            );
+
+            const rejectButton = createTextElement(
+                "button",
+                "Reject",
+                "admin-button reject-button"
+            );
+
+            previewButton.type = "button";
+            approveButton.type = "button";
+            rejectButton.type = "button";
+
+            previewButton.addEventListener("click", async () => {
+                const previewWindow = window.open("about:blank", "_blank");
+
+                if (!previewWindow) {
+                    alert("Please allow pop-ups to preview materials.");
+                    return;
+                }
+
+                previewButton.disabled = true;
+                previewButton.textContent = "Preparing preview...";
+
+                try {
+                    const result = await adminRequest(
+                        "preview",
+                        material.id
+                    );
+
+                    previewWindow.location.href = result.signedUrl;
+
+                } catch (error) {
+                    previewWindow.close();
+                    showMessage(error.message, true);
+
+                } finally {
+                    previewButton.disabled = false;
+                    previewButton.textContent = "Preview";
+                }
+            });
+
+            approveButton.addEventListener("click", async () => {
+                const confirmed = window.confirm(
+                    `Approve "${material.title}" and publish it to the Learning Library?`
+                );
+
+                if (!confirmed) return;
+
+                approveButton.disabled = true;
+                rejectButton.disabled = true;
+                previewButton.disabled = true;
+
+                approveButton.textContent = "Publishing...";
+
+                try {
+                    await adminRequest("approve", material.id);
+
+                    card.remove();
+
+                    showMessage(
+                        `"${material.title}" was successfully approved.`
+                    );
+
+                    if (!listContainer.querySelector(".pending-material-card")) {
+                        listContainer.textContent =
+                            "There are no pending submissions.";
+                    }
+
+                } catch (error) {
+                    showMessage(error.message, true);
+
+                    approveButton.disabled = false;
+                    rejectButton.disabled = false;
+                    previewButton.disabled = false;
+                    approveButton.textContent = "Approve";
+                }
+            });
+
+            rejectButton.addEventListener("click", async () => {
+                const confirmed = window.confirm(
+                    `Reject "${material.title}"?`
+                );
+
+                if (!confirmed) return;
+
+                approveButton.disabled = true;
+                rejectButton.disabled = true;
+                previewButton.disabled = true;
+
+                rejectButton.textContent = "Rejecting...";
+
+                try {
+                    await adminRequest("reject", material.id);
+
+                    card.remove();
+
+                    showMessage(
+                        `"${material.title}" was rejected.`
+                    );
+
+                    if (!listContainer.querySelector(".pending-material-card")) {
+                        listContainer.textContent =
+                            "There are no pending submissions.";
+                    }
+
+                } catch (error) {
+                    showMessage(error.message, true);
+
+                    approveButton.disabled = false;
+                    rejectButton.disabled = false;
+                    previewButton.disabled = false;
+                    rejectButton.textContent = "Reject";
+                }
+            });
+
+            actions.append(
+                previewButton,
+                approveButton,
+                rejectButton
+            );
+
+            card.append(title, details, actions);
+
+            return card;
+        }
+
+        async function loadPendingMaterials() {
+            if (loading) return;
+
+            loading = true;
+            refreshButton.disabled = true;
+
+            listContainer.textContent =
+                "Loading pending submissions...";
+
+            try {
+                const result = await adminRequest("list");
+
+                listContainer.replaceChildren();
+
+                if (
+                    !Array.isArray(result.materials) ||
+                    result.materials.length === 0
+                ) {
+                    listContainer.textContent =
+                        "There are no pending submissions.";
+                    return;
+                }
+
+                result.materials.forEach(material => {
+                    listContainer.appendChild(
+                        createMaterialCard(material)
+                    );
+                });
+
+                showMessage(
+                    `${result.materials.length} pending submission(s) loaded.`
+                );
+
+            } catch (error) {
+                console.error("Pending materials error:", error);
+
+                listContainer.textContent =
+                    "Could not load pending submissions.";
+
+                showMessage(error.message, true);
+
+            } finally {
+                loading = false;
+                refreshButton.disabled = false;
+            }
+        }
+
+        refreshButton.addEventListener(
+            "click",
+            loadPendingMaterials
+        );
+
+        onAuthStateChanged(auth, user => {
+            currentAdmin = null;
+            refreshButton.disabled = true;
+
+            if (!user) {
+                window.location.replace("login.html");
+                return;
+            }
+
+            if (user.uid !== ADMIN_UID) {
+                listContainer.textContent =
+                    "Access denied. Administrator privileges required.";
+
+                showMessage(
+                    "You are not authorised to manage materials.",
+                    true
+                );
+
+                return;
+            }
+
+            currentAdmin = user;
+            refreshButton.disabled = false;
+
+            loadPendingMaterials();
         });
     </script>
 </body>
