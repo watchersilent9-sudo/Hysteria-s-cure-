@@ -1,10 +1,14 @@
+
 /*
- * Hysteria's Cure — reliable question selector
- * Local questions remain available if Firebase is slow or unavailable.
+ * Hysteria's Cure — Firebase-first question selector
+ * Verified Firebase questions take priority.
+ * Local sample questions are used only when Firebase
+ * is unavailable or has no usable verified questions.
  */
 
 import { questionCatalogue } from "./question-catalogue.js";
 import { database } from "./firebase-client.js";
+
 import {
   get,
   ref
@@ -36,7 +40,9 @@ function prepareQuestion(question, id = question?.id) {
     question: String(question?.question ?? ""),
     difficulty: Number(question?.difficulty ?? 1),
     type: question?.type || "multiple-choice",
-    options: Array.isArray(question?.options) ? question.options : [],
+    options: Array.isArray(question?.options)
+      ? question.options
+      : [],
     answerIndex: Number(question?.answerIndex ?? 0),
     explanation: String(question?.explanation ?? "")
   };
@@ -44,6 +50,7 @@ function prepareQuestion(question, id = question?.id) {
 
 function isUsableQuestion(question) {
   return Boolean(
+    question &&
     question.id &&
     question.subject.trim() &&
     question.topic.trim() &&
@@ -51,6 +58,7 @@ function isUsableQuestion(question) {
     Number.isInteger(question.difficulty) &&
     question.difficulty >= 1 &&
     question.difficulty <= 7 &&
+    question.type === "multiple-choice" &&
     question.options.length >= 2 &&
     question.options.every(
       option =>
@@ -63,28 +71,27 @@ function isUsableQuestion(question) {
   );
 }
 
-function combineQuestions(localQuestions, remoteQuestions = []) {
-  const combined = new Map();
+function getLocalQuestions() {
+  return questionCatalogue
+    .map(item => prepareQuestion(item))
+    .filter(isUsableQuestion);
+}
 
-  // Add local questions first so the site can work without Firebase.
-  for (const item of localQuestions) {
-    const question = prepareQuestion(item);
-
-    if (isUsableQuestion(question)) {
-      combined.set(question.id, question);
-    }
+function getVerifiedRemoteQuestions(records) {
+  if (!records || typeof records !== "object") {
+    return [];
   }
 
-  // Add shared Firebase questions. Matching IDs replace local copies.
-  for (const item of remoteQuestions) {
-    const question = prepareQuestion(item, item?.id);
+  return Object.entries(records)
+    .map(([id, item]) => {
+      if (!item || item.verified !== true) {
+        return null;
+      }
 
-    if (isUsableQuestion(question)) {
-      combined.set(question.id, question);
-    }
-  }
-
-  return [...combined.values()];
+      return prepareQuestion(item, item.id || id);
+    })
+    .filter(Boolean)
+    .filter(isUsableQuestion);
 }
 
 function validateOptions(options = {}) {
@@ -133,7 +140,9 @@ function selectFromQuestions(questions, options = {}) {
     (options.excludeIds || []).map(String)
   );
 
-  const types = Array.isArray(options.types) ? options.types : [];
+  const types = Array.isArray(options.types)
+    ? options.types
+    : [];
 
   const candidates = questions.filter(question => {
     if (
@@ -180,64 +189,63 @@ function selectFromQuestions(questions, options = {}) {
 }
 
 /**
- * Select from the local catalogue only.
- * This remains available as a reliable fallback.
+ * Local catalogue only.
+ * Used as a fallback when Firebase cannot provide questions.
  */
 export function selectPracticeSet(options = {}) {
-  return selectFromQuestions(
-    combineQuestions(questionCatalogue),
-    options
-  );
+  return selectFromQuestions(getLocalQuestions(), options);
 }
 
 /**
- * Load shared questions from Firebase when possible.
- * If Firebase is unavailable or times out, use local questions instead.
+ * Firebase-first question loading.
+ * Only verified Firebase questions are accepted.
  */
 export async function selectPracticeSetAsync(options = {}) {
   let remoteQuestions = [];
 
   try {
-    const snapshot = await Promise.race([
-      get(ref(database, "questionBank")),
+    const snapshot = await new Promise((resolve, reject) => {
+      const timeoutId = setTimeout(() => {
+        reject(
+          new Error("Firebase question-bank request timed out.")
+        );
+      }, FIREBASE_TIMEOUT_MS);
 
-      new Promise((_, reject) => {
-        setTimeout(() => {
-          reject(
-            new Error("Firebase question-bank request timed out.")
-          );
-        }, FIREBASE_TIMEOUT_MS);
-      })
-    ]);
+      get(ref(database, "questionBank"))
+        .then(result => {
+          clearTimeout(timeoutId);
+          resolve(result);
+        })
+        .catch(error => {
+          clearTimeout(timeoutId);
+          reject(error);
+        });
+    });
 
     if (snapshot.exists()) {
-      const records = snapshot.val();
-
-      if (records && typeof records === "object") {
-        remoteQuestions = Object.entries(records).map(
-          ([id, question]) => ({
-            ...(question || {}),
-            id
-          })
-        );
-      }
+      remoteQuestions = getVerifiedRemoteQuestions(snapshot.val());
     }
+
   } catch (error) {
     console.warn(
-      "Using local questions because Firebase could not be loaded:",
+      "Firebase question bank unavailable. Using local fallback:",
       error
     );
   }
 
-  // This runs even when Firebase fails.
-  return selectFromQuestions(
-    combineQuestions(questionCatalogue, remoteQuestions),
-    options
+  if (remoteQuestions.length > 0) {
+    return selectFromQuestions(remoteQuestions, options);
+  }
+
+  console.warn(
+    "No usable verified Firebase questions found. Using local sample questions."
   );
+
+  return selectFromQuestions(getLocalQuestions(), options);
 }
 
 /**
- * Useful for checking the contents of the local catalogue.
+ * Statistics for the local catalogue.
  */
 export function getCatalogueStats() {
   const ids = new Set();
