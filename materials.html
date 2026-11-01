@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -78,6 +77,11 @@
             cursor: pointer;
         }
 
+        .materials-container button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
         .file-list {
             padding-left: 20px;
             overflow-wrap: anywhere;
@@ -109,6 +113,12 @@
             color: var(--text-secondary);
             margin-top: 15px;
         }
+
+        .upload-status {
+            margin-top: 12px;
+            font-size: 0.9rem;
+            overflow-wrap: anywhere;
+        }
     </style>
 </head>
 
@@ -125,6 +135,7 @@
     </header>
 
     <main class="materials-container">
+
         <section class="page-heading">
             <h1>My Learning Materials</h1>
             <p class="muted">
@@ -135,13 +146,17 @@
         <section class="materials-section">
             <h2>Add Materials</h2>
             <p class="muted">
-                Choose the material type, subject, and files you want to add.
+                Choose the material type, subject, and files you want to upload.
             </p>
 
             <div class="upload-grid">
+
+                <!-- TEXTBOOKS -->
                 <article class="upload-card">
                     <h3>Textbooks</h3>
-                    <p class="muted">Add textbooks for topic-based learning.</p>
+                    <p class="muted">
+                        Add textbooks for topic-based learning.
+                    </p>
 
                     <label for="textbook-subject">Subject</label>
                     <select id="textbook-subject">
@@ -158,18 +173,30 @@
                     <input
                         type="file"
                         id="textbook-files"
-                        accept=".pdf,.doc,.docx,.txt"
+                        accept=".pdf,.jpg,.jpeg,.png,.webp"
                         multiple
                     >
-                    <button type="button" data-list="textbook-files"
-                        data-output="textbook-list">Add to List</button>
+
+                    <button
+                        type="button"
+                        data-list="textbook-files"
+                        data-output="textbook-list"
+                    >
+                        Upload files
+                    </button>
+
+                    <p id="textbook-status" class="upload-status muted"
+                       aria-live="polite"></p>
 
                     <ul id="textbook-list" class="file-list"></ul>
                 </article>
 
+                <!-- PAST QUESTIONS -->
                 <article class="upload-card">
                     <h3>Past Questions</h3>
-                    <p class="muted">Keep exam practice resources organised.</p>
+                    <p class="muted">
+                        Keep exam practice resources organised.
+                    </p>
 
                     <label for="past-question-subject">Subject</label>
                     <select id="past-question-subject">
@@ -186,18 +213,30 @@
                     <input
                         type="file"
                         id="past-question-files"
-                        accept=".pdf,.doc,.docx,.txt"
+                        accept=".pdf,.jpg,.jpeg,.png,.webp"
                         multiple
                     >
-                    <button type="button" data-list="past-question-files"
-                        data-output="past-question-list">Add to List</button>
+
+                    <button
+                        type="button"
+                        data-list="past-question-files"
+                        data-output="past-question-list"
+                    >
+                        Upload files
+                    </button>
+
+                    <p id="past-question-status" class="upload-status muted"
+                       aria-live="polite"></p>
 
                     <ul id="past-question-list" class="file-list"></ul>
                 </article>
 
+                <!-- STUDY NOTES -->
                 <article class="upload-card">
                     <h3>Study Notes</h3>
-                    <p class="muted">Keep your personal notes together.</p>
+                    <p class="muted">
+                        Keep your personal notes together.
+                    </p>
 
                     <label for="notes-subject">Subject</label>
                     <select id="notes-subject">
@@ -214,39 +253,50 @@
                     <input
                         type="file"
                         id="notes-files"
-                        accept=".pdf,.doc,.docx,.txt"
+                        accept=".pdf,.jpg,.jpeg,.png,.webp"
                         multiple
                     >
-                    <button type="button" data-list="notes-files"
-                        data-output="notes-list">Add to List</button>
+
+                    <button
+                        type="button"
+                        data-list="notes-files"
+                        data-output="notes-list"
+                    >
+                        Upload files
+                    </button>
+
+                    <p id="notes-status" class="upload-status muted"
+                       aria-live="polite"></p>
 
                     <ul id="notes-list" class="file-list"></ul>
                 </article>
+
             </div>
 
             <p class="notice">
-                These controls currently show selected files in temporary page
-                lists. They do not upload files, save them to your account,
-                or analyse their contents yet.
+                Uploaded materials are stored privately through Supabase.
+                Student submissions may require administrator approval
+                before publication.
             </p>
         </section>
 
         <section class="materials-section">
             <h2>My Saved Materials</h2>
             <p class="muted">
-                Your uploaded and saved resources will appear here after
-                Firebase Storage and the material database are connected.
+                Successfully uploaded materials will be listed here once
+                the saved-material retrieval feature is connected.
             </p>
+
             <ul id="saved-materials" class="file-list">
-                <li>No saved materials loaded yet.</li>
+                <li>Saved-material retrieval is not connected yet.</li>
             </ul>
         </section>
 
         <section class="materials-section">
             <h2>Use Your Materials</h2>
             <p class="muted">
-                The planned question engine will use supported materials to
-                help create topic-focused practice questions and alternatives.
+                The question engine will eventually use supported materials
+                to help create topic-focused practice questions and alternatives.
             </p>
 
             <div class="materials-actions">
@@ -256,32 +306,193 @@
                 <a href="student-dashboard.html">Dashboard</a>
             </div>
         </section>
+
     </main>
 
     <script type="module" src="js/faction-theme.js"></script>
 
-    <script>
-        document.querySelectorAll("button[data-list]").forEach(button => {
-            button.addEventListener("click", () => {
-                const input = document.getElementById(button.dataset.list);
-                const output = document.getElementById(button.dataset.output);
+    <script type="module">
+        import { auth } from "./js/firebase-client.js";
+
+        const UPLOAD_URL =
+            "https://iltnklpuyifvnojiqrkh.supabase.co/functions/v1/smooth-responder";
+
+        const uploadButtons = document.querySelectorAll(
+            "button[data-list]"
+        );
+
+        uploadButtons.forEach(button => {
+
+            button.addEventListener("click", async () => {
+
+                const input = document.getElementById(
+                    button.dataset.list
+                );
+
+                const output = document.getElementById(
+                    button.dataset.output
+                );
 
                 if (!input || !output) return;
 
-                if (!input.files || input.files.length === 0) {
+                const files = Array.from(input.files || []);
+
+                const statusId =
+                    input.id === "textbook-files"
+                        ? "textbook-status"
+                        : input.id === "past-question-files"
+                        ? "past-question-status"
+                        : "notes-status";
+
+                const statusElement =
+                    document.getElementById(statusId);
+
+                if (files.length === 0) {
                     alert("Please select at least one file first.");
                     return;
                 }
 
-                Array.from(input.files).forEach(file => {
-                    const item = document.createElement("li");
-                    item.textContent = file.name;
-                    output.appendChild(item);
-                });
+                const subjectSelect =
+                    input.id === "textbook-files"
+                        ? document.getElementById("textbook-subject")
+                        : input.id === "past-question-files"
+                        ? document.getElementById("past-question-subject")
+                        : document.getElementById("notes-subject");
 
-                input.value = "";
+                if (!subjectSelect.value) {
+                    alert("Please choose a subject first.");
+                    return;
+                }
+
+                const user = auth.currentUser;
+
+                if (!user) {
+                    alert("Please sign in before uploading materials.");
+                    return;
+                }
+
+                button.disabled = true;
+
+                let successfulUploads = 0;
+                let failedUploads = 0;
+
+                try {
+
+                    const token = await user.getIdToken();
+
+                    for (let index = 0; index < files.length; index++) {
+
+                        const file = files[index];
+
+                        button.textContent =
+                            `Uploading ${index + 1} of ${files.length}...`;
+
+                        statusElement.textContent =
+                            `Uploading ${file.name}...`;
+
+                        const formData = new FormData();
+
+                        const title = file.name.replace(
+                            /\.[^.]+$/,
+                            ""
+                        );
+
+                        formData.append("file", file);
+                        formData.append("title", title);
+                        formData.append("subject", subjectSelect.value);
+                        formData.append("topic", "");
+                        formData.append("submission_notes", "");
+
+                        try {
+
+                            const response = await fetch(UPLOAD_URL, {
+                                method: "POST",
+                                headers: {
+                                    "Authorization": `Bearer ${token}`
+                                },
+                                body: formData
+                            });
+
+                            const result = await response.json();
+
+                            if (!response.ok || !result.success) {
+                                throw new Error(
+                                    result.error ||
+                                    `Upload failed for ${file.name}.`
+                                );
+                            }
+
+                            successfulUploads++;
+
+                            const item = document.createElement("li");
+
+                            item.textContent =
+                                `${file.name} — ${
+                                    result.status || "Uploaded"
+                                }`;
+
+                            output.appendChild(item);
+
+                        } catch (error) {
+
+                            failedUploads++;
+
+                            console.error(
+                                `Failed to upload ${file.name}:`,
+                                error
+                            );
+
+                            const item = document.createElement("li");
+
+                            item.textContent =
+                                `${file.name} — Failed: ${error.message}`;
+
+                            output.appendChild(item);
+                        }
+                    }
+
+                    statusElement.textContent =
+                        `${successfulUploads} uploaded successfully; ` +
+                        `${failedUploads} failed.`;
+
+                    if (successfulUploads === files.length) {
+                        input.value = "";
+                    }
+
+                    if (failedUploads === 0) {
+                        alert(
+                            "All selected materials were uploaded successfully."
+                        );
+                    } else {
+                        alert(
+                            `${successfulUploads} uploaded successfully. ` +
+                            `${failedUploads} failed. Check the upload list.`
+                        );
+                    }
+
+                } catch (error) {
+
+                    console.error("Material upload error:", error);
+
+                    statusElement.textContent =
+                        `Upload error: ${error.message}`;
+
+                    alert(
+                        error.message ||
+                        "Something went wrong while uploading."
+                    );
+
+                } finally {
+
+                    button.disabled = false;
+                    button.textContent = "Upload files";
+
+                }
+
             });
+
         });
     </script>
+
 </body>
 </html>
