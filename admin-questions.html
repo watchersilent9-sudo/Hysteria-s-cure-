@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#171525">
+  <title>Published Questions | Hysteria's Cure</title>
+  <link rel="stylesheet" href="css/faction-themes.css">
+
+  <style>
+    :root {
+      color-scheme: dark;
+      --background: var(--bg-primary, #11101b);
+      --panel: var(--bg-card, #1c1a2b);
+      --text: var(--text-primary, #f7f4ff);
+      --muted: var(--text-secondary, #b7b1ca);
+      --accent: var(--accent-bright, #c6a7ff);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--background);
+      color: var(--text);
+      font-family: system-ui, sans-serif;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding: 18px 6%;
+      background: var(--bg-secondary, var(--background));
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brand { font-weight: 800; }
+    .brand span { color: var(--accent); }
+
+    button, .action {
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 10px 14px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      background: var(--bg-secondary, #38334d);
+      color: var(--text);
+    }
+
+    .action {
+      background: var(--accent-dark, var(--accent));
+      color: white;
+    }
+
+    button:disabled {
+      opacity: .6;
+      cursor: wait;
+    }
+
+    main {
+      width: min(calc(100% - 28px), 1100px);
+      margin: 30px auto;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 22px;
+      margin-bottom: 20px;
+    }
+
+    h1, h2, h3 { margin-top: 0; }
+
+    .muted {
+      color: var(--muted);
+      font-size: .9rem;
+      line-height: 1.6;
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 11px;
+      border-radius: 9px;
+      background: var(--background);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font: inherit;
+    }
+
+    textarea {
+      min-height: 90px;
+      resize: vertical;
+    }
+
+    label {
+      display: block;
+      font-size: .9rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .form-group { margin-bottom: 15px; }
+
+    .question-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .question-card {
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      background: var(--background);
+      overflow: hidden;
+    }
+
+    .question-summary {
+      padding: 15px;
+      cursor: pointer;
+      list-style: none;
+    }
+
+    .question-summary::-webkit-details-marker { display: none; }
+
+    .question-summary::after {
+      content: "＋";
+      float: right;
+      color: var(--accent);
+      font-weight: 800;
+    }
+
+    details[open] .question-summary::after {
+      content: "−";
+    }
+
+    .question-title {
+      font-weight: 750;
+      line-height: 1.5;
+      overflow-wrap: anywhere;
+      margin: 8px 0;
+    }
+
+    .metadata {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      color: var(--muted);
+      font-size: .8rem;
+    }
+
+    .tag {
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 3px 9px;
+    }
+
+    .question-body {
+      padding: 16px;
+      border-top: 1px solid var(--border);
+    }
+
+    .option-preview {
+      margin: 7px 0;
+      padding: 9px;
+      border-radius: 7px;
+      background: var(--panel);
+      overflow-wrap: anywhere;
+    }
+
+    .correct {
+      border: 1px solid #4d9b68;
+    }
+
+    .edit-button { margin-top: 12px; }
+
+    .editor {
+      display: none;
+      margin-top: 15px;
+      padding: 16px;
+      border: 1px solid var(--accent);
+      border-radius: 10px;
+      background: var(--panel);
+    }
+
+    .editor.open { display: block; }
+
+    .editor-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+    }
+
+    .message {
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      margin: 15px 0;
+      overflow-wrap: anywhere;
+    }
+
+    .danger { color: #ffb5bd; }
+
+    [hidden] { display: none !important; }
+
+    @media (max-width: 650px) {
+      .toolbar { grid-template-columns: 1fr; }
+      .panel { padding: 16px; }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="brand">HYSTERIA'S <span>CURE</span> — QUESTION BANK</div>
+    <div>
+      <a class="action" href="admin.html">Admin Home</a>
+      <button id="logout-button" type="button">Log out</button>
+    </div>
+  </header>
+
+  <main>
+    <p id="page-message" class="message" role="status" aria-live="polite">
+      Verifying administrator access...
+    </p>
+
+    <div id="admin-content" hidden>
+      <section class="panel">
+        <h1>Published Questions</h1>
+        <p class="muted">
+          Browse and edit questions currently published in the question bank.
+          Changes are saved directly to Firebase.
+        </p>
+
+        <div class="toolbar">
+          <input id="search-input" type="search"
+                 placeholder="Search questions, IDs, or topics...">
+
+          <select id="subject-filter">
+            <option value="">All subjects</option>
+          </select>
+
+          <select id="difficulty-filter">
+            <option value="">All difficulty levels</option>
+            <option value="1">Star 1 — Foundation</option>
+            <option value="2">Star 2 — Understanding</option>
+            <option value="3">Star 3 — Application</option>
+            <option value="4">Star 4 — Analysis</option>
+            <option value="5">Star 5 — Multi-concept</option>
+            <option value="6">Star 6 — Advanced reasoning</option>
+            <option value="7">Star 7 — Mastery</option>
+          </select>
+        </div>
+
+        <p id="question-count" class="muted">Loading questions...</p>
+        <p id="list-message" class="muted" role="status"></p>
+
+        <div id="question-list" class="question-list"></div>
+      </section>
+
+      <section class="panel" id="editor-panel" hidden>
+        <h2>Edit Question</h2>
+        <p class="muted">
+          Question ID is fixed so existing references to this question remain valid.
+        </p>
+
+        <form id="edit-form">
+          <div class="form-group">
+            <label for="edit-id">Question ID</label>
+            <input id="edit-id" disabled>
+          </div>
+
+          <div class="form-group">
+            <label for="edit-subject">Subject</label>
+            <input id="edit-subject" maxlength="100" required>
+          </div>
+
+          <div class="form-group">
+            <label for="edit-topic">Topic</label>
+            <input id="edit-topic" maxlength="150" required>
+          </div>
+
+          <div class="form-group">
+            <label for="edit-difficulty">Difficulty</label>
+            <select id="edit-difficulty" required>
+              <option value="1">1 — Foundation recall</option>
+              <option value="2">2 — Understanding</option>
+              <option value="3">3 — Application</option>
+              <option value="4">4 — Analysis</option>
+              <option value="5">5 — Multi-concept</option>
+              <option value="6">6 — Advanced reasoning</option>
+              <option value="7">7 — Mastery</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="edit-question">Question</label>
+            <textarea id="edit-question" maxlength="10000" required></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Options (A–D; at least two required)</label>
+            <input class="edit-option" id="option-a"
+                   maxlength="2000" placeholder="Option A" required>
+            <input class="edit-option" id="option-b"
+                   maxlength="2000" placeholder="Option B"
+                   required style="margin-top:8px">
+            <input class="edit-option" id="option-c"
+                   maxlength="2000" placeholder="Option C"
+                   style="margin-top:8px">
+            <input class="edit-option" id="option-d"
+                   maxlength="2000" placeholder="Option D"
+                   style="margin-top:8px">
+          </div>
+
+          <div class="form-group">
+            <label for="edit-answer">Correct answer</label>
+            <select id="edit-answer" required>
+              <option value="0">A</option>
+              <option value="1">B</option>
+              <option value="2">C</option>
+              <option value="3">D</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="edit-explanation">Explanation</label>
+            <textarea id="edit-explanation" maxlength="10000"></textarea>
+          </div>
+
+          <div class="editor-actions">
+            <button class="action" id="save-button" type="submit">
+              Save Changes
+            </button>
+            <button id="cancel-button" type="button">
+              Cancel
+            </button>
+          </div>
+
+          <p id="edit-message" class="message" role="status"
+             aria-live="polite" hidden></p>
+        </form>
+      </section>
+    </div>
+  </main>
+
+  <script type="module">
+    import { auth, database } from "./js/firebase-client.js";
+
+    import {
+      onAuthStateChanged,
+      signOut
+    } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
+
+    import {
+      ref,
+      get,
+      update,
+      onValue
+    } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-database.js";
+
+    const ADMIN_UID = "RtaLjBtKSUgRnWB7ag06CLRCStM2";
+
+    const pageMessage = document.getElementById("page-message");
+    const adminContent = document.getElementById("admin-content");
+    const questionList = document.getElementById("question-list");
+    const questionCount = document.getElementById("question-count");
+    const listMessage = document.getElementById("list-message");
+    const editorPanel = document.getElementById("editor-panel");
+    const editForm = document.getElementById("edit-form");
+    const editMessage = document.getElementById("edit-message");
+    const saveButton = document.getElementById("save-button");
+
+    let currentAdmin = null;
+    let allQuestions = {};
+    let editingId = null;
+    let stopQuestionListener = null;
+
+    function isAdmin() {
+      return Boolean(
+        currentAdmin &&
+        auth.currentUser &&
+        currentAdmin.uid === ADMIN_UID &&
+        auth.currentUser.uid === ADMIN_UID
+      );
+    }
+
+    function escapeHTML(value) {
+      return String(value ?? "").replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+      })[char]);
+    }
+
+    function showEditMessage(message, error = false) {
+      editMessage.hidden = false;
+      editMessage.textContent = message;
+      editMessage.style.borderColor = error ? "#ff7777" : "var(--border)";
+    }
+
+    function getPublishedQuestions() {
+      return Object.entries(allQuestions)
+        .filter(([, question]) =>
+          question &&
+          typeof question === "object" &&
+          question.verified === true
+        )
+        .map(([id, question]) => ({
+          ...question,
+          id: question.id || id,
+          databaseId: id
+        }))
+        .sort((a, b) =>
+          String(a.subject || "").localeCompare(String(b.subject || "")) ||
+          String(a.topic || "").localeCompare(String(b.topic || "")) ||
+          String(a.id).localeCompare(String(b.id))
+        );
+    }
+
+    function updateSubjectFilter(questions) {
+      const filter = document.getElementById("subject-filter");
+      const previous = filter.value;
+
+      const subjects = [...new Set(
+        questions.map(q => String(q.subject || "").trim()).filter(Boolean)
+      )].sort();
+
+      filter.innerHTML = '<option value="">All subjects</option>';
+
+      subjects.forEach(subject => {
+        const option = document.createElement("option");
+        option.value = subject;
+        option.textContent = subject;
+        filter.appendChild(option);
+      });
+
+      if (subjects.includes(previous)) filter.value = previous;
+    }
+
+    function renderQuestions() {
+      const questions = getPublishedQuestions();
+
+      updateSubjectFilter(questions);
+
+      const search = document.getElementById("search-input")
+        .value.trim().toLowerCase();
+
+      const subject = document.getElementById("subject-filter").value;
+      const difficulty = document.getElementById("difficulty-filter").value;
+
+      const filtered = questions.filter(q => {
+        const searchable = [
+          q.id,
+          q.subject,
+          q.topic,
+          q.question
+        ].join(" ").toLowerCase();
+
+        return (!search || searchable.includes(search)) &&
+          (!subject || q.subject === subject) &&
+          (!difficulty || Number(q.difficulty) === Number(difficulty));
+      });
+
+      questionCount.textContent =
+        `${filtered.length} displayed / ${questions.length} published questions`;
+
+      if (!filtered.length) {
+        questionList.innerHTML = "";
+        listMessage.textContent = questions.length
+          ? "No questions match your filters."
+          : "No published questions found.";
+        return;
+      }
+
+      listMessage.textContent = "";
+
+      questionList.innerHTML = filtered.map(q => {
+        const id = escapeHTML(q.databaseId);
+        const question = escapeHTML(q.question || "No question text");
+        const subject = escapeHTML(q.subject || "Uncategorised");
+        const topic = escapeHTML(q.topic || "No topic");
+        const difficulty = Number(q.difficulty) || 1;
+        const options = Array.isArray(q.options) ? q.options : [];
+        const answerIndex = Number(q.answerIndex);
+
+        return `
+          <details class="question-card">
+            <summary class="question-summary">
+              <div class="metadata">
+                <span class="tag">${subject}</span>
+                <span class="tag">${topic}</span>
+                <span class="tag">Star ${difficulty}</span>
+                <span class="tag">ID: ${id}</span>
+              </div>
+              <div class="question-title">${question}</div>
+            </summary>
+
+            <div class="question-body">
+              ${options.map((option, index) => `
+                <div class="option-preview ${index === answerIndex ? "correct" : ""}">
+                  <strong>${String.fromCharCode(65 + index)}.</strong>
+                  ${escapeHTML(option)}
+                  ${index === answerIndex ? " — Correct answer" : ""}
+                </div>
+              `).join("")}
+
+              <p class="muted">
+                Explanation: ${escapeHTML(q.explanation || "No explanation provided.")}
+              </p>
+
+              <button type="button" class="action edit-button"
+                      data-edit-id="${id}">
+                Edit Question
+              </button>
+            </div>
+          </details>
+        `;
+      }).join("");
+    }
+
+    function openEditor(id) {
+      const question = allQuestions[id];
+
+      if (!question || question.verified !== true) {
+        showEditMessage("This question is no longer published.", true);
+        return;
+      }
+
+      editingId = id;
+
+      document.getElementById("edit-id").value = id;
+      document.getElementById("edit-subject").value = question.subject || "";
+      document.getElementById("edit-topic").value = question.topic || "";
+      document.getElementById("edit-difficulty").value =
+        String(question.difficulty || 1);
+      document.getElementById("edit-question").value =
+        question.question || "";
+
+      const options = Array.isArray(question.options)
+        ? question.options : [];
+
+      ["option-a", "option-b", "option-c", "option-d"]
+        .forEach((elementId, index) => {
+          document.getElementById(elementId).value = options[index] || "";
+        });
+
+      document.getElementById("edit-answer").value =
+        String(question.answerIndex ?? 0);
+
+      document.getElementById("edit-explanation").value =
+        question.explanation || "";
+
+      editMessage.hidden = true;
+      editorPanel.hidden = false;
+
+      editorPanel.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
+    }
+
+    questionList.addEventListener("click", event => {
+      const button = event.target.closest("[data-edit-id]");
+      if (!button) return;
+
+      if (!isAdmin()) return;
+
+      openEditor(button.dataset.editId);
+    });
+
+    editForm.addEventListener("submit", async event => {
+      event.preventDefault();
+
+      if (!isAdmin() || !editingId) {
+        showEditMessage("Administrator access is required.", true);
+        return;
+      }
+
+      const subject =
+        document.getElementById("edit-subject").value.trim();
+      const topic =
+        document.getElementById("edit-topic").value.trim();
+      const difficulty =
+        Number(document.getElementById("edit-difficulty").value);
+      const question =
+        document.getElementById("edit-question").value.trim();
+
+      const options = ["option-a", "option-b", "option-c", "option-d"]
+        .map(id => document.getElementById(id).value.trim())
+        .filter(Boolean);
+
+      const answerIndex =
+        Number(document.getElementById("edit-answer").value);
+
+      const explanation =
+        document.getElementById("edit-explanation").value.trim();
+
+      if (!subject || !topic || !question) {
+        showEditMessage("Subject, topic, and question are required.", true);
+        return;
+      }
+
+      if (
+        !Number.isInteger(difficulty) ||
+        difficulty < 1 ||
+        difficulty > 7
+      ) {
+        showEditMessage("Difficulty must be between 1 and 7.", true);
+        return;
+      }
+
+      if (options.length < 2 || options.length > 4) {
+        showEditMessage("Provide between two and four non-empty options.", true);
+        return;
+      }
+
+      if (
+        !Number.isInteger(answerIndex) ||
+        answerIndex < 0 ||
+        answerIndex >= options.length
+      ) {
+        showEditMessage("Select an existing option as the correct answer.", true);
+        return;
+      }
+
+      saveButton.disabled = true;
+      saveButton.textContent = "Saving...";
+
+      try {
+        const questionRef = ref(database, `questionBank/${editingId}`);
+        const latestSnapshot = await get(questionRef);
+
+        if (!latestSnapshot.exists()) {
+          throw new Error("Question no longer exists.");
+        }
+
+        const latest = latestSnapshot.val();
+
+        if (latest.verified !== true) {
+          throw new Error("This question is no longer published.");
+        }
+
+        await update(questionRef, {
+          subject,
+          topic,
+          difficulty,
+          question,
+          options,
+          answerIndex,
+          explanation,
+          type: latest.type || "multiple-choice",
+          updatedAt: new Date().toISOString(),
+          updatedBy: currentAdmin.uid
+        });
+
+        showEditMessage("Question updated successfully.");
+        editingId = null;
+        editorPanel.hidden = true;
+        editForm.reset();
+
+      } catch (error) {
+        console.error("Question update failed:", error);
+        showEditMessage(
+          error.message || "Could not update question. Check your connection and Firebase rules.",
+          true
+        );
+      } finally {
+        saveButton.disabled = false;
+        saveButton.textContent = "Save Changes";
+      }
+    });
+
+    document.getElementById("cancel-button").addEventListener("click", () => {
+      editingId = null;
+      editorPanel.hidden = true;
+      editForm.reset();
+    });
+
+    ["search-input", "subject-filter", "difficulty-filter"]
+      .forEach(id => {
+        document.getElementById(id).addEventListener(
+          id === "search-input" ? "input" : "change",
+          renderQuestions
+        );
+      });
+
+    function loadQuestions() {
+      if (stopQuestionListener) stopQuestionListener();
+
+      stopQuestionListener = onValue(
+        ref(database, "questionBank"),
+        snapshot => {
+          allQuestions = snapshot.val() || {};
+          renderQuestions();
+        },
+        error => {
+          console.error("Question bank load failed:", error);
+          listMessage.textContent =
+            "Could not load questions. Check your Firebase Database Rules and connection.";
+        }
+      );
+    }
+
+    onAuthStateChanged(auth, user => {
+      currentAdmin = null;
+
+      if (stopQuestionListener) {
+        stopQuestionListener();
+        stopQuestionListener = null;
+      }
+
+      if (!user) {
+        window.location.replace("login.html");
+        return;
+      }
+
+      if (user.uid !== ADMIN_UID) {
+        pageMessage.textContent =
+          "Access denied. Administrator privileges required.";
+        pageMessage.classList.add("danger");
+        adminContent.hidden = true;
+        return;
+      }
+
+      currentAdmin = user;
+      pageMessage.hidden = true;
+      adminContent.hidden = false;
+      loadQuestions();
+    });
+
+    document.getElementById("logout-button")
+      .addEventListener("click", async () => {
+        try {
+          await signOut(auth);
+          window.location.replace("login.html");
+        } catch (error) {
+          console.error("Logout failed:", error);
+          pageMessage.hidden = false;
+          pageMessage.textContent = "Could not log out. Please try again.";
+        }
+      });
+  </script>
+
+  <script type="module" src="js/faction-theme.js"></script>
+</body>
+</html>
