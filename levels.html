@@ -1,18 +1,38 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#11101b">
+  <meta name="description" content="Explore the Hysteria's Cure learning levels and track your advancement.">
   <title>Levels | Hysteria's Cure</title>
 
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/faction-themes.css">
 
   <style>
+    :root {
+      --level-bg: var(--bg-primary, #11101b);
+      --level-panel: var(--bg-secondary, #1c1a2b);
+      --level-card: var(--bg-card, #201d30);
+      --level-text: var(--text-primary, #f7f4ff);
+      --level-muted: var(--text-secondary, #b7b1ca);
+      --level-accent: var(--accent-bright, #c6a7ff);
+      --level-line: var(--border, #353148);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      background: var(--level-bg);
+      color: var(--level-text);
+    }
+
     .levels-container {
-      width: min(100% - 32px, 900px);
-      margin: 40px auto;
+      width: min(100% - 32px, 950px);
+      margin: 40px auto 65px;
     }
 
     .levels-heading {
@@ -20,35 +40,202 @@
       margin-bottom: 30px;
     }
 
+    .levels-heading h1 {
+      margin-bottom: 8px;
+    }
+
+    .levels-heading p {
+      color: var(--level-muted);
+    }
+
+    .current-progress {
+      padding: 25px;
+      margin-bottom: 30px;
+      border: 1px solid var(--level-line);
+      border-radius: 18px;
+      background: var(--level-panel);
+    }
+
+    .progress-label {
+      color: var(--level-muted);
+      font-size: .85rem;
+      font-weight: 750;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .current-level {
+      margin: 8px 0;
+      color: var(--level-accent);
+      font-size: clamp(1.8rem, 5vw, 2.5rem);
+      font-weight: 900;
+      overflow-wrap: anywhere;
+    }
+
+    .hell-notice {
+      display: none;
+      padding: 10px 13px;
+      margin: 12px 0;
+      border: 1px solid var(--level-accent);
+      border-radius: 10px;
+      color: var(--level-accent);
+      font-size: .88rem;
+      font-weight: 800;
+    }
+
+    .hell-notice.visible {
+      display: block;
+    }
+
+    .xp-summary {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 20px;
+      font-size: .9rem;
+    }
+
+    .xp-summary span:last-child {
+      color: var(--level-muted);
+    }
+
+    .progress-track {
+      height: 12px;
+      margin-top: 12px;
+      overflow: hidden;
+      border-radius: 30px;
+      background: var(--level-line);
+    }
+
+    .progress-fill {
+      width: 0;
+      height: 100%;
+      border-radius: inherit;
+      background: var(--level-accent);
+      transition: width .5s ease;
+    }
+
+    .next-milestone {
+      margin: 12px 0 0;
+      color: var(--level-muted);
+      font-size: .87rem;
+    }
+
     .levels-list {
       display: grid;
-      gap: 16px;
+      gap: 15px;
     }
 
     .level-card {
-      padding: 22px;
-      border-radius: 14px;
-      background: var(--bg-card, #1b1b2a);
-      color: var(--text-primary, #f4f2ff);
-      border: 1px solid var(--border, rgba(255,255,255,.1));
+      position: relative;
+      padding: 23px;
+      border-radius: 15px;
+      background: var(--level-card);
+      color: var(--level-text);
+      border: 1px solid var(--level-line);
+      transition: border-color .2s ease, background .2s ease;
+    }
+
+    .level-card.current {
+      border-color: var(--level-accent);
+      background:
+        linear-gradient(
+          120deg,
+          color-mix(in srgb, var(--level-accent) 9%, var(--level-card)),
+          var(--level-card)
+        );
+    }
+
+    .level-card.completed {
+      border-color: color-mix(in srgb, var(--level-accent) 35%, var(--level-line));
+    }
+
+    .level-card h2 {
+      margin: 0;
+      font-size: 1.3rem;
     }
 
     .level-card p {
-      color: var(--text-secondary, #aaa9c0);
+      color: var(--level-muted);
       line-height: 1.6;
+    }
+
+    .level-requirement {
+      margin: 12px 0;
+      font-size: .88rem;
+      font-weight: 750;
     }
 
     .level-status {
       display: inline-block;
-      padding: 5px 10px;
-      border-radius: 6px;
-      border: 1px solid var(--border, #777);
-      font-size: .85rem;
+      padding: 5px 11px;
+      border-radius: 7px;
+      border: 1px solid var(--level-line);
+      color: var(--level-muted);
+      font-size: .8rem;
+      font-weight: 750;
+    }
+
+    .level-card.current .level-status {
+      border-color: var(--level-accent);
+      color: var(--level-accent);
+    }
+
+    .level-card.completed .level-status {
+      color: var(--level-accent);
     }
 
     .advancement-note {
-      margin-top: 24px;
+      padding: 22px;
+      margin-top: 30px;
+      border: 1px solid var(--level-line);
+      border-radius: 15px;
+      background: var(--level-panel);
       line-height: 1.7;
+    }
+
+    .advancement-note h2 {
+      margin-top: 0;
+    }
+
+    .advancement-note p {
+      color: var(--level-muted);
+    }
+
+    #levels-message {
+      padding: 13px;
+      margin-bottom: 18px;
+      border-radius: 10px;
+      background: var(--level-panel);
+      color: var(--level-muted);
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    @media (max-width: 600px) {
+      .levels-container {
+        margin-top: 25px;
+      }
+
+      .current-progress,
+      .level-card {
+        padding: 18px;
+      }
+
+      .xp-summary {
+        font-size: .82rem;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        transition: none !important;
+      }
     }
   </style>
 </head>
@@ -56,69 +243,345 @@
 <body>
   <header class="site-header">
     <h2>Hysteria's Cure</h2>
+
     <nav>
       <a href="index.html">Home</a>
-      
       <a href="student-dashboard.html">Dashboard</a>
-      
       <a href="practice.html">Practice</a>
-      
       <a href="towers.html">Towers</a>
-      
       <a href="rewards.html">Rewards</a>
-      
       <a href="learning-library.html">Library</a>
     </nav>
   </header>
 
   <main class="levels-container">
+
     <section class="levels-heading">
       <h1>Levels and Advancement</h1>
-      <p>Build your knowledge and progress through the levels.</p>
+      <p>
+        Your advancement is determined by the experience
+        you accumulate through practice.
+      </p>
     </section>
 
-    <section class="levels-list">
-      <article class="level-card">
+    <p id="levels-message" role="status" aria-live="polite">
+      Checking your progress...
+    </p>
+
+    <!-- Current progression -->
+    <section class="current-progress" aria-labelledby="current-heading">
+
+      <span class="progress-label">Your current position</span>
+
+      <h2 class="current-level" id="current-heading">
+        Loading...
+      </h2>
+
+      <div class="hell-notice" id="hell-notice">
+        HELL STAGE — You have entered the final stage before Hell-Mastery.
+      </div>
+
+      <div class="xp-summary">
+        <strong id="current-xp">0 XP</strong>
+        <span id="next-xp">Loading next milestone...</span>
+      </div>
+
+      <div
+        class="progress-track"
+        id="level-progress-track"
+        role="progressbar"
+        aria-label="Progress towards next level"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        aria-valuenow="0"
+      >
+        <div class="progress-fill" id="level-progress-fill"></div>
+      </div>
+
+      <p class="next-milestone" id="next-milestone">
+        Your progress will appear here.
+      </p>
+
+    </section>
+
+    <!-- All levels -->
+    <section class="levels-list" aria-label="Learning levels">
+
+      <article class="level-card" id="level-basic">
         <h2>Basic</h2>
-        <p>Build a reliable foundation and understand essential concepts.</p>
-        <span class="level-status">Progression system pending</span>
+        <p>
+          Build a reliable foundation and understand
+          essential concepts.
+        </p>
+        <div class="level-requirement">Starting requirement: 0 XP</div>
+        <span class="level-status">Locked</span>
       </article>
 
-      <article class="level-card">
+      <article class="level-card" id="level-intermediate">
         <h2>Intermediate</h2>
-        <p>Apply what you have learned to increasingly challenging questions.</p>
-        <span class="level-status">Progression system pending</span>
+        <p>
+          Apply what you have learned to increasingly
+          challenging questions.
+        </p>
+        <div class="level-requirement">Required: 500 XP</div>
+        <span class="level-status">Locked</span>
       </article>
 
-      <article class="level-card">
+      <article class="level-card" id="level-mastery">
         <h2>Mastery</h2>
-        <p>Demonstrate strong understanding and solve multi-step problems.</p>
-        <span class="level-status">Progression system pending</span>
+        <p>
+          Demonstrate strong understanding and solve
+          multi-step problems.
+        </p>
+        <div class="level-requirement">Required: 7,500 XP</div>
+        <span class="level-status">Locked</span>
       </article>
 
-      <article class="level-card">
+      <article class="level-card" id="level-genius">
         <h2>Genius</h2>
-        <p>Handle advanced reasoning and unfamiliar problems.</p>
-        <span class="level-status">Progression system pending</span>
+        <p>
+          Handle advanced reasoning and unfamiliar
+          problems that demand deeper understanding.
+        </p>
+        <div class="level-requirement">Required: 30,000 XP</div>
+        <span class="level-status">Locked</span>
       </article>
 
-      <article class="level-card">
-        <h2>Hell-Mastery</h2>
-        <p>Take on the highest level of challenge and demonstrate exceptional mastery.</p>
-        <span class="level-status">Progression system pending</span>
+      <article class="level-card" id="level-hell">
+        <h2>Genius — Hell Stage</h2>
+        <p>
+          A demanding stage within Genius. This is the
+          final stretch before reaching Hell-Mastery.
+        </p>
+        <div class="level-requirement">Required: 70,000 XP</div>
+        <span class="level-status">Locked</span>
       </article>
+
+      <article class="level-card" id="level-hell-mastery">
+        <h2>Hell-Mastery</h2>
+        <p>
+          The highest established level in the current
+          progression system.
+        </p>
+        <div class="level-requirement">Required: 100,000 XP</div>
+        <span class="level-status">Locked</span>
+      </article>
+
     </section>
 
     <section class="advancement-note">
-      <h2>Advancement Exams</h2>
+      <h2>How advancement works</h2>
+
       <p>
-        Advancement will depend on both accuracy and speed.
-        The actual passing requirements, exam timer, and level
-        updates will be implemented when the progression system
-        is connected.
+        Your XP increases when you answer practice questions
+        correctly. The amount earned depends on the difficulty
+        of the question.
+      </p>
+
+      <p>
+        Incorrect answers reduce your available points, but
+        they do not remove your accumulated XP.
+      </p>
+
+      <p>
+        Your level changes automatically when your XP reaches
+        the next required milestone. Hell is a stage within
+        Genius, not a separate level.
       </p>
     </section>
+
   </main>
+
+  <script type="module">
+    import { auth, database } from "./js/firebase-client.js";
+
+    import {
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
+
+    import {
+      ref,
+      get
+    } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-database.js";
+
+    const levelsMessage = document.getElementById("levels-message");
+    const currentHeading = document.getElementById("current-heading");
+    const currentXp = document.getElementById("current-xp");
+    const nextXp = document.getElementById("next-xp");
+    const nextMilestone = document.getElementById("next-milestone");
+    const progressFill = document.getElementById("level-progress-fill");
+    const progressTrack = document.getElementById("level-progress-track");
+    const hellNotice = document.getElementById("hell-notice");
+
+    const levels = [
+      { id: "level-basic", name: "Basic", threshold: 0 },
+      { id: "level-intermediate", name: "Intermediate", threshold: 500 },
+      { id: "level-mastery", name: "Mastery", threshold: 7500 },
+      { id: "level-genius", name: "Genius", threshold: 30000 },
+      { id: "level-hell", name: "Genius — Hell Stage", threshold: 70000 },
+      { id: "level-hell-mastery", name: "Hell-Mastery", threshold: 100000 }
+    ];
+
+    function getProgression(xp) {
+      if (xp >= 100000) {
+        return {
+          level: "Hell-Mastery",
+          stage: "Hell-Mastery",
+          currentThreshold: 100000,
+          nextThreshold: null
+        };
+      }
+
+      if (xp >= 70000) {
+        return {
+          level: "Genius",
+          stage: "Hell",
+          currentThreshold: 70000,
+          nextThreshold: 100000
+        };
+      }
+
+      if (xp >= 30000) {
+        return {
+          level: "Genius",
+          stage: "Standard",
+          currentThreshold: 30000,
+          nextThreshold: 70000
+        };
+      }
+
+      if (xp >= 7500) {
+        return {
+          level: "Mastery",
+          stage: "Standard",
+          currentThreshold: 7500,
+          nextThreshold: 30000
+        };
+      }
+
+      if (xp >= 500) {
+        return {
+          level: "Intermediate",
+          stage: "Standard",
+          currentThreshold: 500,
+          nextThreshold: 7500
+        };
+      }
+
+      return {
+        level: "Basic",
+        stage: "Standard",
+        currentThreshold: 0,
+        nextThreshold: 500
+      };
+    }
+
+    function updateLevelCards(xp, progression) {
+      levels.forEach((level, index) => {
+        const card = document.getElementById(level.id);
+        const status = card.querySelector(".level-status");
+
+        card.classList.remove("current", "completed");
+
+        if (xp >= level.threshold) {
+          if (level.id === "level-hell" && xp < 100000) {
+            card.classList.add("current");
+            status.textContent = "Current stage";
+          } else if (level.id === "level-hell" && xp >= 100000) {
+            card.classList.add("completed");
+            status.textContent = "Completed stage";
+          } else if (level.name === progression.level) {
+            card.classList.add("current");
+            status.textContent = "Current level";
+          } else {
+            card.classList.add("completed");
+            status.textContent = "Completed";
+          }
+        } else {
+          status.textContent = "Locked";
+        }
+      });
+    }
+
+    function displayProgress(xp) {
+      const progression = getProgression(xp);
+
+      const currentName = progression.stage === "Hell"
+        ? "Genius — Hell Stage"
+        : progression.level;
+
+      currentHeading.textContent = currentName;
+      currentXp.textContent = `${xp.toLocaleString()} XP`;
+
+      hellNotice.classList.toggle(
+        "visible",
+        progression.stage === "Hell"
+      );
+
+      if (progression.nextThreshold === null) {
+        nextXp.textContent = "Highest established level";
+        nextMilestone.textContent =
+          "You have reached Hell-Mastery.";
+        progressFill.style.width = "100%";
+        progressTrack.setAttribute("aria-valuenow", "100");
+      } else {
+        const remaining = progression.nextThreshold - xp;
+        const range = progression.nextThreshold -
+          progression.currentThreshold;
+
+        const earned = xp - progression.currentThreshold;
+        const percentage = Math.min(
+          100,
+          Math.max(0, (earned / range) * 100)
+        );
+
+        progressFill.style.width = `${percentage}%`;
+        progressTrack.setAttribute(
+          "aria-valuenow",
+          Math.round(percentage)
+        );
+
+        nextXp.textContent =
+          `${remaining.toLocaleString()} XP to next milestone`;
+
+        nextMilestone.textContent =
+          `Next milestone: ${progression.nextThreshold.toLocaleString()} XP`;
+      }
+
+      updateLevelCards(xp, progression);
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        levelsMessage.textContent =
+          "Sign in to see your personal progression.";
+        displayProgress(0);
+        return;
+      }
+
+      levelsMessage.textContent = "Loading your progression...";
+
+      try {
+        const snapshot = await get(
+          ref(database, `users/${user.uid}/progress`)
+        );
+
+        const data = snapshot.exists() ? snapshot.val() : {};
+        const xp = Math.max(0, Number(data.xp) || 0);
+
+        displayProgress(xp);
+
+        levelsMessage.hidden = true;
+
+      } catch (error) {
+        console.error("Could not load level progression:", error);
+
+        levelsMessage.hidden = false;
+        levelsMessage.textContent =
+          "Your progression could not load. Check your connection and try again.";
+      }
+    });
+  </script>
 
   <script type="module" src="js/faction-theme.js"></script>
 </body>
