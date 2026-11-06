@@ -1,10 +1,16 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#11101b">
   <meta name="description" content="Your personal Hysteria's Cure learning space.">
-  <title>My Learning Space | Hysteria's Cure</title>  <link rel="stylesheet" href="css/faction-themes.css">  <style>
+
+  <title>My Learning Space | Hysteria's Cure</title>
+
+  <link rel="stylesheet" href="css/faction-themes.css">
+
+  <style>
     :root {
       color-scheme: dark;
       --background: var(--bg-primary, #11101b);
@@ -490,6 +496,97 @@
       transition: width .5s ease;
     }
 
+    /* Level progression */
+
+    .level-panel {
+      margin-top: 18px;
+      padding: 23px;
+      border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--line));
+      border-radius: 19px;
+      background:
+        radial-gradient(ellipse at 100% 0%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 60%),
+        var(--panel);
+    }
+
+    .level-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    .level-label {
+      color: var(--muted);
+      font-size: .76rem;
+      font-weight: 850;
+      letter-spacing: .13em;
+      text-transform: uppercase;
+    }
+
+    .level-name {
+      margin: 5px 0 0;
+      font-size: clamp(1.5rem, 4vw, 2rem);
+      font-weight: 900;
+      letter-spacing: -.04em;
+    }
+
+    .level-stage {
+      display: inline-block;
+      margin-top: 7px;
+      padding: 5px 10px;
+      border: 1px solid var(--line);
+      border-radius: 30px;
+      color: var(--accent);
+      font-size: .77rem;
+      font-weight: 800;
+    }
+
+    .level-xp {
+      color: var(--muted);
+      font-size: .86rem;
+      text-align: right;
+    }
+
+    .level-track {
+      height: 10px;
+      margin-top: 22px;
+      overflow: hidden;
+      border-radius: 30px;
+      background: var(--line);
+    }
+
+    .level-fill {
+      width: 0;
+      height: 100%;
+      border-radius: inherit;
+      background: var(--accent);
+      transition: width .5s ease;
+    }
+
+    .level-progress-note {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: .8rem;
+    }
+
+    .hell-notice {
+      margin-top: 17px;
+      padding: 13px 15px;
+      border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--line));
+      border-radius: 12px;
+      background: color-mix(in srgb, var(--accent) 7%, var(--background));
+      font-size: .86rem;
+    }
+
+    .hell-mastery {
+      color: var(--accent);
+      font-weight: 900;
+    }
+
     /* Quick access */
 
     .quick-grid {
@@ -952,6 +1049,14 @@
       .mistake-card {
         padding: 14px;
       }
+
+      .level-panel {
+        padding: 18px;
+      }
+
+      .level-progress-note {
+        flex-wrap: wrap;
+      }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -962,320 +1067,386 @@
         transition: none !important;
       }
     }
-  </style></head><body>
+  </style>
+</head>
+
+<body>
+
   <header class="topbar">
     <a class="brand" href="index.html" aria-label="Hysteria's Cure home">
       <span class="brand-mark" aria-hidden="true">H</span>
       <span>HYSTERIA'S <span>CURE</span></span>
-    </a><div class="topbar-right">
-  <span class="status-label">
-    <span class="status-dot" aria-hidden="true"></span>
-    Your learning space
-  </span>
+    </a>
 
-  <button class="logout-button" id="logout-button" type="button" hidden>
-    Log out
-  </button>
-</div>
+    <div class="topbar-right">
+      <span class="status-label">
+        <span class="status-dot" aria-hidden="true"></span>
+        Your learning space
+      </span>
 
-  </header>  <main>
+      <button class="logout-button" id="logout-button" type="button" hidden>
+        Log out
+      </button>
+    </div>
+  </header>
+
+  <main>
     <p id="page-message" role="status" aria-live="polite">
       Checking your sign-in...
-    </p><section id="dashboard" hidden>
-  <!-- Welcome -->
-  <section class="welcome" aria-labelledby="welcome-heading">
-    <div class="welcome-copy">
-      <p class="eyebrow">Your space. Your progress.</p>
+    </p>
 
-      <h1 id="welcome-heading">
-        Welcome back,<br>
-        <span id="student-name">Student</span>.
-      </h1>
+    <section id="dashboard" hidden>
 
-      <p class="welcome-description">
-        Your next breakthrough starts with one question.
-        Choose your next step and make this session count.
-      </p>
+      <!-- Welcome -->
+      <section class="welcome" aria-labelledby="welcome-heading">
+        <div class="welcome-copy">
+          <p class="eyebrow">Your space. Your progress.</p>
 
-      <div class="welcome-actions">
-        <a class="button button-primary" href="practice.html">
-          Start practising <span aria-hidden="true">↗</span>
-        </a>
+          <h1 id="welcome-heading">
+            Welcome back,<br>
+            <span id="student-name">Student</span>.
+          </h1>
 
-        <a class="button button-secondary" href="progress.html">
-          View progress
-        </a>
-      </div>
-    </div>
+          <p class="welcome-description">
+            Your next breakthrough starts with one question.
+            Choose your next step and make this session count.
+          </p>
 
-    <aside class="faction-art" aria-label="Your faction identity">
-      <div class="faction-top">
-        <span class="faction-label">YOUR FACTION</span>
-        <span class="faction-badge">Your identity</span>
-      </div>
+          <div class="welcome-actions">
+            <a class="button button-primary" href="practice.html">
+              Start practising <span aria-hidden="true">↗</span>
+            </a>
 
-      <div class="art-symbol" aria-hidden="true">✦</div>
-
-      <div class="art-caption">
-        <p>YOUR LEARNING PATH</p>
-        <strong id="student-faction">Loading...</strong>
-        <br>
-        <a class="faction-link" href="towers.html">
-          Explore faction <span aria-hidden="true">→</span>
-        </a>
-      </div>
-    </aside>
-  </section>
-
-  <!-- Progress -->
-  <section class="section" aria-labelledby="progress-heading">
-    <div class="section-heading">
-      <div>
-        <h2 id="progress-heading">Your progress</h2>
-        <p>Every session adds to your learning record.</p>
-      </div>
-
-      <a class="text-link" href="progress.html">Full report ↗</a>
-    </div>
-
-    <div class="stats">
-      <article class="stat">
-        <div class="stat-label">Questions answered</div>
-        <div class="stat-value" id="stat-answered">0</div>
-        <div class="stat-note">Your practice activity</div>
-      </article>
-
-      <article class="stat">
-        <div class="stat-label">Accuracy</div>
-        <div class="stat-value">
-          <span id="stat-accuracy">0</span>%
+            <a class="button button-secondary" href="progress.html">
+              View progress
+            </a>
+          </div>
         </div>
 
-        <div
-          class="accuracy-track"
-          id="accuracy-track"
-          role="progressbar"
-          aria-label="Answer accuracy"
-          aria-valuemin="0"
-          aria-valuemax="100"
-          aria-valuenow="0"
-        >
-          <div class="accuracy-fill" id="accuracy-fill"></div>
+        <aside class="faction-art" aria-label="Your faction identity">
+          <div class="faction-top">
+            <span class="faction-label">YOUR FACTION</span>
+            <span class="faction-badge">Your identity</span>
+          </div>
+
+          <div class="art-symbol" aria-hidden="true">✦</div>
+
+          <div class="art-caption">
+            <p>YOUR LEARNING PATH</p>
+            <strong id="student-faction">Loading...</strong>
+            <br>
+            <a class="faction-link" href="towers.html">
+              Explore faction <span aria-hidden="true">→</span>
+            </a>
+          </div>
+        </aside>
+      </section>
+
+      <!-- Progress -->
+      <section class="section" aria-labelledby="progress-heading">
+        <div class="section-heading">
+          <div>
+            <h2 id="progress-heading">Your progress</h2>
+            <p>Every session adds to your learning record.</p>
+          </div>
+
+          <a class="text-link" href="progress.html">Full report ↗</a>
         </div>
 
-        <div class="stat-note">Correct answers out of attempts</div>
-      </article>
+        <div class="stats">
+          <article class="stat">
+            <div class="stat-label">Questions answered</div>
+            <div class="stat-value" id="stat-answered">0</div>
+            <div class="stat-note">Your practice activity</div>
+          </article>
 
-      <article class="stat">
-        <div class="stat-label">Experience points</div>
-        <div class="stat-value" id="stat-xp">0 XP</div>
-        <div class="stat-note">
-          Total points: <strong id="stat-points">0</strong>
+          <article class="stat">
+            <div class="stat-label">Accuracy</div>
+            <div class="stat-value">
+              <span id="stat-accuracy">0</span>%
+            </div>
+
+            <div
+              class="accuracy-track"
+              id="accuracy-track"
+              role="progressbar"
+              aria-label="Answer accuracy"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              aria-valuenow="0"
+            >
+              <div class="accuracy-fill" id="accuracy-fill"></div>
+            </div>
+
+            <div class="stat-note">Correct answers out of attempts</div>
+          </article>
+
+          <article class="stat">
+            <div class="stat-label">Experience points</div>
+            <div class="stat-value" id="stat-xp">0 XP</div>
+            <div class="stat-note">
+              Total points: <strong id="stat-points">0</strong>
+            </div>
+          </article>
         </div>
-      </article>
-    </div>
-  </section>
 
-  <!-- Quick access: visible without opening a menu -->
-  <section class="section" aria-labelledby="quick-heading">
-    <div class="section-heading">
-      <div>
-        <h2 id="quick-heading">Quick access</h2>
-        <p>Your most important learning tools, all in one place.</p>
-      </div>
-    </div>
+        <!-- Level progression -->
+        <div class="level-panel" aria-label="Learning level progression">
+          <div class="level-top">
+            <div>
+              <div class="level-label">Your current level</div>
+              <div class="level-name" id="student-level">Basic</div>
+              <span class="level-stage" id="student-stage">Standard Stage</span>
+            </div>
 
-    <div class="quick-grid">
-      <a class="quick-card" href="practice.html">
-        <span class="quick-arrow" aria-hidden="true">↗</span>
-        <span class="quick-icon" aria-hidden="true">✎</span>
-        <strong>Practice</strong>
-        <span>Build understanding, one question at a time.</span>
-      </a>
+            <div class="level-xp">
+              <strong id="level-current-xp">0 XP</strong>
+              <div>Experience earned</div>
+            </div>
+          </div>
 
-      <a class="quick-card" href="exam.html">
-        <span class="quick-arrow" aria-hidden="true">↗</span>
-        <span class="quick-icon" aria-hidden="true">◷</span>
-        <strong>Exam Mode</strong>
-        <span>Prepare for timed examinations.</span>
-      </a>
+          <div
+            class="level-track"
+            id="level-track"
+            role="progressbar"
+            aria-label="Progress towards next level milestone"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            aria-valuenow="0"
+          >
+            <div class="level-fill" id="level-fill"></div>
+          </div>
 
-      <a class="quick-card" href="progress.html">
-        <span class="quick-arrow" aria-hidden="true">↗</span>
-        <span class="quick-icon" aria-hidden="true">↗</span>
-        <strong>My Progress</strong>
-        <span>Track your learning and performance.</span>
-      </a>
+          <div class="level-progress-note">
+            <span id="level-progress-label">0% completed</span>
+            <span id="level-next-label">500 XP to Intermediate</span>
+          </div>
 
-      <a class="quick-card" href="question-bank.html">
-        <span class="quick-arrow" aria-hidden="true">↗</span>
-        <span class="quick-icon" aria-hidden="true">▤</span>
-        <strong>Question Bank</strong>
-        <span>Explore available practice questions.</span>
-      </a>
+          <div class="hell-notice" id="hell-notice" hidden>
+            You have entered the <strong>Hell Stage</strong>.
+            Your next milestone is Hell-Mastery.
+          </div>
 
-      <a class="quick-card" href="learning-library.html">
-        <span class="quick-arrow" aria-hidden="true">↗</span>
-        <span class="quick-icon" aria-hidden="true">▥</span>
-        <strong>Learning Library</strong>
-        <span>Find resources to support your studies.</span>
-      </a>
-     <a class="quick-card" href="rewards.html">
-        <span class="quick-arrow" aria-hidden="true">↗</span>
-        <span class="quick-icon" aria-hidden="true">✧</span>
-        <strong>Rewards</strong>
-        <span>Explore rewards and your points.</span>
-      </a>  <a class="quick-card" href="reward-vault.html">
-    <span class="quick-arrow" aria-hidden="true">↗</span>
-    <span class="quick-icon" aria-hidden="true">◇</span>
-    <strong>Reward Vault</strong>
-    <span>Explore available rewards and submit redemption requests.</span>
-  </a>
-      <a class="quick-card" href="admin-questions.html">
-   <span class="quick-arrow" aria-hidden="true">↗</span>
-   <span class="quick-icon" aria-hidden="true">✧</span>
-  <h3>Manage Questions</h3>
-  <p>View, search, and edit published questions.</p>
-      </a>
-    </div>
-  </section>
+          <div class="hell-notice hell-mastery" id="hell-mastery-notice" hidden>
+            HELL-MASTERY ACHIEVED — 100,000 XP
+          </div>
+        </div>
+      </section>
 
-  <!-- Continue learning -->
-  <section class="section" aria-labelledby="continue-heading">
-    <div class="feature">
-      <div>
-        <p class="eyebrow">Keep moving forward</p>
+      <!-- Quick access -->
+      <section class="section" aria-labelledby="quick-heading">
+        <div class="section-heading">
+          <div>
+            <h2 id="quick-heading">Quick access</h2>
+            <p>Your most important learning tools, all in one place.</p>
+          </div>
+        </div>
 
-        <h2 id="continue-heading">
-          Your next question is waiting.
-        </h2>
+        <div class="quick-grid">
 
-        <p>
-          Choose a subject, select your difficulty, and practise at
-          your own pace. Use every mistake as an opportunity to improve.
-        </p>
+          <a class="quick-card" href="practice.html">
+            <span class="quick-arrow" aria-hidden="true">↗</span>
+            <span class="quick-icon" aria-hidden="true">✎</span>
+            <strong>Practice</strong>
+            <span>Build understanding, one question at a time.</span>
+          </a>
 
-        <a class="button button-primary" href="practice.html">
-          Enter Question Engine <span aria-hidden="true">→</span>
-        </a>
-      </div>
+          <a class="quick-card" href="exam.html">
+            <span class="quick-arrow" aria-hidden="true">↗</span>
+            <span class="quick-icon" aria-hidden="true">◷</span>
+            <strong>Exam Mode</strong>
+            <span>Prepare for timed examinations.</span>
+          </a>
 
-      <div class="feature-mark" aria-hidden="true">✎</div>
-    </div>
-  </section>
+          <a class="quick-card" href="progress.html">
+            <span class="quick-arrow" aria-hidden="true">↗</span>
+            <span class="quick-icon" aria-hidden="true">↗</span>
+            <strong>My Progress</strong>
+            <span>Track your learning and performance.</span>
+          </a>
 
-  <!-- More learning resources -->
-  <section class="section" aria-labelledby="resources-heading">
-    <div class="section-heading">
-      <div>
-        <h2 id="resources-heading">Your learning resources</h2>
-        <p>Everything else you need to organise your studies.</p>
-      </div>
-    </div>
+          <a class="quick-card" href="question-bank.html">
+            <span class="quick-arrow" aria-hidden="true">↗</span>
+            <span class="quick-icon" aria-hidden="true">▤</span>
+            <strong>Question Bank</strong>
+            <span>Explore available practice questions.</span>
+          </a>
 
-    <div class="tool-list">
-      <a class="tool" href="materials.html">
-        <span class="tool-icon" aria-hidden="true">⌁</span>
-        <span class="tool-copy">
-          <strong>My Materials</strong>
-          <span>Access your study materials area.</span>
-        </span>
-        <span class="tool-arrow" aria-hidden="true">↗</span>
-      </a>
+          <a class="quick-card" href="learning-library.html">
+            <span class="quick-arrow" aria-hidden="true">↗</span>
+            <span class="quick-icon" aria-hidden="true">▥</span>
+            <strong>Learning Library</strong>
+            <span>Find resources to support your studies.</span>
+          </a>
 
-      <a class="tool" href="study-plan.html">
-        <span class="tool-icon" aria-hidden="true">☷</span>
-        <span class="tool-copy">
-          <strong>Study Plan</strong>
-          <span>Organise what you want to study.</span>
-        </span>
-        <span class="tool-arrow" aria-hidden="true">↗</span>
-      </a>
-    </div>
+          <a class="quick-card" href="rewards.html">
+            <span class="quick-arrow" aria-hidden="true">↗</span>
+            <span class="quick-icon" aria-hidden="true">✧</span>
+            <strong>Rewards</strong>
+            <span>Explore rewards and your points.</span>
+          </a>
 
-    <details class="more-tools">
-      <summary>More tools and account options</summary>
+          <a class="quick-card" href="reward-vault.html">
+            <span class="quick-arrow" aria-hidden="true">↗</span>
+            <span class="quick-icon" aria-hidden="true">◇</span>
+            <strong>Reward Vault</strong>
+            <span>Explore available rewards and submit redemption requests.</span>
+          </a>
 
-      <div class="tool-list">
-        <a class="tool" href="towers.html">
-          <span class="tool-icon" aria-hidden="true">◇</span>
-          <span class="tool-copy">
-            <strong>My Faction</strong>
-            <span>Explore your faction area.</span>
-          </span>
-          <span class="tool-arrow" aria-hidden="true">↗</span>
-        </a>
+          <a
+            class="quick-card"
+            href="admin-questions.html"
+            id="admin-questions-link"
+            hidden
+          >
+            <span class="quick-arrow" aria-hidden="true">↗</span>
+            <span class="quick-icon" aria-hidden="true">✧</span>
+            <strong>Manage Questions</strong>
+            <span>View, search, and edit published questions.</span>
+          </a>
 
-        <a class="tool" href="levels.html">
-          <span class="tool-icon" aria-hidden="true">↑</span>
-          <span class="tool-copy">
-            <strong>Learning Levels</strong>
-            <span>View the learning level system.</span>
-          </span>
-          <span class="tool-arrow" aria-hidden="true">↗</span>
-        </a>
+        </div>
+      </section>
 
-        <a class="tool" href="mistakes.html">
-          <span class="tool-icon" aria-hidden="true">↻</span>
-          <span class="tool-copy">
-            <strong>Question Review</strong>
-            <span>Revisit questions you missed.</span>
-          </span>
-          <span class="tool-arrow" aria-hidden="true">↗</span>
-        </a>
+      <!-- Continue learning -->
+      <section class="section" aria-labelledby="continue-heading">
+        <div class="feature">
+          <div>
+            <p class="eyebrow">Keep moving forward</p>
 
-        <a class="tool" href="profile.html">
-          <span class="tool-icon" aria-hidden="true">◎</span>
-          <span class="tool-copy">
-            <strong>My Profile</strong>
-            <span>View your account details.</span>
-          </span>
-          <span class="tool-arrow" aria-hidden="true">↗</span>
-        </a>
+            <h2 id="continue-heading">
+              Your next question is waiting.
+            </h2>
 
-        <a class="tool" href="settings.html">
-          <span class="tool-icon" aria-hidden="true">⚙</span>
-          <span class="tool-copy">
-            <strong>Settings</strong>
-            <span>Manage your learning preferences.</span>
-          </span>
-          <span class="tool-arrow" aria-hidden="true">↗</span>
-        </a>
-        
-         </a>
-        <a class="tool" href="pages.html">
-          <span class="tool-icon" aria-hidden="true">⌘</span>
-          <span class="tool-copy">
-            <strong>All Pages</strong>
-            <span>Browse the page directory.</span>
-          </span>
-          <span class="tool-arrow" aria-hidden="true">↗</span>
-        </a>
-      </div>
-    </details>
-  </section>
+            <p>
+              Choose a subject, select your difficulty, and practise at
+              your own pace. Use every mistake as an opportunity to improve.
+            </p>
 
-  <!-- Mistake bank -->
-  <section class="mistakes-section" aria-labelledby="mistakes-heading">
-    <div class="section-heading">
-      <div>
-        <h2 id="mistakes-heading">Your mistake bank</h2>
-        <p>Learn from previous mistakes and strengthen your understanding.</p>
-      </div>
+            <a class="button button-primary" href="practice.html">
+              Enter Question Engine <span aria-hidden="true">→</span>
+            </a>
+          </div>
 
-      <a class="text-link" href="mistakes.html">Review all ↗</a>
-    </div>
+          <div class="feature-mark" aria-hidden="true">✎</div>
+        </div>
+      </section>
 
-    <div id="mistakes-container" aria-live="polite">
-      <p class="mistakes-intro">Loading your mistakes...</p>
-    </div>
-  </section>
-</section>
+      <!-- More learning resources -->
+      <section class="section" aria-labelledby="resources-heading">
+        <div class="section-heading">
+          <div>
+            <h2 id="resources-heading">Your learning resources</h2>
+            <p>Everything else you need to organise your studies.</p>
+          </div>
+        </div>
 
-  </main>  <footer>
+        <div class="tool-list">
+          <a class="tool" href="materials.html">
+            <span class="tool-icon" aria-hidden="true">⌁</span>
+            <span class="tool-copy">
+              <strong>My Materials</strong>
+              <span>Access your study materials area.</span>
+            </span>
+            <span class="tool-arrow" aria-hidden="true">↗</span>
+          </a>
+
+          <a class="tool" href="study-plan.html">
+            <span class="tool-icon" aria-hidden="true">☷</span>
+            <span class="tool-copy">
+              <strong>Study Plan</strong>
+              <span>Organise what you want to study.</span>
+            </span>
+            <span class="tool-arrow" aria-hidden="true">↗</span>
+          </a>
+        </div>
+
+        <details class="more-tools">
+          <summary>More tools and account options</summary>
+
+          <div class="tool-list">
+            <a class="tool" href="towers.html">
+              <span class="tool-icon" aria-hidden="true">◇</span>
+              <span class="tool-copy">
+                <strong>My Faction</strong>
+                <span>Explore your faction area.</span>
+              </span>
+              <span class="tool-arrow" aria-hidden="true">↗</span>
+            </a>
+
+            <a class="tool" href="levels.html">
+              <span class="tool-icon" aria-hidden="true">↑</span>
+              <span class="tool-copy">
+                <strong>Learning Levels</strong>
+                <span>View the learning level system.</span>
+              </span>
+              <span class="tool-arrow" aria-hidden="true">↗</span>
+            </a>
+
+            <a class="tool" href="mistakes.html">
+              <span class="tool-icon" aria-hidden="true">↻</span>
+              <span class="tool-copy">
+                <strong>Question Review</strong>
+                <span>Revisit questions you missed.</span>
+              </span>
+              <span class="tool-arrow" aria-hidden="true">↗</span>
+            </a>
+
+            <a class="tool" href="profile.html">
+              <span class="tool-icon" aria-hidden="true">◎</span>
+              <span class="tool-copy">
+                <strong>My Profile</strong>
+                <span>View your account details.</span>
+              </span>
+              <span class="tool-arrow" aria-hidden="true">↗</span>
+            </a>
+
+            <a class="tool" href="settings.html">
+              <span class="tool-icon" aria-hidden="true">⚙</span>
+              <span class="tool-copy">
+                <strong>Settings</strong>
+                <span>Manage your learning preferences.</span>
+              </span>
+              <span class="tool-arrow" aria-hidden="true">↗</span>
+            </a>
+
+            <a class="tool" href="pages.html">
+              <span class="tool-icon" aria-hidden="true">⌘</span>
+              <span class="tool-copy">
+                <strong>All Pages</strong>
+                <span>Browse the page directory.</span>
+              </span>
+              <span class="tool-arrow" aria-hidden="true">↗</span>
+            </a>
+          </div>
+        </details>
+      </section>
+
+      <!-- Mistake bank -->
+      <section class="mistakes-section" aria-labelledby="mistakes-heading">
+        <div class="section-heading">
+          <div>
+            <h2 id="mistakes-heading">Your mistake bank</h2>
+            <p>Learn from previous mistakes and strengthen your understanding.</p>
+          </div>
+
+          <a class="text-link" href="mistakes.html">Review all ↗</a>
+        </div>
+
+        <div id="mistakes-container" aria-live="polite">
+          <p class="mistakes-intro">Loading your mistakes...</p>
+        </div>
+      </section>
+
+    </section>
+  </main>
+
+  <footer>
     Hysteria's Cure ·
     <a href="index.html">Learn. Master. Advance.</a>
-  </footer>  <script type="module">
+  </footer>
+
+  <script type="module">
     import { auth, database } from "./js/firebase-client.js";
 
     import {
@@ -1288,11 +1459,14 @@
       get
     } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-database.js";
 
+    const ADMIN_UID = "RtaLjBtKSUgRnWB7ag06CLRCStM2";
+
     const pageMessage = document.getElementById("page-message");
     const dashboard = document.getElementById("dashboard");
     const studentName = document.getElementById("student-name");
     const studentFaction = document.getElementById("student-faction");
     const logoutButton = document.getElementById("logout-button");
+    const adminQuestionsLink = document.getElementById("admin-questions-link");
 
     const statAnswered = document.getElementById("stat-answered");
     const statAccuracy = document.getElementById("stat-accuracy");
@@ -1302,12 +1476,129 @@
     const accuracyTrack = document.getElementById("accuracy-track");
     const mistakesContainer = document.getElementById("mistakes-container");
 
+    const studentLevel = document.getElementById("student-level");
+    const studentStage = document.getElementById("student-stage");
+    const levelCurrentXp = document.getElementById("level-current-xp");
+    const levelFill = document.getElementById("level-fill");
+    const levelTrack = document.getElementById("level-track");
+    const levelProgressLabel = document.getElementById("level-progress-label");
+    const levelNextLabel = document.getElementById("level-next-label");
+    const hellNotice = document.getElementById("hell-notice");
+    const hellMasteryNotice = document.getElementById("hell-mastery-notice");
+
     const factionNames = {
       readers: "Readers",
       gamers: "Gamers",
       "movie-lovers": "Movie Lovers",
       independent: "Independent"
     };
+
+    function calculateProgression(totalXP) {
+      const xp = Math.max(0, Number(totalXP) || 0);
+
+      if (xp >= 100000) {
+        return {
+          level: "Hell-Mastery",
+          stage: "Hell-Mastery",
+          currentThreshold: 100000,
+          nextThreshold: null,
+          nextName: null
+        };
+      }
+
+      if (xp >= 70000) {
+        return {
+          level: "Genius",
+          stage: "Hell",
+          currentThreshold: 70000,
+          nextThreshold: 100000,
+          nextName: "Hell-Mastery"
+        };
+      }
+
+      if (xp >= 30000) {
+        return {
+          level: "Genius",
+          stage: "Standard",
+          currentThreshold: 30000,
+          nextThreshold: 70000,
+          nextName: "Hell Stage"
+        };
+      }
+
+      if (xp >= 7500) {
+        return {
+          level: "Mastery",
+          stage: "Standard",
+          currentThreshold: 7500,
+          nextThreshold: 30000,
+          nextName: "Genius"
+        };
+      }
+
+      if (xp >= 500) {
+        return {
+          level: "Intermediate",
+          stage: "Standard",
+          currentThreshold: 500,
+          nextThreshold: 7500,
+          nextName: "Mastery"
+        };
+      }
+
+      return {
+        level: "Basic",
+        stage: "Standard",
+        currentThreshold: 0,
+        nextThreshold: 500,
+        nextName: "Intermediate"
+      };
+    }
+
+    function updateLevelDisplay(totalXP) {
+      const xp = Math.max(0, Number(totalXP) || 0);
+      const progression = calculateProgression(xp);
+
+      studentLevel.textContent = progression.level;
+
+      studentStage.textContent =
+        progression.stage === "Hell"
+          ? "Hell Stage"
+          : progression.stage;
+
+      levelCurrentXp.textContent = `${xp.toLocaleString()} XP`;
+
+      hellNotice.hidden = progression.stage !== "Hell";
+      hellMasteryNotice.hidden = progression.level !== "Hell-Mastery";
+
+      if (progression.nextThreshold === null) {
+        levelFill.style.width = "100%";
+        levelTrack.setAttribute("aria-valuenow", "100");
+        levelProgressLabel.textContent = "100% completed";
+        levelNextLabel.textContent = "Final level achieved";
+        return;
+      }
+
+      const range =
+        progression.nextThreshold - progression.currentThreshold;
+
+      const earned =
+        xp - progression.currentThreshold;
+
+      const percentage = Math.min(
+        100,
+        Math.max(0, Math.floor((earned / range) * 100))
+      );
+
+      const remaining = progression.nextThreshold - xp;
+
+      levelFill.style.width = `${percentage}%`;
+      levelTrack.setAttribute("aria-valuenow", String(percentage));
+
+      levelProgressLabel.textContent = `${percentage}% completed`;
+      levelNextLabel.textContent =
+        `${remaining.toLocaleString()} XP to ${progression.nextName}`;
+    }
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
@@ -1316,6 +1607,10 @@
       }
 
       logoutButton.hidden = false;
+
+      if (adminQuestionsLink) {
+        adminQuestionsLink.hidden = user.uid !== ADMIN_UID;
+      }
 
       studentName.textContent =
         user.displayName ||
@@ -1328,11 +1623,9 @@
 
         const faction = factionSnapshot.val();
 
-        if (factionNames[faction]) {
-          studentFaction.textContent = factionNames[faction];
-        } else {
-          studentFaction.textContent = "Faction not set";
-        }
+        studentFaction.textContent =
+          factionNames[faction] || "Faction not set";
+
       } catch (error) {
         console.error("Failed to load faction:", error);
         studentFaction.textContent = "Could not load faction";
@@ -1343,27 +1636,43 @@
           ref(database, `users/${user.uid}/progress`)
         );
 
-        if (progressSnapshot.exists()) {
-          const data = progressSnapshot.val();
-          const answered = Math.max(0, Number(data.totalAnswered) || 0);
-          const correct = Math.max(0, Number(data.totalCorrect) || 0);
-          const accuracy = answered > 0
-            ? Math.min(100, Math.round((correct / answered) * 100))
-            : 0;
+        const data = progressSnapshot.exists()
+          ? progressSnapshot.val()
+          : {};
 
-          statAnswered.textContent = answered.toLocaleString();
-          statAccuracy.textContent = accuracy;
-          statXp.textContent = `${Math.max(0, Number(data.xp) || 0).toLocaleString()} XP`;
-          statPoints.textContent = Math.max(
-            0,
-            Number(data.points) || 0
-          ).toLocaleString();
+        const answered = Math.max(
+          0,
+          Number(data.totalAnswered) || 0
+        );
 
-          accuracyFill.style.width = `${accuracy}%`;
-          accuracyTrack.setAttribute("aria-valuenow", accuracy);
-        }
+        const correct = Math.max(
+          0,
+          Number(data.totalCorrect) || 0
+        );
+
+        const xp = Math.max(0, Number(data.xp) || 0);
+
+        const accuracy = answered > 0
+          ? Math.min(100, Math.round((correct / answered) * 100))
+          : 0;
+
+        statAnswered.textContent = answered.toLocaleString();
+        statAccuracy.textContent = accuracy;
+        statXp.textContent = `${xp.toLocaleString()} XP`;
+
+        statPoints.textContent = Math.max(
+          0,
+          Number(data.points) || 0
+        ).toLocaleString();
+
+        accuracyFill.style.width = `${accuracy}%`;
+        accuracyTrack.setAttribute("aria-valuenow", accuracy);
+
+        updateLevelDisplay(xp);
+
       } catch (error) {
         console.error("Failed to load progress:", error);
+        updateLevelDisplay(0);
       }
 
       try {
@@ -1378,6 +1687,7 @@
           p.className = "mistakes-intro";
           p.textContent = "No mistakes recorded yet. Keep practising!";
           mistakesContainer.appendChild(p);
+
         } else {
           const mistakesData = mistakesSnapshot.val();
 
@@ -1419,6 +1729,7 @@
             mistakesContainer.appendChild(card);
           });
         }
+
       } catch (error) {
         console.error("Failed to load mistakes:", error);
         mistakesContainer.textContent =
@@ -1436,6 +1747,7 @@
       try {
         await signOut(auth);
         window.location.replace("login.html");
+
       } catch (error) {
         console.error("Logout failed:", error);
 
@@ -1448,5 +1760,9 @@
         logoutButton.textContent = "Log out";
       }
     });
-  </script>  <script type="module" src="js/faction-theme.js"></script></body>
+  </script>
+
+  <script type="module" src="js/faction-theme.js"></script>
+
+</body>
 </html>
