@@ -2,7 +2,7 @@
  * Hysteria's Cure — Practice Question Engine
  * Local-first question loading, seven-star selection,
  * scoring, explanations, mistake tracking and progress saving.
- * Includes automatic XP-based level and stage progression.
+ * Includes automatic XP progression and subject/topic statistics.
  */
 
 import { selectPracticeSetAsync } from "./question-selector.js";
@@ -68,31 +68,26 @@ function calculateProgression(totalXP) {
     stage = "Hell-Mastery";
     currentThreshold = progressionThresholds.hellMastery;
     nextThreshold = null;
-
   } else if (xp >= progressionThresholds.hell) {
     level = "Genius";
     stage = "Hell";
     currentThreshold = progressionThresholds.hell;
     nextThreshold = progressionThresholds.hellMastery;
-
   } else if (xp >= progressionThresholds.genius) {
     level = "Genius";
     stage = "Standard";
     currentThreshold = progressionThresholds.genius;
     nextThreshold = progressionThresholds.hell;
-
   } else if (xp >= progressionThresholds.mastery) {
     level = "Mastery";
     stage = "Standard";
     currentThreshold = progressionThresholds.mastery;
     nextThreshold = progressionThresholds.genius;
-
   } else if (xp >= progressionThresholds.intermediate) {
     level = "Intermediate";
     stage = "Standard";
     currentThreshold = progressionThresholds.intermediate;
     nextThreshold = progressionThresholds.mastery;
-
   } else {
     level = "Basic";
     stage = "Standard";
@@ -101,7 +96,6 @@ function calculateProgression(totalXP) {
   }
 
   const xpIntoStage = xp - currentThreshold;
-
   const xpRequired = nextThreshold === null
     ? 0
     : nextThreshold - currentThreshold;
@@ -197,6 +191,16 @@ let sessionXP = 0;
 let questionsAnswered = 0;
 let correctAnswers = 0;
 let incorrectQuestions = [];
+
+/*
+ * Session-only performance collection.
+ *
+ * These Maps collect answered questions by subject and topic.
+ * Firebase receives the aggregated totals when the session ends.
+ */
+
+let sessionSubjectStats = new Map();
+let sessionTopicStats = new Map();
 
 let loadingQuestions = false;
 let answeringQuestion = false;
@@ -382,6 +386,9 @@ function resetSession() {
   questionsAnswered = 0;
   correctAnswers = 0;
   incorrectQuestions = [];
+
+  sessionSubjectStats = new Map();
+  sessionTopicStats = new Map();
 
   answeringQuestion = false;
   sessionFinished = false;
@@ -721,6 +728,163 @@ function renderCurrentQuestion() {
   questionArea.appendChild(finishButton);
 }
 
+/*
+ * Add one answered question to the current session's statistics.
+ */
+
+function recordSessionPerformance(question, isCorrect) {
+  const subject = String(question.subject || "General").trim() || "General";
+  const topic = String(question.topic || "General").trim() || "General";
+
+  const subjectKey = safeStatKey(subject);
+  const topicKey = safeStatKey(topic);
+
+  if (!sessionSubjectStats.has(subjectKey)) {
+    sessionSubjectStats.set(subjectKey, {
+      subject,
+      totalAnswered: 0,
+      totalCorrect: 0,
+      totalIncorrect: 0
+    });
+  }
+
+  const subjectStats = sessionSubjectStats.get(subjectKey);
+
+  subjectStats.totalAnswered++;
+
+  if (isCorrect) {
+    subjectStats.totalCorrect++;
+  } else {
+    subjectStats.totalIncorrect++;
+  }
+
+  const combinedTopicKey = `${subjectKey}__${topicKey}`;
+
+  if (!sessionTopicStats.has(combinedTopicKey)) {
+    sessionTopicStats.set(combinedTopicKey, {
+      subject,
+      topic,
+      subjectKey,
+      topicKey,
+      totalAnswered: 0,
+      totalCorrect: 0,
+      totalIncorrect: 0
+    });
+  }
+
+  const topicStats = sessionTopicStats.get(combinedTopicKey);
+
+  topicStats.totalAnswered++;
+
+  if (isCorrect) {
+    topicStats.totalCorrect++;
+  } else {
+    topicStats.totalIncorrect++;
+  }
+}
+
+/*
+ * Firebase Realtime Database keys cannot contain certain characters.
+ * URI encoding keeps subject/topic names safe for use as keys.
+ */
+
+function safeStatKey(value) {
+  return (
+    encodeURIComponent(
+      String(value || "General").trim().toLowerCase()
+    )
+      .replace(/\./g, "%2E")
+      .slice(0, 180) || "general"
+  );
+}
+
+/*
+ * Save aggregated subject and topic statistics.
+ * Transactions prevent concurrent sessions from overwriting totals.
+ */
+
+async function savePerformanceStats(user) {
+  const writes = [];
+
+  for (const [key, stats] of sessionSubjectStats.entries()) {
+    const statsRef = ref(
+      database,
+      `users/${user.uid}/subjectStats/${key}`
+    );
+
+    writes.push(
+      runTransaction(
+        statsRef,
+        currentData => {
+          const data = currentData || {};
+
+          return {
+            subject: stats.subject,
+            totalAnswered:
+              (Number(data.totalAnswered) || 0) +
+              stats.totalAnswered,
+            totalCorrect:
+              (Number(data.totalCorrect) || 0) +
+              stats.totalCorrect,
+            totalIncorrect:
+              (Number(data.totalIncorrect) || 0) +
+              stats.totalIncorrect,
+            updatedAt: new Date().toISOString()
+          };
+        },
+        { applyLocally: false }
+      )
+    );
+  }
+
+  for (const stats of sessionTopicStats.values()) {
+    const statsRef = ref(
+      database,
+      `users/${user.uid}/topicStats/${stats.subjectKey}/${stats.topicKey}`
+    );
+
+    writes.push(
+      runTransaction(
+        statsRef,
+        currentData => {
+          const data = currentData || {};
+
+          return {
+            subject: stats.subject,
+            topic: stats.topic,
+            totalAnswered:
+              (Number(data.totalAnswered) || 0) +
+              stats.totalAnswered,
+            totalCorrect:
+              (Number(data.totalCorrect) || 0) +
+              stats.totalCorrect,
+            totalIncorrect:
+              (Number(data.totalIncorrect) || 0) +
+              stats.totalIncorrect,
+            updatedAt: new Date().toISOString()
+          };
+        },
+        { applyLocally: false }
+      )
+    );
+  }
+
+  const results = await Promise.allSettled(writes);
+
+  const failedWrites = results.filter(
+    result => result.status === "rejected"
+  );
+
+  if (failedWrites.length) {
+    console.error(
+      `${failedWrites.length} performance statistic write(s) failed:`,
+      failedWrites
+    );
+  }
+
+  return failedWrites.length === 0;
+}
+
 function checkAnswer(selectedIndex) {
   if (answeringQuestion || sessionFinished) return;
 
@@ -740,6 +904,8 @@ function checkAnswer(selectedIndex) {
   const isCorrect = selectedIndex === question.answerIndex;
 
   questionsAnswered++;
+
+  recordSessionPerformance(question, isCorrect);
 
   const experience =
     factionExperience[currentFaction] ||
@@ -871,7 +1037,8 @@ async function saveProgressToFirebase() {
   if (!user || questionsAnswered === 0) {
     return {
       progressSaved: false,
-      mistakesSaved: false
+      mistakesSaved: false,
+      performanceSaved: false
     };
   }
 
@@ -937,6 +1104,19 @@ async function saveProgressToFirebase() {
 
     const savedProgress = transactionResult.snapshot.val() || {};
 
+    let performanceSaved = true;
+
+    try {
+      performanceSaved = await savePerformanceStats(user);
+    } catch (error) {
+      performanceSaved = false;
+
+      console.error(
+        "Subject/topic performance statistics could not be saved:",
+        error
+      );
+    }
+
     let mistakesSaved = true;
 
     for (const question of incorrectQuestions) {
@@ -981,6 +1161,7 @@ async function saveProgressToFirebase() {
     return {
       progressSaved: true,
       mistakesSaved,
+      performanceSaved,
       progression: {
         level: savedProgress.level,
         stage: savedProgress.stage,
@@ -996,6 +1177,7 @@ async function saveProgressToFirebase() {
     return {
       progressSaved: false,
       mistakesSaved: false,
+      performanceSaved: false,
       error
     };
   }
@@ -1019,7 +1201,8 @@ async function finishSession() {
 
   let saveResult = {
     progressSaved: false,
-    mistakesSaved: false
+    mistakesSaved: false,
+    performanceSaved: false
   };
 
   if (questionsAnswered > 0 && auth.currentUser) {
@@ -1147,9 +1330,14 @@ async function finishSession() {
         "Your progress was saved, but one or more mistake records could not be saved.";
 
       saveClass = "warning-msg";
+    } else if (!saveResult.performanceSaved) {
+      saveMessage =
+        "Your progress and mistakes were saved, but subject/topic statistics could not be fully saved.";
+
+      saveClass = "warning-msg";
     } else {
       saveMessage =
-        "Your progress and mistakes have been saved.";
+        "Your progress, mistakes and subject/topic statistics have been saved.";
 
       saveClass = "success-msg";
     }
