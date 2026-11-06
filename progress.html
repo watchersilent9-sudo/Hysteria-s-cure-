@@ -1,18 +1,26 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#11101b">
     <title>My Progress | Hysteria's Cure</title>
 
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/faction-themes.css">
 
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            color: var(--text-primary);
+        }
+
         .progress-container {
             width: min(1100px, 92%);
-            margin: 35px auto;
+            margin: 35px auto 60px;
         }
 
         .page-heading {
@@ -22,6 +30,7 @@
         .page-heading p,
         .muted {
             color: var(--text-secondary);
+            line-height: 1.6;
         }
 
         .progress-grid {
@@ -49,10 +58,81 @@
             font-weight: bold;
             margin: 12px 0 5px;
             color: var(--accent-bright);
+            overflow-wrap: anywhere;
         }
 
         .section-card {
             margin: 20px 0;
+        }
+
+        .level-panel {
+            padding: 24px;
+            border-radius: 15px;
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+            margin: 25px 0;
+        }
+
+        .level-label {
+            color: var(--text-secondary);
+            font-size: .82rem;
+            font-weight: 750;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+        }
+
+        .level-name {
+            font-size: clamp(1.7rem, 5vw, 2.4rem);
+            color: var(--accent-bright);
+            margin: 8px 0;
+            font-weight: 900;
+        }
+
+        .hell-notice {
+            display: none;
+            padding: 10px 13px;
+            margin: 12px 0;
+            border: 1px solid var(--accent-bright);
+            border-radius: 9px;
+            color: var(--accent-bright);
+            font-weight: 800;
+            font-size: .85rem;
+        }
+
+        .hell-notice.visible {
+            display: block;
+        }
+
+        .level-progress-track,
+        .progress-track {
+            width: 100%;
+            height: 10px;
+            margin-top: 10px;
+            background: var(--bg-secondary);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .level-progress-fill,
+        .progress-fill {
+            width: 0;
+            height: 100%;
+            background: var(--accent);
+            border-radius: inherit;
+            transition: width .4s ease;
+        }
+
+        .level-progress-info {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 13px;
+            font-size: .88rem;
+        }
+
+        .level-progress-info span:last-child {
+            color: var(--text-secondary);
         }
 
         .progress-item {
@@ -64,20 +144,17 @@
             border-bottom: none;
         }
 
-        .progress-track {
-            width: 100%;
-            height: 9px;
-            margin-top: 9px;
-            background: var(--bg-secondary);
-            border-radius: 20px;
-            overflow: hidden;
+        .progress-item p {
+            margin-bottom: 0;
+            font-size: .88rem;
         }
 
-        .progress-fill {
-            width: 0;
-            height: 100%;
-            background: var(--accent);
-            border-radius: 20px;
+        .empty-state {
+            padding: 16px;
+            border-radius: 10px;
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            line-height: 1.6;
         }
 
         .page-actions {
@@ -96,18 +173,49 @@
             color: var(--text-primary);
         }
 
+        .page-actions a:hover {
+            border-color: var(--accent-bright);
+        }
+
+        #progress-message {
+            padding: 13px;
+            border-radius: 10px;
+            background: var(--bg-card);
+            color: var(--text-secondary);
+        }
+
+        [hidden] {
+            display: none !important;
+        }
+
         @media (max-width: 480px) {
             .progress-container {
                 width: 94%;
+            }
+
+            .progress-card,
+            .section-card,
+            .level-panel {
+                padding: 17px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                transition: none !important;
             }
         }
     </style>
 </head>
 
 <body>
+
     <header class="site-header">
         <div class="container">
             <a href="index.html">Hysteria's Cure</a>
+
             <nav>
                 <a href="student-dashboard.html">Dashboard</a>
                 <a href="practice.html">Practice</a>
@@ -117,100 +225,412 @@
     </header>
 
     <main class="progress-container">
+
         <section class="page-heading">
             <h1>My Progress</h1>
-            <p>Track what you've learned, identify areas to improve, and keep moving forward.</p>
+            <p>
+                Track what you've learned, identify areas to improve,
+                and keep moving forward.
+            </p>
         </section>
 
+        <p id="progress-message" role="status" aria-live="polite">
+            Loading your progress...
+        </p>
+
+        <!-- Main statistics -->
+
         <section class="progress-grid">
+
             <article class="progress-card">
                 <h3>Available Points</h3>
-                <div class="stat-value">—</div>
+                <div class="stat-value" id="available-points">—</div>
                 <p class="muted">Points you can spend on rewards.</p>
             </article>
 
             <article class="progress-card">
-                <h3>Lifetime Points</h3>
-                <div class="stat-value">—</div>
-                <p class="muted">All points earned so far.</p>
+                <h3>Total Experience</h3>
+                <div class="stat-value" id="total-xp">—</div>
+                <p class="muted">Your accumulated XP. Spending points does not reduce it.</p>
             </article>
 
             <article class="progress-card">
                 <h3>Questions Answered</h3>
-                <div class="stat-value">—</div>
-                <p class="muted">Your total practice questions.</p>
+                <div class="stat-value" id="questions-answered">—</div>
+                <p class="muted">Your total recorded practice questions.</p>
             </article>
 
             <article class="progress-card">
                 <h3>Accuracy</h3>
-                <div class="stat-value">—</div>
+                <div class="stat-value" id="accuracy">—</div>
                 <p class="muted">Your percentage of correct answers.</p>
             </article>
+
+            <article class="progress-card">
+                <h3>Correct Answers</h3>
+                <div class="stat-value" id="correct-answers">—</div>
+                <p class="muted">Questions answered correctly.</p>
+            </article>
+
+            <article class="progress-card">
+                <h3>Practice Sessions</h3>
+                <div class="stat-value" id="sessions-completed">—</div>
+                <p class="muted">Your recorded completed sessions.</p>
+            </article>
+
         </section>
 
+        <!-- Level progression -->
+
+        <section class="level-panel">
+
+            <span class="level-label">Current Level</span>
+
+            <h2 class="level-name" id="current-level">
+                Loading...
+            </h2>
+
+            <div class="hell-notice" id="hell-notice">
+                HELL STAGE — You are approaching Hell-Mastery.
+            </div>
+
+            <div class="level-progress-info">
+                <strong id="level-current-xp">0 XP</strong>
+                <span id="level-next-xp">Loading milestone...</span>
+            </div>
+
+            <div
+                class="level-progress-track"
+                id="level-progress-track"
+                role="progressbar"
+                aria-label="Progress towards next level"
+                aria-valuemin="0"
+                aria-valuemax="100"
+                aria-valuenow="0"
+            >
+                <div
+                    class="level-progress-fill"
+                    id="level-progress-fill"
+                ></div>
+            </div>
+
+            <p class="muted" id="level-description">
+                Your progression will appear here.
+            </p>
+
+        </section>
+
+        <!-- Subject progress -->
+
         <section class="section-card">
+
             <h2>Subject Progress</h2>
+
             <p class="muted">
-                Your progress in each subject will appear here once practice
-                results are connected.
+                Subject-specific statistics are not yet recorded by
+                the current question engine.
             </p>
 
-            <div class="progress-item">
-                <strong>Biology</strong>
-                <div class="progress-track">
-                    <div class="progress-fill"></div>
-                </div>
-                <p class="muted">No progress data yet.</p>
+            <div class="empty-state">
+                Your Biology, Chemistry, Mathematics and Physics
+                progress will appear here when subject-level
+                performance tracking is connected.
             </div>
 
-            <div class="progress-item">
-                <strong>Chemistry</strong>
-                <div class="progress-track">
-                    <div class="progress-fill"></div>
-                </div>
-                <p class="muted">No progress data yet.</p>
-            </div>
-
-            <div class="progress-item">
-                <strong>Mathematics</strong>
-                <div class="progress-track">
-                    <div class="progress-fill"></div>
-                </div>
-                <p class="muted">No progress data yet.</p>
-            </div>
-
-            <div class="progress-item">
-                <strong>Physics</strong>
-                <div class="progress-track">
-                    <div class="progress-fill"></div>
-                </div>
-                <p class="muted">No progress data yet.</p>
-            </div>
         </section>
 
+        <!-- Topics to improve -->
+
         <section class="section-card">
+
             <h2>Topics to Improve</h2>
+
             <p class="muted">
-                Topics where you struggle will be listed here after your
-                practice history is connected.
+                Identify topics where you need more practice.
             </p>
+
+            <div class="empty-state">
+                Topic-level weakness analysis is not connected yet.
+                This section will be populated from your mistake
+                history once that data is integrated.
+            </div>
+
         </section>
 
+        <!-- Recent practice -->
+
         <section class="section-card">
+
             <h2>Recent Practice</h2>
-            <p class="muted">
-                Your recent practice sessions and results will appear here.
-            </p>
+
+            <div class="progress-item">
+                <strong>Completed Sessions</strong>
+                <p class="muted" id="recent-session-count">
+                    Loading...
+                </p>
+            </div>
+
+            <div class="progress-item">
+                <strong>Last Recorded Activity</strong>
+                <p class="muted" id="last-active">
+                    Loading...
+                </p>
+            </div>
+
+            <div class="empty-state">
+                Individual session history, including dates,
+                subjects and scores, is not yet stored by the
+                current engine.
+            </div>
+
         </section>
 
         <div class="page-actions">
             <a href="practice.html">Start Practising</a>
             <a href="study-plan.html">View Study Plan</a>
+            <a href="levels.html">View Levels</a>
             <a href="rewards.html">View Rewards</a>
             <a href="student-dashboard.html">Back to Dashboard</a>
         </div>
+
     </main>
 
+    <script type="module">
+        import { auth, database } from "./js/firebase-client.js";
+
+        import {
+            onAuthStateChanged
+        } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
+
+        import {
+            ref,
+            get
+        } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-database.js";
+
+        const elements = {
+            message: document.getElementById("progress-message"),
+
+            points: document.getElementById("available-points"),
+            xp: document.getElementById("total-xp"),
+            answered: document.getElementById("questions-answered"),
+            accuracy: document.getElementById("accuracy"),
+            correct: document.getElementById("correct-answers"),
+            sessions: document.getElementById("sessions-completed"),
+
+            level: document.getElementById("current-level"),
+            currentXP: document.getElementById("level-current-xp"),
+            nextXP: document.getElementById("level-next-xp"),
+            description: document.getElementById("level-description"),
+            progressFill: document.getElementById("level-progress-fill"),
+            progressTrack: document.getElementById("level-progress-track"),
+            hellNotice: document.getElementById("hell-notice"),
+
+            recentSessions: document.getElementById("recent-session-count"),
+            lastActive: document.getElementById("last-active")
+        };
+
+        const milestones = {
+            basic: 0,
+            intermediate: 500,
+            mastery: 7500,
+            genius: 30000,
+            hell: 70000,
+            hellMastery: 100000
+        };
+
+        function formatNumber(value) {
+            return (Number(value) || 0).toLocaleString();
+        }
+
+        function getProgression(xp) {
+            if (xp >= milestones.hellMastery) {
+                return {
+                    level: "Hell-Mastery",
+                    stage: "Hell-Mastery",
+                    current: milestones.hellMastery,
+                    next: null
+                };
+            }
+
+            if (xp >= milestones.hell) {
+                return {
+                    level: "Genius",
+                    stage: "Hell",
+                    current: milestones.hell,
+                    next: milestones.hellMastery
+                };
+            }
+
+            if (xp >= milestones.genius) {
+                return {
+                    level: "Genius",
+                    stage: "Standard",
+                    current: milestones.genius,
+                    next: milestones.hell
+                };
+            }
+
+            if (xp >= milestones.mastery) {
+                return {
+                    level: "Mastery",
+                    stage: "Standard",
+                    current: milestones.mastery,
+                    next: milestones.genius
+                };
+            }
+
+            if (xp >= milestones.intermediate) {
+                return {
+                    level: "Intermediate",
+                    stage: "Standard",
+                    current: milestones.intermediate,
+                    next: milestones.mastery
+                };
+            }
+
+            return {
+                level: "Basic",
+                stage: "Standard",
+                current: milestones.basic,
+                next: milestones.intermediate
+            };
+        }
+
+        function displayStatistics(data) {
+            const points = Math.max(0, Number(data.points) || 0);
+            const xp = Math.max(0, Number(data.xp) || 0);
+            const answered = Math.max(0, Number(data.totalAnswered) || 0);
+            const correct = Math.max(0, Number(data.totalCorrect) || 0);
+            const sessions = Math.max(0, Number(data.sessionsCompleted) || 0);
+
+            const accuracy = answered > 0
+                ? Math.min(100, (correct / answered) * 100)
+                : 0;
+
+            elements.points.textContent = formatNumber(points);
+            elements.xp.textContent = `${formatNumber(xp)} XP`;
+            elements.answered.textContent = formatNumber(answered);
+            elements.accuracy.textContent = `${accuracy.toFixed(1)}%`;
+            elements.correct.textContent = formatNumber(correct);
+            elements.sessions.textContent = formatNumber(sessions);
+
+            elements.recentSessions.textContent =
+                `${formatNumber(sessions)} sessions recorded`;
+
+            if (data.lastActive) {
+                const date = new Date(data.lastActive);
+
+                elements.lastActive.textContent =
+                    Number.isNaN(date.getTime())
+                        ? "Activity date unavailable"
+                        : date.toLocaleString();
+            } else {
+                elements.lastActive.textContent =
+                    "No recorded activity yet.";
+            }
+
+            displayLevel(xp);
+        }
+
+        function displayLevel(xp) {
+            const progression = getProgression(xp);
+
+            const isHellStage = progression.stage === "Hell";
+
+            elements.level.textContent = isHellStage
+                ? "Genius — Hell Stage"
+                : progression.level;
+
+            elements.currentXP.textContent =
+                `${formatNumber(xp)} XP`;
+
+            elements.hellNotice.classList.toggle(
+                "visible",
+                isHellStage
+            );
+
+            if (progression.next === null) {
+                elements.nextXP.textContent =
+                    "Highest established level";
+
+                elements.progressFill.style.width = "100%";
+
+                elements.progressTrack.setAttribute(
+                    "aria-valuenow",
+                    "100"
+                );
+
+                elements.description.textContent =
+                    "You have reached Hell-Mastery.";
+
+                return;
+            }
+
+            const remaining = progression.next - xp;
+            const range = progression.next - progression.current;
+            const earned = xp - progression.current;
+
+            const percentage = Math.max(
+                0,
+                Math.min(100, (earned / range) * 100)
+            );
+
+            elements.nextXP.textContent =
+                `${formatNumber(remaining)} XP to next milestone`;
+
+            elements.progressFill.style.width =
+                `${percentage}%`;
+
+            elements.progressTrack.setAttribute(
+                "aria-valuenow",
+                String(Math.round(percentage))
+            );
+
+            elements.description.textContent =
+                `Next milestone: ${formatNumber(progression.next)} XP.`;
+        }
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                elements.message.hidden = false;
+                elements.message.textContent =
+                    "Sign in to view your personal progress.";
+
+                displayStatistics({});
+                return;
+            }
+
+            elements.message.hidden = false;
+            elements.message.textContent =
+                "Loading your progress...";
+
+            try {
+                const snapshot = await get(
+                    ref(database, `users/${user.uid}/progress`)
+                );
+
+                const data = snapshot.exists()
+                    ? snapshot.val()
+                    : {};
+
+                displayStatistics(data);
+
+                elements.message.hidden = true;
+
+            } catch (error) {
+                console.error(
+                    "Progress loading error:",
+                    error
+                );
+
+                elements.message.hidden = false;
+                elements.message.textContent =
+                    "Could not load your progress. Check your internet connection and try again.";
+            }
+        });
+    </script>
+
     <script type="module" src="js/faction-theme.js"></script>
+
 </body>
 </html>
