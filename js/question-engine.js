@@ -2,6 +2,7 @@
  * Hysteria's Cure — Practice Question Engine
  * Local-first question loading, seven-star selection,
  * scoring, explanations, mistake tracking and progress saving.
+ * Includes automatic XP-based level and stage progression.
  */
 
 import { selectPracticeSetAsync } from "./question-selector.js";
@@ -38,6 +39,92 @@ const rewardPoints = {
   6: 20,
   7: 20
 };
+
+/*
+ * LEVEL AND STAGE PROGRESSION
+ *
+ * Hell is a stage within Genius, not a separate level.
+ */
+
+const progressionThresholds = {
+  basic: 0,
+  intermediate: 500,
+  mastery: 7500,
+  genius: 30000,
+  hell: 70000,
+  hellMastery: 100000
+};
+
+function calculateProgression(totalXP) {
+  const xp = Math.max(0, Number(totalXP) || 0);
+
+  let level;
+  let stage;
+  let currentThreshold;
+  let nextThreshold;
+
+  if (xp >= progressionThresholds.hellMastery) {
+    level = "Hell-Mastery";
+    stage = "Hell-Mastery";
+    currentThreshold = progressionThresholds.hellMastery;
+    nextThreshold = null;
+
+  } else if (xp >= progressionThresholds.hell) {
+    level = "Genius";
+    stage = "Hell";
+    currentThreshold = progressionThresholds.hell;
+    nextThreshold = progressionThresholds.hellMastery;
+
+  } else if (xp >= progressionThresholds.genius) {
+    level = "Genius";
+    stage = "Standard";
+    currentThreshold = progressionThresholds.genius;
+    nextThreshold = progressionThresholds.hell;
+
+  } else if (xp >= progressionThresholds.mastery) {
+    level = "Mastery";
+    stage = "Standard";
+    currentThreshold = progressionThresholds.mastery;
+    nextThreshold = progressionThresholds.genius;
+
+  } else if (xp >= progressionThresholds.intermediate) {
+    level = "Intermediate";
+    stage = "Standard";
+    currentThreshold = progressionThresholds.intermediate;
+    nextThreshold = progressionThresholds.mastery;
+
+  } else {
+    level = "Basic";
+    stage = "Standard";
+    currentThreshold = progressionThresholds.basic;
+    nextThreshold = progressionThresholds.intermediate;
+  }
+
+  const xpIntoStage = xp - currentThreshold;
+
+  const xpRequired = nextThreshold === null
+    ? 0
+    : nextThreshold - currentThreshold;
+
+  const xpToNextLevel = nextThreshold === null
+    ? 0
+    : Math.max(0, nextThreshold - xp);
+
+  const levelProgress = nextThreshold === null
+    ? 100
+    : Math.min(
+        100,
+        Math.floor((xpIntoStage / xpRequired) * 100)
+      );
+
+  return {
+    level,
+    stage,
+    nextLevelXP: nextThreshold,
+    xpToNextLevel,
+    levelProgress
+  };
+}
 
 const difficultyDescriptions = {
   1: "Foundation recall",
@@ -804,13 +891,23 @@ async function saveProgressToFirebase() {
           Number(data.points) || 0
         );
 
+        const newXP = Math.max(
+          0,
+          (Number(data.xp) || 0) + sessionXP
+        );
+
+        const progression = calculateProgression(newXP);
+
         return {
           ...data,
 
-          xp: Math.max(
-            0,
-            (Number(data.xp) || 0) + sessionXP
-          ),
+          xp: newXP,
+
+          level: progression.level,
+          stage: progression.stage,
+          nextLevelXP: progression.nextLevelXP,
+          xpToNextLevel: progression.xpToNextLevel,
+          levelProgress: progression.levelProgress,
 
           points: Math.max(
             0,
@@ -837,6 +934,8 @@ async function saveProgressToFirebase() {
     if (!transactionResult.committed) {
       throw new Error("Progress could not be committed.");
     }
+
+    const savedProgress = transactionResult.snapshot.val() || {};
 
     let mistakesSaved = true;
 
@@ -881,7 +980,15 @@ async function saveProgressToFirebase() {
 
     return {
       progressSaved: true,
-      mistakesSaved
+      mistakesSaved,
+      progression: {
+        level: savedProgress.level,
+        stage: savedProgress.stage,
+        xp: savedProgress.xp,
+        nextLevelXP: savedProgress.nextLevelXP,
+        xpToNextLevel: savedProgress.xpToNextLevel,
+        levelProgress: savedProgress.levelProgress
+      }
     };
   } catch (error) {
     console.error("Failed to save progress:", error);
@@ -964,6 +1071,62 @@ async function finishSession() {
       resultsArea.appendChild(
         createElement("p", "", `${label}: ${value}`)
       );
+    }
+
+    if (saveResult.progressSaved && saveResult.progression) {
+      const progression = saveResult.progression;
+
+      resultsArea.appendChild(
+        createElement(
+          "h3",
+          "",
+          `Current Level: ${progression.level}`
+        )
+      );
+
+      if (progression.stage === "Hell") {
+        resultsArea.appendChild(
+          createElement(
+            "p",
+            "warning-msg",
+            "HELL STAGE — You have entered the stage between Genius and Hell-Mastery."
+          )
+        );
+      } else if (progression.level === "Hell-Mastery") {
+        resultsArea.appendChild(
+          createElement(
+            "p",
+            "success-msg",
+            "Hell-Mastery achieved."
+          )
+        );
+      }
+
+      if (progression.nextLevelXP !== null) {
+        resultsArea.appendChild(
+          createElement(
+            "p",
+            "",
+            `${progression.xpToNextLevel.toLocaleString()} XP remaining until the next milestone.`
+          )
+        );
+
+        resultsArea.appendChild(
+          createElement(
+            "p",
+            "hint",
+            `Progress to next milestone: ${progression.levelProgress}%`
+          )
+        );
+      } else {
+        resultsArea.appendChild(
+          createElement(
+            "p",
+            "",
+            "You have reached the highest current level."
+          )
+        );
+      }
     }
 
     let saveMessage;
