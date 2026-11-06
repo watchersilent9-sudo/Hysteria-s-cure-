@@ -149,6 +149,23 @@
             font-size: .88rem;
         }
 
+        .stat-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .stat-heading strong {
+            overflow-wrap: anywhere;
+        }
+
+        .stat-accuracy {
+            color: var(--accent-bright);
+            font-weight: 800;
+        }
+
         .empty-state {
             padding: 16px;
             border-radius: 10px;
@@ -286,9 +303,7 @@
 
             <span class="level-label">Current Level</span>
 
-            <h2 class="level-name" id="current-level">
-                Loading...
-            </h2>
+            <h2 class="level-name" id="current-level">Loading...</h2>
 
             <div class="hell-notice" id="hell-notice">
                 HELL STAGE — You are approaching Hell-Mastery.
@@ -327,14 +342,13 @@
             <h2>Subject Progress</h2>
 
             <p class="muted">
-                Subject-specific statistics are not yet recorded by
-                the current question engine.
+                Your performance across the subjects you've practised.
             </p>
 
-            <div class="empty-state">
-                Your Biology, Chemistry, Mathematics and Physics
-                progress will appear here when subject-level
-                performance tracking is connected.
+            <div id="subject-progress-list">
+                <div class="empty-state">
+                    Loading subject statistics...
+                </div>
             </div>
 
         </section>
@@ -346,13 +360,14 @@
             <h2>Topics to Improve</h2>
 
             <p class="muted">
-                Identify topics where you need more practice.
+                Topics are ranked by accuracy. More practice gives
+                a more reliable picture of your performance.
             </p>
 
-            <div class="empty-state">
-                Topic-level weakness analysis is not connected yet.
-                This section will be populated from your mistake
-                history once that data is integrated.
+            <div id="topic-progress-list">
+                <div class="empty-state">
+                    Loading topic statistics...
+                </div>
             </div>
 
         </section>
@@ -365,16 +380,12 @@
 
             <div class="progress-item">
                 <strong>Completed Sessions</strong>
-                <p class="muted" id="recent-session-count">
-                    Loading...
-                </p>
+                <p class="muted" id="recent-session-count">Loading...</p>
             </div>
 
             <div class="progress-item">
                 <strong>Last Recorded Activity</strong>
-                <p class="muted" id="last-active">
-                    Loading...
-                </p>
+                <p class="muted" id="last-active">Loading...</p>
             </div>
 
             <div class="empty-state">
@@ -426,7 +437,10 @@
             hellNotice: document.getElementById("hell-notice"),
 
             recentSessions: document.getElementById("recent-session-count"),
-            lastActive: document.getElementById("last-active")
+            lastActive: document.getElementById("last-active"),
+
+            subjects: document.getElementById("subject-progress-list"),
+            topics: document.getElementById("topic-progress-list")
         };
 
         const milestones = {
@@ -534,7 +548,6 @@
 
         function displayLevel(xp) {
             const progression = getProgression(xp);
-
             const isHellStage = progression.stage === "Hell";
 
             elements.level.textContent = isHellStage
@@ -590,6 +603,266 @@
                 `Next milestone: ${formatNumber(progression.next)} XP.`;
         }
 
+        function createEmptyState(message) {
+            const box = document.createElement("div");
+            box.className = "empty-state";
+            box.textContent = message;
+            return box;
+        }
+
+        function createPerformanceItem(title, stats, subtitle) {
+            const item = document.createElement("div");
+            item.className = "progress-item";
+
+            const heading = document.createElement("div");
+            heading.className = "stat-heading";
+
+            const name = document.createElement("strong");
+            name.textContent = title;
+
+            const accuracy = document.createElement("span");
+            accuracy.className = "stat-accuracy";
+            accuracy.textContent = `${stats.accuracy.toFixed(1)}% accuracy`;
+
+            heading.append(name, accuracy);
+
+            const details = document.createElement("p");
+            details.className = "muted";
+            details.textContent = subtitle;
+
+            const track = document.createElement("div");
+            track.className = "progress-track";
+            track.setAttribute("role", "progressbar");
+            track.setAttribute("aria-valuemin", "0");
+            track.setAttribute("aria-valuemax", "100");
+            track.setAttribute(
+                "aria-valuenow",
+                String(Math.round(stats.accuracy))
+            );
+            track.setAttribute(
+                "aria-label",
+                `${title} accuracy`
+            );
+
+            const fill = document.createElement("div");
+            fill.className = "progress-fill";
+            fill.style.width = `${stats.accuracy}%`;
+
+            track.appendChild(fill);
+            item.append(heading, details, track);
+
+            return item;
+        }
+
+        function normaliseStats(record) {
+            const totalAnswered = Math.max(
+                0,
+                Number(record.totalAnswered) || 0
+            );
+
+            const totalCorrect = Math.max(
+                0,
+                Math.min(
+                    totalAnswered,
+                    Number(record.totalCorrect) || 0
+                )
+            );
+
+            const totalIncorrect = Math.max(
+                0,
+                totalAnswered - totalCorrect
+            );
+
+            return {
+                totalAnswered,
+                totalCorrect,
+                totalIncorrect,
+                accuracy: totalAnswered > 0
+                    ? (totalCorrect / totalAnswered) * 100
+                    : 0
+            };
+        }
+
+        function displaySubjects(data) {
+            elements.subjects.replaceChildren();
+
+            if (!data || Object.keys(data).length === 0) {
+                elements.subjects.appendChild(
+                    createEmptyState(
+                        "No subject statistics yet. Answer some practice questions to begin tracking your performance."
+                    )
+                );
+                return;
+            }
+
+            const subjects = Object.values(data)
+                .filter(record => record && typeof record === "object")
+                .map(record => ({
+                    name: String(record.subject || "Unnamed subject"),
+                    stats: normaliseStats(record)
+                }))
+                .filter(item => item.stats.totalAnswered > 0)
+                .sort((a, b) =>
+                    b.stats.totalAnswered - a.stats.totalAnswered
+                );
+
+            if (subjects.length === 0) {
+                elements.subjects.appendChild(
+                    createEmptyState(
+                        "No completed subject attempts have been recorded yet."
+                    )
+                );
+                return;
+            }
+
+            subjects.forEach(item => {
+                const subtitle =
+                    `${formatNumber(item.stats.totalAnswered)} attempted · ` +
+                    `${formatNumber(item.stats.totalCorrect)} correct · ` +
+                    `${formatNumber(item.stats.totalIncorrect)} incorrect`;
+
+                elements.subjects.appendChild(
+                    createPerformanceItem(
+                        item.name,
+                        item.stats,
+                        subtitle
+                    )
+                );
+            });
+        }
+
+        function displayTopics(data) {
+            elements.topics.replaceChildren();
+
+            if (!data || Object.keys(data).length === 0) {
+                elements.topics.appendChild(
+                    createEmptyState(
+                        "No topic statistics yet. Your topic performance will appear after you answer practice questions."
+                    )
+                );
+                return;
+            }
+
+            const allTopics = [];
+
+            for (const subjectGroup of Object.values(data)) {
+                if (!subjectGroup || typeof subjectGroup !== "object") {
+                    continue;
+                }
+
+                for (const record of Object.values(subjectGroup)) {
+                    if (!record || typeof record !== "object") {
+                        continue;
+                    }
+
+                    const stats = normaliseStats(record);
+
+                    if (stats.totalAnswered === 0) {
+                        continue;
+                    }
+
+                    allTopics.push({
+                        subject: String(record.subject || "Unknown subject"),
+                        topic: String(record.topic || "Unnamed topic"),
+                        stats
+                    });
+                }
+            }
+
+            if (allTopics.length === 0) {
+                elements.topics.appendChild(
+                    createEmptyState(
+                        "No completed topic attempts have been recorded yet."
+                    )
+                );
+                return;
+            }
+
+            const reliableTopics = allTopics.filter(
+                item => item.stats.totalAnswered >= 3
+            );
+
+            const topicsToShow = (
+                reliableTopics.length > 0
+                    ? reliableTopics
+                    : allTopics
+            ).sort((a, b) => {
+                if (a.stats.accuracy !== b.stats.accuracy) {
+                    return a.stats.accuracy - b.stats.accuracy;
+                }
+
+                return b.stats.totalAnswered - a.stats.totalAnswered;
+            });
+
+            if (reliableTopics.length === 0) {
+                elements.topics.appendChild(
+                    createEmptyState(
+                        "Your topic history is still small. These early results are provisional; three or more attempts per topic will give a more useful picture."
+                    )
+                );
+            }
+
+            topicsToShow.slice(0, 10).forEach(item => {
+                const subtitle =
+                    `${item.subject} · ` +
+                    `${formatNumber(item.stats.totalAnswered)} attempted · ` +
+                    `${formatNumber(item.stats.totalCorrect)} correct`;
+
+                elements.topics.appendChild(
+                    createPerformanceItem(
+                        item.topic,
+                        item.stats,
+                        subtitle
+                    )
+                );
+            });
+        }
+
+        async function loadPerformanceStats(uid) {
+            const [subjectResult, topicResult] = await Promise.allSettled([
+                get(ref(database, `users/${uid}/subjectStats`)),
+                get(ref(database, `users/${uid}/topicStats`))
+            ]);
+
+            if (subjectResult.status === "fulfilled") {
+                displaySubjects(
+                    subjectResult.value.exists()
+                        ? subjectResult.value.val()
+                        : {}
+                );
+            } else {
+                console.error(
+                    "Subject statistics error:",
+                    subjectResult.reason
+                );
+
+                elements.subjects.replaceChildren(
+                    createEmptyState(
+                        "Could not load subject statistics. Check your connection or Firebase permissions."
+                    )
+                );
+            }
+
+            if (topicResult.status === "fulfilled") {
+                displayTopics(
+                    topicResult.value.exists()
+                        ? topicResult.value.val()
+                        : {}
+                );
+            } else {
+                console.error(
+                    "Topic statistics error:",
+                    topicResult.reason
+                );
+
+                elements.topics.replaceChildren(
+                    createEmptyState(
+                        "Could not load topic statistics. Check your connection or Firebase permissions."
+                    )
+                );
+            }
+        }
+
         onAuthStateChanged(auth, async (user) => {
             if (!user) {
                 elements.message.hidden = false;
@@ -597,6 +870,8 @@
                     "Sign in to view your personal progress.";
 
                 displayStatistics({});
+                displaySubjects({});
+                displayTopics({});
                 return;
             }
 
@@ -605,15 +880,21 @@
                 "Loading your progress...";
 
             try {
-                const snapshot = await get(
+                const progressPromise = get(
                     ref(database, `users/${user.uid}/progress`)
                 );
+
+                const statsPromise = loadPerformanceStats(user.uid);
+
+                const snapshot = await progressPromise;
 
                 const data = snapshot.exists()
                     ? snapshot.val()
                     : {};
 
                 displayStatistics(data);
+
+                await statsPromise;
 
                 elements.message.hidden = true;
 
