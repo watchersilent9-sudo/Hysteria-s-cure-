@@ -1,120 +1,303 @@
+
 /* =========================================
-HYSTERIA'S CURE — FACTION THEMES
+   HYSTERIA'S CURE
+   DESIGN SYSTEM 2.0
+   FACTION THEMES
 ========================================= */
 
-/* Default theme */
-:root {
-color-scheme: dark;
-
---bg-primary: #0e0e16;
---bg-secondary: #151521;
---bg-card: #1b1b2a;
-
---text-primary: #f4f2ff;
---text-secondary: #aaa9c0;
-
---accent: #a78bfa;
---accent-bright: #c4b5fd;
---accent-dark: #7c3aed;
-
---border: rgba(255, 255, 255, 0.09);
---accent-glow: rgba(167, 139, 250, 0.12);
-
-}
-
-/* Readers */
-:root[data-faction="readers"] {
---bg-primary: #101711;
---bg-secondary: #17231a;
---bg-card: #1d2c21;
-
---text-primary: #f0f8ef;
---text-secondary: #b4c9b3;
-
---accent: #83c995;
---accent-bright: #b0e5b9;
---accent-dark: #347a4a;
-
---border: rgba(131, 201, 149, 0.2);
---accent-glow: rgba(131, 201, 149, 0.12);
-
-}
-
-/* Gamers */
-:root[data-faction="gamers"] {
---bg-primary: #160e12;
---bg-secondary: #24131d;
---bg-card: #301927;
-
---text-primary: #fff1f5;
---text-secondary: #d1aeba;
-
---accent: #f078a0;
---accent-bright: #ffb0c8;
---accent-dark: #a92f5b;
-
---border: rgba(240, 120, 160, 0.22);
---accent-glow: rgba(240, 120, 160, 0.13);
-
-}
-
-/* Movie Lovers */
-:root[data-faction="movie-lovers"] {
---bg-primary: #10131c;
---bg-secondary: #191f2d;
---bg-card: #222b3c;
-
---text-primary: #f1f5ff;
---text-secondary: #b4c1d8;
-
---accent: #78baff;
---accent-bright: #b1d9ff;
---accent-dark: #326cb4;
-
---border: rgba(120, 186, 255, 0.22);
---accent-glow: rgba(120, 186, 255, 0.12);
-
-}
-
-/* Independent */
-:root[data-faction="independent"] {
---bg-primary: #15120e;
---bg-secondary: #211b14;
---bg-card: #2c2419;
-
---text-primary: #fff8ec;
---text-secondary: #d0c0a5;
-
---accent: #d6ad68;
---accent-bright: #f1d49d;
---accent-dark: #936b31;
-
---border: rgba(214, 173, 104, 0.22);
---accent-glow: rgba(214, 173, 104, 0.12);
-
-}
 
 /* =========================================
-GLOBAL THEME
+   1. DEFAULT FACTION
+========================================= */
+
+:root {
+    --accent-glow: rgba(185, 154, 255, 0.14);
+    --faction-gradient:
+        linear-gradient(
+            135deg,
+            rgba(185, 154, 255, 0.12),
+            transparent 75%
+        );
+}
+
+
+/* =========================================
+   2. READERS
+   Knowledge • Discovery • Understanding
+========================================= */
+
+:root[data-faction="readers"] {
+    --bg-primary: #101711;
+    --bg-secondary: #17231a;
+    --bg-card: #1d2c21;
+    --bg-elevated: #26392b;
+    --bg-input: #141f17;
+
+    --text-primary: #f0f8ef;
+    --text-secondary: #b4c9b3;
+    --text-muted: #8fa991;
+
+    --accent: #83c995;
+    --accent-bright: #b0e5b9;
+    --accent-dark: #347a4a;
+    --accent-soft: rgba(131, 201, 149, 0.13);
+
+    --border: rgba(131, 201, 149, 0.16);
+    --border-strong: rgba(131, 201, 149, 0.28);
+
+    --accent-glow: rgba(131, 201, 149, 0.14);
+
+    --faction-gradient:
+        linear-gradient(
+            135deg,
+            rgba(131, 201, 149, 0.15),
+            transparent 75%
+        );
+}
+
+
+/* =========================================
+   3. GAMERS
+   Competition • Energy • Challenge
+========================================= */
+
+:root[data-faction="gamers"] {
+    --bg-primary: #160e12;
+    --bg-secondary: #24131d;
+    --bg-card: #301927;
+    --bg-elevated: #3b2030;
+    --bg-input: #1d1119;
+
+    --text-primary: #fff1f5;
+    --text-secondary: #d1aeba;
+    --text-muted: #aa8494;
+
+    --accent: #f078a0;
+    --accent-bright: #ffb0c8;
+    --accent-dark: #a92f5b;
+    --accent-soft: rgba(240, 120, 160, 0.13);
+
+    --border: rgba(240, 120, 160, 0.17);
+    --border-strong: rgba(240, 120, 160, 0.29);
+
+    --accent-glow: rgba(240, 120, 160, 0.15);
+
+    --faction-gradient:
+        linear-gradient(
+            135deg,
+            rgba(240, 120, 160, 0.16),
+            transparent 75%
+        );
+}
+
+
+/* =========================================
+   4. MOVIE LOVERS
+   Imagination • Storytelling • Exploration
+========================================= */
+
+:root[data-faction="movie-lovers"] {
+    --bg-primary: #10131c;
+    --bg-secondary: #191f2d;
+    --bg-card: #222b3c;
+    --bg-elevated: #2c374b;
+    --bg-input: #151b28;
+
+    --text-primary: #f1f5ff;
+    --text-secondary: #b4c1d8;
+    --text-muted: #8c9bb6;
+
+    --accent: #78baff;
+    --accent-bright: #b1d9ff;
+    --accent-dark: #326cb4;
+    --accent-soft: rgba(120, 186, 255, 0.13);
+
+    --border: rgba(120, 186, 255, 0.17);
+    --border-strong: rgba(120, 186, 255, 0.29);
+
+    --accent-glow: rgba(120, 186, 255, 0.15);
+
+    --faction-gradient:
+        linear-gradient(
+            135deg,
+            rgba(120, 186, 255, 0.16),
+            transparent 75%
+        );
+}
+
+
+/* =========================================
+   5. INDEPENDENT
+   Individuality • Freedom • Mastery
+========================================= */
+
+:root[data-faction="independent"] {
+    --bg-primary: #15120e;
+    --bg-secondary: #211b14;
+    --bg-card: #2c2419;
+    --bg-elevated: #382e20;
+    --bg-input: #1b1711;
+
+    --text-primary: #fff8ec;
+    --text-secondary: #d0c0a5;
+    --text-muted: #a99576;
+
+    --accent: #d6ad68;
+    --accent-bright: #f1d49d;
+    --accent-dark: #936b31;
+    --accent-soft: rgba(214, 173, 104, 0.13);
+
+    --border: rgba(214, 173, 104, 0.17);
+    --border-strong: rgba(214, 173, 104, 0.29);
+
+    --accent-glow: rgba(214, 173, 104, 0.15);
+
+    --faction-gradient:
+        linear-gradient(
+            135deg,
+            rgba(214, 173, 104, 0.16),
+            transparent 75%
+        );
+}
+
+
+/* =========================================
+   6. LIGHT THEME — READERS
+========================================= */
+
+:root[data-theme="light"][data-faction="readers"] {
+    color-scheme: light;
+
+    --bg-primary: #f1f7f1;
+    --bg-secondary: #ffffff;
+    --bg-card: #ffffff;
+    --bg-elevated: #e4f0e5;
+    --bg-input: #f6faf6;
+
+    --text-primary: #193020;
+    --text-secondary: #526d58;
+    --text-muted: #718a76;
+
+    --accent: #347a4a;
+    --accent-bright: #28663c;
+    --accent-dark: #235b35;
+    --accent-soft: rgba(52, 122, 74, 0.10);
+
+    --border: rgba(52, 122, 74, 0.13);
+    --border-strong: rgba(52, 122, 74, 0.25);
+
+    --accent-glow: rgba(52, 122, 74, 0.10);
+}
+
+
+/* =========================================
+   7. LIGHT THEME — GAMERS
+========================================= */
+
+:root[data-theme="light"][data-faction="gamers"] {
+    color-scheme: light;
+
+    --bg-primary: #fff3f6;
+    --bg-secondary: #ffffff;
+    --bg-card: #ffffff;
+    --bg-elevated: #fce3eb;
+    --bg-input: #fff8fa;
+
+    --text-primary: #401b2b;
+    --text-secondary: #805365;
+    --text-muted: #a17c8c;
+
+    --accent: #b93667;
+    --accent-bright: #a52e5b;
+    --accent-dark: #8f2850;
+    --accent-soft: rgba(185, 54, 103, 0.10);
+
+    --border: rgba(185, 54, 103, 0.13);
+    --border-strong: rgba(185, 54, 103, 0.25);
+
+    --accent-glow: rgba(185, 54, 103, 0.10);
+}
+
+
+/* =========================================
+   8. LIGHT THEME — MOVIE LOVERS
+========================================= */
+
+:root[data-theme="light"][data-faction="movie-lovers"] {
+    color-scheme: light;
+
+    --bg-primary: #f1f6ff;
+    --bg-secondary: #ffffff;
+    --bg-card: #ffffff;
+    --bg-elevated: #e2edfc;
+    --bg-input: #f7faff;
+
+    --text-primary: #192b46;
+    --text-secondary: #526985;
+    --text-muted: #788da8;
+
+    --accent: #286bb2;
+    --accent-bright: #245f9d;
+    --accent-dark: #1d568e;
+    --accent-soft: rgba(40, 107, 178, 0.10);
+
+    --border: rgba(40, 107, 178, 0.13);
+    --border-strong: rgba(40, 107, 178, 0.25);
+
+    --accent-glow: rgba(40, 107, 178, 0.10);
+}
+
+
+/* =========================================
+   9. LIGHT THEME — INDEPENDENT
+========================================= */
+
+:root[data-theme="light"][data-faction="independent"] {
+    color-scheme: light;
+
+    --bg-primary: #faf6ed;
+    --bg-secondary: #ffffff;
+    --bg-card: #ffffff;
+    --bg-elevated: #f0e7d6;
+    --bg-input: #fdfaf4;
+
+    --text-primary: #392b19;
+    --text-secondary: #79664b;
+    --text-muted: #998367;
+
+    --accent: #936b31;
+    --accent-bright: #805a27;
+    --accent-dark: #704c20;
+    --accent-soft: rgba(147, 107, 49, 0.10);
+
+    --border: rgba(147, 107, 49, 0.14);
+    --border-strong: rgba(147, 107, 49, 0.25);
+
+    --accent-glow: rgba(147, 107, 49, 0.10);
+}
+
+
+/* =========================================
+   10. GLOBAL THEME APPLICATION
 ========================================= */
 
 html {
-background: var(--bg-primary);
+    background: var(--bg-primary);
 }
 
 body {
-background-color: var(--bg-primary);
-color: var(--text-primary);
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
 }
 
 .site-header,
 .site-footer {
-background-color: var(--bg-primary);
-border-color: var(--border);
+    background-color: var(--bg-primary);
+    border-color: var(--border);
 }
 
 .about {
-border-color: var(--border);
+    border-color: var(--border);
 }
 
 .section-heading h2,
@@ -124,7 +307,7 @@ border-color: var(--border);
 .feature-card h3,
 .level-card h3,
 .visual-card h2 {
-color: var(--text-primary);
+    color: var(--text-primary);
 }
 
 .eyebrow,
@@ -132,7 +315,7 @@ color: var(--text-primary);
 .feature-number,
 .level-number,
 .visual-symbol {
-color: var(--accent-bright);
+    color: var(--accent-bright);
 }
 
 .hero-description,
@@ -144,11 +327,12 @@ color: var(--accent-bright);
 .get-started > p:not(.eyebrow),
 .site-footer > p,
 .visual-card p {
-color: var(--text-secondary);
+    color: var(--text-secondary);
 }
 
+
 /* =========================================
-CARDS AND PANELS
+   11. CARDS AND PANELS
 ========================================= */
 
 .feature-card,
@@ -164,58 +348,182 @@ CARDS AND PANELS
 .profile-card,
 .panel,
 .modal-content {
-background-color: var(--bg-card);
-border-color: var(--border);
-color: var(--text-primary);
+    background-color: var(--bg-card);
+    border-color: var(--border);
+    color: var(--text-primary);
 }
 
 .feature-card,
 .level-card,
 .visual-card {
-border: 1px solid var(--border);
+    border: 1px solid var(--border);
 }
 
 .feature-card:hover,
 .level-card:hover {
-border-color: var(--accent);
+    border-color: var(--accent);
 }
 
 .visual-card {
-background-image:
-radial-gradient(
-circle at top right,
-var(--accent-glow),
-transparent 65%
-);
+    background-image:
+        radial-gradient(
+            circle at top right,
+            var(--accent-glow),
+            transparent 65%
+        );
 }
 
+.dashboard-card,
+.stat-card,
+.profile-card,
+.panel,
+.auth-card,
+.engine,
+.question-card,
+.result-card,
+.practice-card,
+.modal-content {
+    transition:
+        background-color var(--transition-normal),
+        border-color var(--transition-normal),
+        color var(--transition-normal);
+}
+
+
 /* =========================================
-BUTTONS AND LINKS
+   12. BUTTONS AND LINKS
 ========================================= */
 
 .button-primary,
 .button-primary:visited {
-background-color: var(--accent);
-border-color: var(--accent);
-color: var(--bg-primary);
+    background-color: var(--accent);
+    border-color: var(--accent);
+    color: #171020;
 }
 
 .button-primary:hover {
-background-color: var(--accent-bright);
-border-color: var(--accent-bright);
+    background-color: var(--accent-bright);
+    border-color: var(--accent-bright);
+    color: #171020;
 }
 
 .button-secondary {
-border-color: var(--border);
-color: var(--text-primary);
+    border-color: var(--border);
+    color: var(--text-primary);
 }
 
 .button-secondary:hover {
-border-color: var(--accent);
+    border-color: var(--accent);
 }
 
 a:hover {
-color: var(--accent-bright);
+    color: var(--accent-bright);
+}
+
+
+/* =========================================
+   13. FORMS AND QUESTION ENGINE
+========================================= */
+
+input,
+select,
+textarea {
+    background-color: var(--bg-input);
+    border-color: var(--border-strong);
+    color: var(--text-primary);
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: var(--text-muted);
+}
+
+option {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+input[type="file"]::file-selector-button {
+    background-color: var(--bg-elevated);
+    color: var(--text-primary);
+}
+
+#star-selector button,
+.star-button,
+[data-level] {
+    border-color: var(--border);
+}
+
+#star-selector button.selected,
+.star-button.selected,
+[data-level].selected {
+    background-color: var(--accent);
+    border-color: var(--accent);
+    color: #171020;
+}
+
+#engine-message,
+#catalogue-status,
+#star-description,
+#file-list {
+    color: var(--text-secondary);
+}
+
+
+/* =========================================
+   14. QUESTION AND ANSWER STATES
+========================================= */
+
+.question-card button,
+.question-card label,
+.answer-option,
+.question-option {
+    border-color: var(--border);
+}
+
+.question-card button:hover,
+.answer-option:hover,
+.question-option:hover {
+    border-color: var(--accent);
+}
+
+.correct,
+.answer-correct {
+    border-color: var(--success) !important;
+}
+
+.incorrect,
+.answer-incorrect {
+    border-color: var(--danger) !important;
+}
+
+
+/* =========================================
+   15. TABLES AND SEPARATORS
+========================================= */
+
+table {
+    color: var(--text-primary);
+    border-color: var(--border);
+}
+
+th,
+td {
+    border-color: var(--border);
+}
+
+hr {
+    border-color: var(--border);
+}
+
+
+/* =========================================
+   16. ACCESSIBILITY
+========================================= */
+
+::selection {
+    background: var(--accent);
+    color: #171020;
 }
 
 button:focus-visible,
@@ -223,101 +531,51 @@ a:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
-outline: 2px solid var(--accent-bright);
-outline-offset: 3px;
+    outline: 2px solid var(--accent-bright);
+    outline-offset: 3px;
 }
 
+
 /* =========================================
-FORMS AND QUESTION ENGINE
+   17. THEME TRANSITIONS
 ========================================= */
 
+body,
+.site-header,
+.site-footer,
+.feature-card,
+.level-card,
+.dashboard-card,
+.stat-card,
+.profile-card,
+.auth-card,
+.engine,
+.question-card,
+.result-card,
+.practice-card,
+.panel,
+.modal-content,
 input,
 select,
 textarea {
-background-color: var(--bg-secondary);
-border: 1px solid var(--border);
-border-radius: 8px;
-color: var(--text-primary);
+    transition:
+        background-color var(--transition-normal),
+        color var(--transition-normal),
+        border-color var(--transition-normal);
 }
 
-input::placeholder,
-textarea::placeholder {
-color: var(--text-secondary);
-}
-
-option {
-background-color: var(--bg-secondary);
-color: var(--text-primary);
-}
-
-#star-selector button,
-.star-button,
-[data-level] {
-border-color: var(--border);
-}
-
-#star-selector button.selected,
-.star-button.selected,
-[data-level].selected {
-background-color: var(--accent);
-border-color: var(--accent);
-color: var(--bg-primary);
-}
-
-#engine-message,
-#catalogue-status,
-#star-description,
-#file-list {
-color: var(--text-secondary);
-}
-
-/* Question and answer choices */
-.question-card button,
-.question-card label,
-.answer-option,
-.question-option {
-border-color: var(--border);
-}
-
-.question-card button:hover,
-.answer-option:hover,
-.question-option:hover {
-border-color: var(--accent);
-}
-
-.correct,
-.answer-correct {
-border-color: #48b879 !important;
-}
-
-.incorrect,
-.answer-incorrect {
-border-color: #e16d7a !important;
-}
 
 /* =========================================
-TABLES AND SEPARATORS
+   18. REDUCED MOTION
 ========================================= */
 
-table {
-color: var(--text-primary);
-border-color: var(--border);
-}
+@media (prefers-reduced-motion: reduce) {
 
-th,
-td {
-border-color: var(--border);
-}
-
-hr {
-border-color: var(--border);
-}
-
-/* =========================================
-ACCESSIBILITY
-========================================= */
-
-::selection {
-background: var(--accent);
-color: var(--bg-primary);
+    *,
+    *::before,
+    *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+    }
 }
