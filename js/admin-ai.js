@@ -9,9 +9,6 @@
  * - Candidate preview
  * - Administrator approval and publishing
  * - Candidate status updates
- *
- * This controller is compatible with the existing admin.html.
- * It does not require the separate redesigned dashboard elements.
  */
 
 import { auth, database } from "./firebase-client.js";
@@ -54,6 +51,23 @@ let generationInProgress = false;
 let publishingInProgress = false;
 
 /* =========================================
+   INITIALISATION CHECK
+========================================= */
+
+const requiredElements = {
+  form,
+  statusElement,
+  resultElement,
+  resultContent,
+  generateButton,
+  publishButton
+};
+
+const missingElements = Object.entries(requiredElements)
+  .filter(([, element]) => !element)
+  .map(([name]) => name);
+
+/* =========================================
    UTILITIES
 ========================================= */
 
@@ -93,6 +107,7 @@ function clearCandidate() {
 
   if (publishButton) {
     publishButton.hidden = true;
+    publishButton.disabled = false;
   }
 }
 
@@ -114,6 +129,7 @@ function addText(parent, heading, value) {
   const content = document.createElement("p");
   content.style.whiteSpace = "pre-wrap";
   content.style.overflowWrap = "anywhere";
+
   content.textContent =
     typeof value === "object"
       ? JSON.stringify(value, null, 2)
@@ -126,7 +142,11 @@ function addText(parent, heading, value) {
 function displayCandidate(candidate, observationId) {
   resultContent.replaceChildren();
 
-  addText(resultContent, "Question", candidate.question);
+  addText(
+    resultContent,
+    "Question",
+    candidate.question
+  );
 
   if (Array.isArray(candidate.options)) {
     const listSection = document.createElement("div");
@@ -139,7 +159,10 @@ function displayCandidate(candidate, observationId) {
 
     candidate.options.forEach((option, index) => {
       const item = document.createElement("li");
-      item.textContent = `${String.fromCharCode(65 + index)}. ${option}`;
+
+      item.textContent =
+        `${String.fromCharCode(65 + index)}. ${option}`;
+
       list.appendChild(item);
     });
 
@@ -191,6 +214,7 @@ function displayCandidate(candidate, observationId) {
 
   const note = document.createElement("p");
   note.className = "muted";
+
   note.textContent =
     "This candidate is awaiting your review. It has not been published.";
 
@@ -204,7 +228,9 @@ function displayCandidate(candidate, observationId) {
 ========================================= */
 
 async function generateQuestion(event) {
-  event.preventDefault();
+  if (event) {
+    event.preventDefault();
+  }
 
   if (generationInProgress) return;
 
@@ -237,7 +263,10 @@ async function generateQuestion(event) {
     difficulty < 1 ||
     difficulty > 7
   ) {
-    setStatus("Difficulty must be a whole number from 1 to 7.", "error");
+    setStatus(
+      "Difficulty must be a whole number from 1 to 7.",
+      "error"
+    );
     return;
   }
 
@@ -249,16 +278,23 @@ async function generateQuestion(event) {
   }
 
   if (instructions.length > 1000) {
-    setStatus("Additional instructions are too long.", "error");
+    setStatus(
+      "Additional instructions are too long.",
+      "error"
+    );
     return;
   }
 
   generationInProgress = true;
+
   generateButton.disabled = true;
   generateButton.textContent = "Generating...";
 
   clearCandidate();
-  setStatus("Contacting GPT-6 Luna. Please wait...");
+
+  setStatus(
+    "Contacting GPT-6 Luna. Please wait..."
+  );
 
   try {
     const token = await currentAdmin.getIdToken();
@@ -303,12 +339,17 @@ async function generateQuestion(event) {
       !candidate.id ||
       typeof candidate.question !== "string"
     ) {
-      throw new Error("The backend returned an invalid candidate.");
+      throw new Error(
+        "The backend returned an invalid candidate."
+      );
     }
 
     generatedCandidate = candidate;
 
-    displayCandidate(candidate, data.observationId);
+    displayCandidate(
+      candidate,
+      data.observationId
+    );
 
     if (candidate.type === "multiple-choice") {
       publishButton.hidden = false;
@@ -317,6 +358,7 @@ async function generateQuestion(event) {
         "Candidate generated and saved. Review it before approving.",
         "success"
       );
+
     } else {
       publishButton.hidden = true;
 
@@ -327,10 +369,14 @@ async function generateQuestion(event) {
     }
 
   } catch (error) {
-    console.error("GPT-6 Luna generation failed:", error);
+    console.error(
+      "GPT-6 Luna generation failed:",
+      error
+    );
 
     let message =
-      error?.message || "An unexpected error occurred.";
+      error?.message ||
+      "An unexpected error occurred.";
 
     if (error instanceof TypeError) {
       message =
@@ -341,6 +387,7 @@ async function generateQuestion(event) {
 
   } finally {
     generationInProgress = false;
+
     generateButton.disabled = false;
     generateButton.textContent = "Generate Question";
   }
@@ -354,7 +401,10 @@ async function approveCandidate() {
   if (publishingInProgress) return;
 
   if (!isAuthorised()) {
-    setStatus("Administrator access required.", "error");
+    setStatus(
+      "Administrator access required.",
+      "error"
+    );
     return;
   }
 
@@ -365,7 +415,10 @@ async function approveCandidate() {
     candidate.type !== "multiple-choice" ||
     !candidate.id
   ) {
-    setStatus("There is no publishable multiple-choice candidate.", "error");
+    setStatus(
+      "There is no publishable multiple-choice candidate.",
+      "error"
+    );
     return;
   }
 
@@ -373,7 +426,9 @@ async function approveCandidate() {
     !Array.isArray(candidate.options) ||
     candidate.options.length !== 4 ||
     candidate.options.some(
-      option => typeof option !== "string" || !option.trim()
+      option =>
+        typeof option !== "string" ||
+        !option.trim()
     ) ||
     typeof candidate.correctAnswer !== "string" ||
     !candidate.options.includes(candidate.correctAnswer) ||
@@ -394,6 +449,7 @@ async function approveCandidate() {
   if (!confirmed) return;
 
   publishingInProgress = true;
+
   publishButton.disabled = true;
   publishButton.textContent = "Publishing...";
 
@@ -428,13 +484,32 @@ async function approveCandidate() {
       );
     }
 
-    const answerIndex =
-      savedCandidate.options.indexOf(savedCandidate.correctAnswer);
-
     if (
-      answerIndex < 0 ||
-      savedCandidate.options.length !== 4
+      !Array.isArray(savedCandidate.options) ||
+      savedCandidate.options.length !== 4 ||
+      savedCandidate.options.some(
+        option =>
+          typeof option !== "string" ||
+          !option.trim()
+      ) ||
+      typeof savedCandidate.correctAnswer !== "string" ||
+      !savedCandidate.options.includes(savedCandidate.correctAnswer) ||
+      typeof savedCandidate.question !== "string" ||
+      !savedCandidate.question.trim() ||
+      typeof savedCandidate.explanation !== "string" ||
+      !savedCandidate.explanation.trim()
     ) {
+      throw new Error(
+        "The saved candidate is incomplete or invalid."
+      );
+    }
+
+    const answerIndex =
+      savedCandidate.options.indexOf(
+        savedCandidate.correctAnswer
+      );
+
+    if (answerIndex < 0) {
       throw new Error(
         "The saved candidate's answer could not be verified."
       );
@@ -442,19 +517,6 @@ async function approveCandidate() {
 
     const questionId =
       "ai_" + crypto.randomUUID().replace(/-/g, "_");
-
-    const questionRef = ref(
-      database,
-      `questionBank/${questionId}`
-    );
-
-    const existingQuestion = await get(questionRef);
-
-    if (existingQuestion.exists()) {
-      throw new Error(
-        "A question with this ID already exists. Please try again."
-      );
-    }
 
     const now = new Date().toISOString();
 
@@ -477,10 +539,10 @@ async function approveCandidate() {
     };
 
     /*
-     * One Realtime Database multi-location update:
-     * publish the question and update the candidate's
-     * review status together.
+     * Publish the question and update the candidate
+     * review status in one multi-location update.
      */
+
     await update(ref(database), {
       [`questionBank/${questionId}`]: questionRecord,
 
@@ -498,6 +560,7 @@ async function approveCandidate() {
     });
 
     generatedCandidate = null;
+
     publishButton.hidden = true;
 
     setStatus(
@@ -505,66 +568,121 @@ async function approveCandidate() {
       "success"
     );
 
-    const publishedNote = document.createElement("p");
+    const publishedNote =
+      document.createElement("p");
+
     publishedNote.className = "muted";
+
     publishedNote.textContent =
       "This question is now in the question bank. The original teacher observation remains separate.";
 
     resultContent.appendChild(publishedNote);
 
   } catch (error) {
-    console.error("Candidate publishing failed:", error);
+    console.error(
+      "Candidate publishing failed:",
+      error
+    );
 
     setStatus(
-      error?.message || "Could not publish the candidate.",
+      error?.message ||
+      "Could not publish the candidate.",
       "error"
     );
 
   } finally {
     publishingInProgress = false;
+
     publishButton.disabled = false;
     publishButton.textContent = "Approve and Publish";
   }
 }
 
 /* =========================================
-   AUTHENTICATION
+   AUTHENTICATION AND EVENT LISTENERS
 ========================================= */
 
-if (form && statusElement && resultElement) {
-  form.addEventListener("submit", generateQuestion);
-  publishButton.addEventListener("click", approveCandidate);
+if (missingElements.length > 0) {
+  console.error(
+    "GPT-6 Luna could not initialise. Missing HTML elements:",
+    missingElements
+  );
 
-  onAuthStateChanged(auth, user => {
-    currentAdmin = null;
-    clearCandidate();
-
-    if (!user) {
-      setStatus(
-        "Sign in as the administrator to use GPT-6 Luna.",
-        "error"
-      );
-      return;
-    }
-
-    if (user.uid !== ADMIN_UID) {
-      setStatus(
-        "Access denied. This account is not authorised to use GPT-6 Luna.",
-        "error"
-      );
-      return;
-    }
-
-    currentAdmin = user;
-
-    setStatus(
-      "GPT-6 Luna is ready. Generated questions will require your approval.",
-      "success"
-    );
-  });
+  setStatus(
+    "Generator initialisation failed. Missing page elements: " +
+    missingElements.join(", "),
+    "error"
+  );
 
 } else {
-  console.info(
-    "AI generator elements were not found. The GPT-6 Luna controller is inactive on this page."
+
+  /*
+   * Generate button uses click rather than native
+   * form submission to prevent accidental reloads.
+   */
+
+  generateButton.addEventListener(
+    "click",
+    generateQuestion
+  );
+
+  /*
+   * Prevent Enter-key submission from reloading
+   * the page. The click handler handles generation.
+   */
+
+  form.addEventListener("submit", event => {
+    event.preventDefault();
+  });
+
+  publishButton.addEventListener(
+    "click",
+    approveCandidate
+  );
+
+  /*
+   * Firebase administrator authentication.
+   */
+
+  onAuthStateChanged(
+    auth,
+    user => {
+      currentAdmin = null;
+      clearCandidate();
+
+      if (!user) {
+        setStatus(
+          "Sign in as the administrator to use GPT-6 Luna.",
+          "error"
+        );
+        return;
+      }
+
+      if (user.uid !== ADMIN_UID) {
+        setStatus(
+          "Access denied. This account is not authorised to use GPT-6 Luna.",
+          "error"
+        );
+        return;
+      }
+
+      currentAdmin = user;
+
+      setStatus(
+        "GPT-6 Luna is ready. Generated questions will require your approval.",
+        "success"
+      );
+    },
+    error => {
+      console.error(
+        "GPT-6 Luna authentication listener failed:",
+        error
+      );
+
+      setStatus(
+        "Could not verify administrator authentication. Check Firebase configuration and reload the page.",
+        "error"
+      );
+    }
   );
 }
