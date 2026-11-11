@@ -1640,7 +1640,7 @@
       );
     });
   </script>
-
-  <script type="module" src="js/faction-theme.js"></script>
+  <script type="module" src="./js/admin.js"></script>
+<script type="module" src="./js/faction-theme.js"></script>
 </body>
 </html>
