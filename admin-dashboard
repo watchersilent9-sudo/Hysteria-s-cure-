@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,7 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#11101b">
   <title>Admin Dashboard | Hysteria's Cure</title>
-
   <link rel="stylesheet" href="css/faction-themes.css">
 
   <style>
@@ -33,13 +33,8 @@
     }
 
     a { color: inherit; }
-
     button, a { -webkit-tap-highlight-color: transparent; }
-
-    button {
-      cursor: pointer;
-      font: inherit;
-    }
+    button { cursor: pointer; font: inherit; }
 
     header {
       display: flex;
@@ -122,9 +117,7 @@
       margin: 32px auto 60px;
     }
 
-    .welcome {
-      margin-bottom: 28px;
-    }
+    .welcome { margin-bottom: 28px; }
 
     .eyebrow {
       color: var(--accent);
@@ -140,19 +133,9 @@
       line-height: 1.2;
     }
 
-    h2 {
-      margin: 0 0 8px;
-      font-size: 1.2rem;
-    }
-
-    h3 {
-      margin: 0 0 8px;
-      font-size: 1rem;
-    }
-
-    p {
-      line-height: 1.6;
-    }
+    h2 { margin: 0 0 8px; font-size: 1.2rem; }
+    h3 { margin: 0 0 8px; font-size: 1rem; }
+    p { line-height: 1.6; }
 
     .muted {
       color: var(--muted);
@@ -240,11 +223,7 @@
       transform: translateY(-2px);
     }
 
-    .quick-icon {
-      font-size: 1.35rem;
-      margin-bottom: 10px;
-    }
-
+    .quick-icon { font-size: 1.35rem; margin-bottom: 10px; }
     .quick-card h3 { color: var(--accent); }
 
     .quick-card p {
@@ -254,10 +233,7 @@
       margin: 0;
     }
 
-    .faction-list {
-      display: grid;
-      gap: 15px;
-    }
+    .faction-list { display: grid; gap: 15px; }
 
     .faction-row {
       display: grid;
@@ -267,9 +243,7 @@
       font-size: .85rem;
     }
 
-    .faction-name {
-      overflow-wrap: anywhere;
-    }
+    .faction-name { overflow-wrap: anywhere; }
 
     .bar {
       height: 8px;
@@ -291,10 +265,7 @@
       font-weight: 750;
     }
 
-    .table-wrap {
-      overflow-x: auto;
-      width: 100%;
-    }
+    .table-wrap { overflow-x: auto; width: 100%; }
 
     table {
       border-collapse: collapse;
@@ -316,7 +287,6 @@
     }
 
     td { overflow-wrap: anywhere; }
-
     tbody tr:last-child td { border-bottom: 0; }
 
     .tag {
@@ -332,10 +302,7 @@
     .tag.warn { color: var(--yellow); }
     .tag.bad { color: var(--red); }
 
-    .health-list {
-      display: grid;
-      gap: 12px;
-    }
+    .health-list { display: grid; gap: 12px; }
 
     .health-row {
       display: flex;
@@ -351,10 +318,7 @@
       padding-bottom: 0;
     }
 
-    .health-label {
-      font-size: .88rem;
-      font-weight: 700;
-    }
+    .health-label { font-size: .88rem; font-weight: 700; }
 
     .health-description {
       color: var(--muted);
@@ -406,6 +370,92 @@
       color: var(--green);
     }
 
+    /* AI CONTROL CENTRE */
+
+    .ai-form {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .ai-field {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      min-width: 0;
+    }
+
+    .ai-field.full { grid-column: 1 / -1; }
+
+    .ai-field label {
+      font-size: .85rem;
+      font-weight: 700;
+    }
+
+    .ai-field input,
+    .ai-field select,
+    .ai-field textarea {
+      width: 100%;
+      min-width: 0;
+      padding: 12px;
+      color: var(--text);
+      background: var(--background);
+      border: 1px solid var(--border-color);
+      border-radius: 9px;
+      font: inherit;
+      font-size: .9rem;
+    }
+
+    .ai-field textarea {
+      min-height: 105px;
+      resize: vertical;
+    }
+
+    .ai-field input:focus,
+    .ai-field select:focus,
+    .ai-field textarea:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .ai-result {
+      margin-top: 20px;
+      padding: 18px;
+      background: var(--background);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      overflow-wrap: anywhere;
+    }
+
+    .ai-result h3 { color: var(--accent); }
+
+    .ai-result p {
+      font-size: .9rem;
+      line-height: 1.65;
+      white-space: pre-wrap;
+    }
+
+    .ai-result ul { padding-left: 22px; }
+    .ai-result li { margin: 8px 0; line-height: 1.5; }
+
+    .ai-result-section {
+      margin-top: 17px;
+      padding-top: 13px;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .ai-result-section strong {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--accent);
+    }
+
+    .ai-meta {
+      color: var(--muted);
+      font-size: .78rem;
+      overflow-wrap: anywhere;
+    }
+
     footer {
       padding: 22px 16px;
       border-top: 1px solid var(--border-color);
@@ -426,6 +476,8 @@
       .panel { padding: 16px; }
       .stat-card { padding: 14px; }
       .quick-grid { grid-template-columns: 1fr; }
+      .ai-form { grid-template-columns: 1fr; }
+      .ai-field.full { grid-column: auto; }
       .faction-row {
         grid-template-columns: 95px minmax(0, 1fr) 25px;
         gap: 8px;
@@ -454,13 +506,8 @@
         <span id="connection-label">Checking connection</span>
       </span>
 
-      <a href="student-dashboard.html" class="button">
-        Student View
-      </a>
-
-      <button id="logout-button" class="button" type="button">
-        Log out
-      </button>
+      <a href="student-dashboard.html" class="button">Student View</a>
+      <button id="logout-button" class="button" type="button">Log out</button>
     </div>
   </header>
 
@@ -491,10 +538,7 @@
             <h2 id="overview-title">Platform Overview</h2>
             <p class="muted">Live counts from your Firebase database.</p>
           </div>
-
-          <button id="refresh-button" class="button" type="button">
-            Refresh
-          </button>
+          <button id="refresh-button" class="button" type="button">Refresh</button>
         </div>
 
         <div class="stats-grid">
@@ -577,6 +621,108 @@
           These shortcuts open the corresponding pages. They do not imply
           that every linked feature is fully implemented yet.
         </p>
+      </section>
+
+      <!-- AI CONTROL CENTRE -->
+      <section class="panel" aria-labelledby="ai-title">
+        <div class="section-heading">
+          <div>
+            <div class="eyebrow">Teacher model</div>
+            <h2 id="ai-title">GPT-6 Luna — AI Control Centre</h2>
+            <p class="muted">
+              Generate original syllabus-aware questions for review.
+              Generated questions are not published automatically.
+            </p>
+          </div>
+          <span class="tag warn">Review required</span>
+        </div>
+
+        <div class="notice warn">
+          GPT-6 Luna is the temporary teacher/reference model for the
+          platform. It is not HAI. Its observations are recorded separately
+          so they can later be evaluated and curated for HAI development.
+          Recording an observation does not train or update HAI.
+        </div>
+
+        <form id="ai-generation-form" class="ai-form">
+          <div class="ai-field">
+            <label for="ai-subject">Subject</label>
+            <input
+              id="ai-subject"
+              name="subject"
+              type="text"
+              maxlength="80"
+              placeholder="e.g. Physics"
+              required
+            >
+          </div>
+
+          <div class="ai-field">
+            <label for="ai-topic">Topic</label>
+            <input
+              id="ai-topic"
+              name="topic"
+              type="text"
+              maxlength="120"
+              placeholder="e.g. Electromagnetic induction"
+              required
+            >
+          </div>
+
+          <div class="ai-field">
+            <label for="ai-difficulty">Difficulty</label>
+            <select id="ai-difficulty" name="difficulty" required>
+              <option value="1">Level 1 — Basic</option>
+              <option value="2">Level 2</option>
+              <option value="3">Level 3</option>
+              <option value="4" selected>Level 4 — Intermediate</option>
+              <option value="5">Level 5</option>
+              <option value="6">Level 6</option>
+              <option value="7">Level 7 — Advanced</option>
+            </select>
+          </div>
+
+          <div class="ai-field">
+            <label for="ai-type">Question format</label>
+            <select id="ai-type" name="type" required>
+              <option value="multiple-choice">Multiple Choice</option>
+              <option value="written-response">Written Response</option>
+            </select>
+          </div>
+
+          <div class="ai-field full">
+            <label for="ai-instructions">Additional instructions (optional)</label>
+            <textarea
+              id="ai-instructions"
+              name="instructions"
+              maxlength="1000"
+              placeholder="Add syllabus requirements, specific concepts, or other instructions..."
+            ></textarea>
+          </div>
+
+          <div class="ai-field full">
+            <button
+              id="ai-generate-button"
+              class="button primary"
+              type="submit"
+            >
+              Generate Question
+            </button>
+          </div>
+        </form>
+
+        <div
+          id="ai-generation-status"
+          class="notice warn"
+          role="status"
+          aria-live="polite"
+          hidden
+        ></div>
+
+        <div id="ai-generation-result" class="ai-result" hidden>
+          <h3>Generated Question</h3>
+          <div id="ai-result-content"></div>
+        </div>
       </section>
 
       <div class="content-grid">
@@ -675,7 +821,6 @@
               The most recent records, based on their saved creation timestamps.
             </p>
           </div>
-
           <a href="admin.html" class="button">Manage Questions</a>
         </div>
 
@@ -807,6 +952,9 @@
 
     const ADMIN_UID = "RtaLjBtKSUgRnWB7ag06CLRCStM2";
 
+    const AI_BACKEND_URL =
+      "https://silver-raindrop-743021.netlify.app/.netlify/functions/generate-question";
+
     const $ = id => document.getElementById(id);
 
     const accessMessage = $("access-message");
@@ -816,6 +964,7 @@
 
     let currentAdmin = null;
     let listeners = [];
+
     let loaded = {
       users: false,
       questions: false,
@@ -877,15 +1026,13 @@
     }
 
     function refreshTimestamp() {
-      $("last-refreshed").textContent =
-        new Date().toLocaleString();
+      $("last-refreshed").textContent = new Date().toLocaleString();
     }
 
     function stopListeners() {
       listeners.forEach(stop => {
         if (typeof stop === "function") stop();
       });
-
       listeners = [];
     }
 
@@ -947,7 +1094,6 @@
         setStat("stat-sessions", sessions);
 
         renderFactions(factionCounts, userCount);
-
         setHealth("health-profiles", "ok", "Readable");
       }
 
@@ -959,7 +1105,6 @@
           "Records stored in questionBank";
 
         renderRecentQuestions(questions);
-
         setHealth("health-questions", "ok", "Readable");
       }
 
@@ -1081,6 +1226,238 @@
       }).join("");
     }
 
+    /* AI QUESTION GENERATION */
+
+    function setAIStatus(message, type = "warn") {
+      const status = $("ai-generation-status");
+      status.hidden = false;
+      status.className = `notice ${type}`;
+      status.textContent = message;
+    }
+
+    function hideAIResult() {
+      $("ai-generation-result").hidden = true;
+      $("ai-result-content").replaceChildren();
+    }
+
+    function appendResultText(parent, text) {
+      const paragraph = document.createElement("p");
+      paragraph.textContent = String(text ?? "");
+      parent.appendChild(paragraph);
+    }
+
+    function appendResultSection(parent, heading, content) {
+      if (content === undefined || content === null || content === "") {
+        return;
+      }
+
+      const section = document.createElement("div");
+      section.className = "ai-result-section";
+
+      const title = document.createElement("strong");
+      title.textContent = heading;
+      section.appendChild(title);
+
+      if (Array.isArray(content)) {
+        const list = document.createElement("ul");
+
+        content.forEach(item => {
+          const li = document.createElement("li");
+          li.textContent = typeof item === "object"
+            ? JSON.stringify(item)
+            : String(item);
+          list.appendChild(li);
+        });
+
+        section.appendChild(list);
+      } else {
+        const paragraph = document.createElement("p");
+        paragraph.textContent = typeof content === "object"
+          ? JSON.stringify(content, null, 2)
+          : String(content);
+        section.appendChild(paragraph);
+      }
+
+      parent.appendChild(section);
+    }
+
+    function displayAICandidate(candidate, observationId) {
+      const container = $("ai-result-content");
+      container.replaceChildren();
+
+      const question = candidate.question || candidate.prompt || "";
+
+      appendResultText(container, question || "Question text was not returned.");
+
+      if (Array.isArray(candidate.options)) {
+        appendResultSection(container, "Options", candidate.options);
+      }
+
+      appendResultSection(
+        container,
+        "Correct answer",
+        candidate.correctAnswer ?? candidate.answer
+      );
+
+      appendResultSection(
+        container,
+        "Expected answer",
+        candidate.expectedAnswer
+      );
+
+      appendResultSection(
+        container,
+        "Explanation",
+        candidate.explanation
+      );
+
+      appendResultSection(
+        container,
+        "Marking scheme",
+        candidate.markingScheme
+      );
+
+      appendResultSection(
+        container,
+        "Difficulty",
+        candidate.difficulty
+      );
+
+      const status = document.createElement("div");
+      status.className = "ai-result-section";
+
+      const statusText = document.createElement("p");
+      statusText.textContent =
+        "Status: Pending review. This question has not been published.";
+
+      status.appendChild(statusText);
+
+      const candidateId = document.createElement("p");
+      candidateId.className = "ai-meta";
+      candidateId.textContent =
+        `Candidate ID: ${candidate.id || "Not returned"}`;
+
+      status.appendChild(candidateId);
+
+      const observation = document.createElement("p");
+      observation.className = "ai-meta";
+      observation.textContent =
+        `Teacher observation ID: ${observationId || "Not returned"}`;
+
+      status.appendChild(observation);
+
+      container.appendChild(status);
+      $("ai-generation-result").hidden = false;
+    }
+
+    $("ai-generation-form").addEventListener("submit", async event => {
+      event.preventDefault();
+
+      const button = $("ai-generate-button");
+
+      if (!currentAdmin || auth.currentUser?.uid !== ADMIN_UID) {
+        setAIStatus(
+          "Administrator authentication is unavailable. Please sign in again.",
+          "error"
+        );
+        return;
+      }
+
+      const subject = $("ai-subject").value.trim();
+      const topic = $("ai-topic").value.trim();
+      const difficulty = Number($("ai-difficulty").value);
+      const type = $("ai-type").value;
+      const instructions = $("ai-instructions").value.trim();
+
+      if (!subject || !topic) {
+        setAIStatus("Please enter both a subject and a topic.", "error");
+        return;
+      }
+
+      if (!Number.isInteger(difficulty) || difficulty < 1 || difficulty > 7) {
+        setAIStatus("Difficulty must be between 1 and 7.", "error");
+        return;
+      }
+
+      if (!["multiple-choice", "written-response"].includes(type)) {
+        setAIStatus("Select a valid question format.", "error");
+        return;
+      }
+
+      button.disabled = true;
+      button.textContent = "Generating...";
+      hideAIResult();
+      setAIStatus("Contacting GPT-6 Luna. Please wait...", "warn");
+
+      try {
+        const token = await currentAdmin.getIdToken();
+
+        const response = await fetch(AI_BACKEND_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            subject,
+            topic,
+            difficulty,
+            type,
+            instructions
+          })
+        });
+
+        let data;
+
+        try {
+          data = await response.json();
+        } catch {
+          throw new Error(
+            `The backend returned an unreadable response (HTTP ${response.status}).`
+          );
+        }
+
+        if (!response.ok) {
+          throw new Error(
+            data?.error ||
+            data?.message ||
+            `Question generation failed (HTTP ${response.status}).`
+          );
+        }
+
+        if (!data?.candidate || typeof data.candidate !== "object") {
+          throw new Error(
+            "The backend responded, but no valid question candidate was returned."
+          );
+        }
+
+        displayAICandidate(data.candidate, data.observationId);
+
+        setAIStatus(
+          "Question generated and saved for review. It has not been published or used to train HAI.",
+          "success"
+        );
+
+      } catch (error) {
+        console.error("AI question generation failed:", error);
+
+        let message = error?.message || "An unexpected error occurred.";
+
+        if (error instanceof TypeError) {
+          message =
+            "Could not reach the AI backend. Check your internet connection, Netlify deployment, and allowed website origin.";
+        }
+
+        setAIStatus(message, "error");
+
+      } finally {
+        button.disabled = false;
+        button.textContent = "Generate Question";
+      }
+    });
+
+    /* FIREBASE DASHBOARD */
+
     function startListeners() {
       stopListeners();
 
@@ -1132,24 +1509,17 @@
             loaded[item.key] = true;
             latestData[item.key] = snapshot.val() || {};
 
-            if (item.key === "users") {
-              setHealth("health-profiles", "ok", "Readable");
-            }
-
-            if (item.key === "questions") {
-              setHealth("health-questions", "ok", "Readable");
-            }
-
-            if (item.key === "achievements") {
-              setHealth("health-achievements", "ok", "Readable");
-            }
+            setHealth(item.health, "ok", "Readable");
 
             failedPaths = failedPaths.filter(path => path !== item.path);
 
             updateOverview();
           },
           error => {
-            console.error(`Dashboard read failed (${item.path}):`, error);
+            console.error(
+              `Dashboard read failed (${item.path}):`,
+              error
+            );
 
             loaded[item.key] = false;
             latestData[item.key] = null;
@@ -1215,8 +1585,6 @@
       refreshButton.textContent = "Refreshing...";
 
       try {
-        // Explicitly re-read each monitored path.
-        // The live listeners remain active afterwards.
         await Promise.all([
           get(ref(database, "users")),
           get(ref(database, "questionBank")),
@@ -1224,6 +1592,7 @@
         ]);
 
         refreshTimestamp();
+
       } catch (error) {
         console.error("Dashboard refresh failed:", error);
 
@@ -1231,6 +1600,7 @@
           "Refresh failed. Check your connection and Firebase Database Rules.",
           "error"
         );
+
       } finally {
         refreshButton.disabled = false;
         refreshButton.textContent = "Refresh";
@@ -1244,6 +1614,7 @@
         stopListeners();
         await signOut(auth);
         window.location.replace("login.html");
+
       } catch (error) {
         console.error("Logout failed:", error);
 
@@ -1256,13 +1627,13 @@
       }
     });
 
-    // Check whether the browser has network access.
     window.addEventListener("online", () => {
       if (currentAdmin) startListeners();
     });
 
     window.addEventListener("offline", () => {
       setConnection(false, "Browser offline");
+
       showWarning(
         "Your device appears to be offline. Live dashboard information may be outdated.",
         "warn"
