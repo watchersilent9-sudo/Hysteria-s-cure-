@@ -351,7 +351,7 @@
           Generated questions are not published automatically.
         </p>
 
-        <form id="ai-generation-form">
+        <form id="ai-generation-form" onsubmit="return false;">
           <div class="form-group">
             <label for="ai-subject">Subject</label>
             <input id="ai-subject" type="text"
@@ -392,13 +392,15 @@
           </div>
 
           <button id="ai-generate-button"
-                  class="action" type="submit">
+                  class="action" type="button">
             Generate Question
           </button>
         </form>
 
         <p id="ai-generation-status"
-           role="status" aria-live="polite" hidden></p>
+           role="status" aria-live="polite">
+          Loading GPT-6 Luna...
+        </p>
 
         <div id="ai-generation-result" hidden>
           <h3>Generated Candidate</h3>
