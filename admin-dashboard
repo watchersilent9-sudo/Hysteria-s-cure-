@@ -4,81 +4,198 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#11101b">
+  <meta name="theme-color" content="#0d0c16">
   <title>Admin Dashboard | Hysteria's Cure</title>
   <link rel="stylesheet" href="css/faction-themes.css">
 
   <style>
     :root {
       color-scheme: dark;
-      --background: var(--bg-primary, #11101b);
-      --panel: var(--bg-card, #1c1a2b);
-      --text: var(--text-primary, #f7f4ff);
-      --muted: var(--text-secondary, #aaa4bd);
-      --accent: var(--accent-bright, #c6a7ff);
-      --border-color: var(--border, #39334e);
+      --bg: #0d0c16;
+      --surface: #151421;
+      --surface-2: #1c192b;
+      --surface-3: #242037;
+      --text: #f5f1ff;
+      --muted: #a49db8;
+      --accent: #c4a2ff;
+      --accent-2: #8f6bd1;
+      --border: #302b43;
       --green: #8ce0ad;
       --red: #ff929d;
       --yellow: #ffd479;
+      --radius: 17px;
     }
 
     * { box-sizing: border-box; }
 
+    html { scroll-behavior: smooth; }
+
     body {
       margin: 0;
       min-height: 100vh;
-      background: var(--background);
+      background:
+        radial-gradient(ellipse at 75% 0%, rgba(120, 80, 180, .13), transparent 35%),
+        var(--bg);
       color: var(--text);
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
-    a { color: inherit; }
-    button, a { -webkit-tap-highlight-color: transparent; }
-    button { cursor: pointer; font: inherit; }
+    a { color: inherit; text-decoration: none; }
+    button { font: inherit; cursor: pointer; }
+    [hidden] { display: none !important; }
 
-    header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      flex-wrap: wrap;
-      padding: 18px 5%;
-      background: var(--bg-secondary, #171525);
-      border-bottom: 1px solid var(--border-color);
+    .app-shell {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 245px minmax(0, 1fr);
+    }
+
+    /* SIDEBAR */
+
+    .sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      padding: 25px 17px;
+      background: rgba(17, 15, 28, .96);
+      border-right: 1px solid var(--border);
     }
 
     .brand {
-      font-size: 1.05rem;
-      font-weight: 850;
-      letter-spacing: .4px;
+      padding: 5px 10px 25px;
+      font-size: .95rem;
+      font-weight: 900;
+      letter-spacing: 1.1px;
+      line-height: 1.5;
     }
 
     .brand span { color: var(--accent); }
 
-    .header-right {
+    .brand small {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: .68rem;
+      font-weight: 650;
+      letter-spacing: 2px;
+    }
+
+    .nav-label {
+      margin: 19px 10px 9px;
+      color: #777188;
+      font-size: .68rem;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+
+    .nav-list {
+      display: grid;
+      gap: 5px;
+    }
+
+    .nav-link {
       display: flex;
       align-items: center;
-      flex-wrap: wrap;
+      gap: 11px;
+      padding: 11px 12px;
+      color: var(--muted);
+      border: 1px solid transparent;
+      border-radius: 10px;
+      font-size: .86rem;
+      font-weight: 650;
+      transition: .18s ease;
+    }
+
+    .nav-link:hover,
+    .nav-link.active {
+      color: var(--text);
+      background: var(--surface-3);
+      border-color: var(--border);
+    }
+
+    .nav-link.active {
+      box-shadow: inset 3px 0 var(--accent);
+    }
+
+    .nav-icon {
+      width: 22px;
+      text-align: center;
+      font-size: 1.05rem;
+    }
+
+    .sidebar-bottom {
+      margin-top: 30px;
+      padding: 14px 11px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--surface);
+    }
+
+    .sidebar-bottom strong {
+      display: block;
+      font-size: .82rem;
+    }
+
+    .sidebar-bottom p {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: .75rem;
+      line-height: 1.5;
+    }
+
+    /* MAIN AREA */
+
+    .main-area { min-width: 0; }
+
+    .topbar {
+      min-height: 72px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding: 14px 30px;
+      background: rgba(21, 20, 33, .82);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .topbar-title {
+      font-size: .9rem;
+      font-weight: 750;
+    }
+
+    .topbar-subtitle {
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: .75rem;
+    }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
       gap: 10px;
+      flex-wrap: wrap;
     }
 
     .status-pill {
       display: inline-flex;
       align-items: center;
-      gap: 7px;
-      border: 1px solid var(--border-color);
-      padding: 7px 11px;
-      border-radius: 999px;
-      font-size: .8rem;
+      gap: 8px;
+      padding: 8px 11px;
       color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      font-size: .76rem;
+      white-space: nowrap;
     }
 
     .status-dot {
       width: 8px;
       height: 8px;
+      flex-shrink: 0;
       border-radius: 50%;
       background: var(--yellow);
-      flex-shrink: 0;
     }
 
     .status-dot.ok { background: var(--green); }
@@ -86,69 +203,86 @@
 
     .button {
       display: inline-flex;
-      align-items: center;
       justify-content: center;
-      gap: 7px;
-      padding: 10px 14px;
-      border-radius: 10px;
-      border: 1px solid var(--border-color);
-      background: var(--panel);
+      align-items: center;
+      gap: 8px;
+      min-height: 39px;
+      padding: 9px 13px;
       color: var(--text);
-      text-decoration: none;
-      font-size: .88rem;
-      font-weight: 700;
-    }
-
-    .button.primary {
-      background: var(--accent-dark, #7654aa);
-      color: #fff;
-      border-color: transparent;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: .8rem;
+      font-weight: 750;
+      transition: .18s ease;
     }
 
     .button:hover { border-color: var(--accent); }
+
+    .button.primary {
+      color: #171020;
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .button.primary:hover { background: #d3baff; }
 
     .button:disabled {
       opacity: .55;
       cursor: wait;
     }
 
-    main {
-      width: min(1200px, calc(100% - 32px));
-      margin: 32px auto 60px;
+    .content {
+      width: min(1450px, 100%);
+      margin: 0 auto;
+      padding: 30px;
     }
 
-    .welcome { margin-bottom: 28px; }
+    .welcome {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-bottom: 25px;
+    }
 
     .eyebrow {
       color: var(--accent);
+      font-size: .7rem;
+      font-weight: 850;
+      letter-spacing: 2px;
       text-transform: uppercase;
-      letter-spacing: 1.8px;
-      font-size: .74rem;
-      font-weight: 800;
     }
 
     h1 {
-      font-size: clamp(1.8rem, 4vw, 2.6rem);
       margin: 8px 0;
-      line-height: 1.2;
+      font-size: clamp(1.8rem, 4vw, 2.6rem);
+      letter-spacing: -.8px;
+      line-height: 1.15;
     }
 
-    h2 { margin: 0 0 8px; font-size: 1.2rem; }
-    h3 { margin: 0 0 8px; font-size: 1rem; }
+    h2 { margin: 0; font-size: 1.08rem; }
+    h3 { margin: 0; font-size: .94rem; }
+
     p { line-height: 1.6; }
 
     .muted {
       color: var(--muted);
-      font-size: .9rem;
+      font-size: .82rem;
     }
 
+    .welcome p { margin: 7px 0; }
+
+    /* GENERAL PANELS */
+
     .panel {
-      padding: 22px;
-      background: var(--panel);
-      border: 1px solid var(--border-color);
-      border-radius: 16px;
-      margin-bottom: 22px;
       min-width: 0;
+      margin-bottom: 20px;
+      padding: 21px;
+      background: linear-gradient(145deg, rgba(29, 26, 45, .98), rgba(20, 19, 32, .98));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
     }
 
     .section-heading {
@@ -156,226 +290,206 @@
       justify-content: space-between;
       align-items: flex-start;
       flex-wrap: wrap;
-      gap: 12px;
+      gap: 13px;
       margin-bottom: 18px;
     }
+
+    .section-heading p {
+      margin: 6px 0 0;
+    }
+
+    /* STATISTICS */
 
     .stats-grid {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 14px;
+      gap: 13px;
       margin-bottom: 22px;
     }
 
     .stat-card {
       min-width: 0;
-      padding: 19px;
-      background: var(--panel);
-      border: 1px solid var(--border-color);
+      padding: 18px;
+      background: var(--surface);
+      border: 1px solid var(--border);
       border-radius: 14px;
+    }
+
+    .stat-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
     }
 
     .stat-label {
       color: var(--muted);
-      font-size: .82rem;
-      line-height: 1.5;
+      font-size: .77rem;
+      font-weight: 650;
+    }
+
+    .stat-icon {
+      display: grid;
+      place-items: center;
+      width: 33px;
+      height: 33px;
+      background: var(--surface-3);
+      border-radius: 10px;
+      font-size: 1rem;
     }
 
     .stat-value {
-      font-size: clamp(1.5rem, 3vw, 2rem);
-      font-weight: 850;
-      margin: 9px 0 5px;
+      margin: 13px 0 4px;
+      font-size: clamp(1.55rem, 3vw, 2.1rem);
+      font-weight: 900;
+      letter-spacing: -.7px;
       overflow-wrap: anywhere;
     }
 
     .stat-note {
       color: var(--muted);
-      font-size: .75rem;
+      font-size: .7rem;
       line-height: 1.5;
     }
 
-    .content-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1.2fr) minmax(0, .8fr);
-      gap: 22px;
-      align-items: start;
-    }
+    /* MANAGEMENT */
 
     .quick-grid {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 12px;
     }
 
     .quick-card {
-      display: block;
-      padding: 16px;
-      background: var(--background);
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      text-decoration: none;
       min-width: 0;
-      transition: border-color .2s ease, transform .2s ease;
+      padding: 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      transition: transform .18s ease, border-color .18s ease;
     }
 
     .quick-card:hover {
-      border-color: var(--accent);
       transform: translateY(-2px);
+      border-color: var(--accent);
     }
 
-    .quick-icon { font-size: 1.35rem; margin-bottom: 10px; }
-    .quick-card h3 { color: var(--accent); }
+    .quick-icon {
+      display: grid;
+      place-items: center;
+      width: 38px;
+      height: 38px;
+      margin-bottom: 12px;
+      background: var(--surface-3);
+      border-radius: 11px;
+      font-size: 1.15rem;
+    }
+
+    .quick-card h3 {
+      margin-bottom: 6px;
+      color: var(--text);
+    }
 
     .quick-card p {
-      color: var(--muted);
-      font-size: .82rem;
-      line-height: 1.55;
       margin: 0;
-    }
-
-    .faction-list { display: grid; gap: 15px; }
-
-    .faction-row {
-      display: grid;
-      grid-template-columns: minmax(105px, .8fr) minmax(0, 1.5fr) 35px;
-      align-items: center;
-      gap: 12px;
-      font-size: .85rem;
-    }
-
-    .faction-name { overflow-wrap: anywhere; }
-
-    .bar {
-      height: 8px;
-      border-radius: 999px;
-      overflow: hidden;
-      background: var(--background);
-    }
-
-    .bar-fill {
-      height: 100%;
-      width: 0;
-      background: var(--accent);
-      border-radius: inherit;
-      transition: width .25s ease;
-    }
-
-    .faction-count {
-      text-align: right;
-      font-weight: 750;
-    }
-
-    .table-wrap { overflow-x: auto; width: 100%; }
-
-    table {
-      border-collapse: collapse;
-      width: 100%;
-      font-size: .85rem;
-      text-align: left;
-    }
-
-    th, td {
-      padding: 13px 12px;
-      border-bottom: 1px solid var(--border-color);
-      vertical-align: top;
-    }
-
-    th {
       color: var(--muted);
-      font-weight: 700;
-      white-space: nowrap;
-    }
-
-    td { overflow-wrap: anywhere; }
-    tbody tr:last-child td { border-bottom: 0; }
-
-    .tag {
-      display: inline-block;
-      padding: 4px 8px;
-      border: 1px solid var(--border-color);
-      border-radius: 999px;
       font-size: .75rem;
-      white-space: nowrap;
+      line-height: 1.55;
     }
 
-    .tag.ok { color: var(--green); }
-    .tag.warn { color: var(--yellow); }
-    .tag.bad { color: var(--red); }
+    .quick-arrow {
+      display: block;
+      margin-top: 12px;
+      color: var(--accent);
+      font-size: .75rem;
+      font-weight: 800;
+    }
 
-    .health-list { display: grid; gap: 12px; }
+    /* AI CONTROL CENTRE */
 
-    .health-row {
+    .ai-panel {
+      position: relative;
+      overflow: hidden;
+      border-color: #55416f;
+      background:
+        radial-gradient(ellipse at 100% 0%, rgba(151, 103, 214, .16), transparent 45%),
+        var(--surface);
+    }
+
+    .ai-heading {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      gap: 12px;
-      padding-bottom: 12px;
-      border-bottom: 1px solid var(--border-color);
+      gap: 15px;
+      flex-wrap: wrap;
     }
 
-    .health-row:last-child {
-      border-bottom: 0;
-      padding-bottom: 0;
+    .ai-title-line {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 7px;
     }
 
-    .health-label { font-size: .88rem; font-weight: 700; }
+    .ai-title-line h2 { font-size: 1.2rem; }
 
-    .health-description {
-      color: var(--muted);
-      font-size: .78rem;
-      line-height: 1.5;
-      margin-top: 4px;
-    }
-
-    .health-state {
+    .ai-mark {
+      display: grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
       flex-shrink: 0;
-      font-size: .78rem;
-      font-weight: 750;
+      color: #1b1425;
+      background: linear-gradient(135deg, #e2caff, #a77cdd);
+      border-radius: 13px;
+      font-weight: 950;
     }
 
-    .health-state.ok { color: var(--green); }
-    .health-state.warn { color: var(--yellow); }
-    .health-state.bad { color: var(--red); }
-
-    .empty-state {
-      padding: 18px 12px;
-      text-align: center;
-      color: var(--muted);
-      font-size: .88rem;
-      line-height: 1.6;
+    .tag {
+      display: inline-block;
+      padding: 5px 9px;
+      color: var(--yellow);
+      border: 1px solid #766039;
+      border-radius: 999px;
+      font-size: .7rem;
+      font-weight: 750;
+      white-space: nowrap;
     }
 
     .notice {
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
       padding: 13px 15px;
-      margin-bottom: 18px;
-      font-size: .86rem;
+      margin: 17px 0;
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      font-size: .8rem;
       line-height: 1.6;
       overflow-wrap: anywhere;
     }
 
     .notice.warn {
-      border-color: #826a35;
       color: var(--yellow);
+      border-color: #705d36;
+      background: rgba(255, 212, 121, .045);
     }
 
     .notice.error {
-      border-color: #9b4d58;
       color: var(--red);
+      border-color: #78434c;
+      background: rgba(255, 146, 157, .045);
     }
 
     .notice.success {
-      border-color: #386b4c;
       color: var(--green);
+      border-color: #386b4c;
+      background: rgba(140, 224, 173, .045);
     }
-
-    /* AI CONTROL CENTRE */
 
     .ai-form {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 16px;
+      gap: 15px;
+      margin-top: 20px;
     }
 
     .ai-field {
@@ -388,8 +502,8 @@
     .ai-field.full { grid-column: 1 / -1; }
 
     .ai-field label {
-      font-size: .85rem;
-      font-weight: 700;
+      font-size: .78rem;
+      font-weight: 750;
     }
 
     .ai-field input,
@@ -399,15 +513,15 @@
       min-width: 0;
       padding: 12px;
       color: var(--text);
-      background: var(--background);
-      border: 1px solid var(--border-color);
+      background: #100f19;
+      border: 1px solid var(--border);
       border-radius: 9px;
       font: inherit;
-      font-size: .9rem;
+      font-size: .84rem;
     }
 
     .ai-field textarea {
-      min-height: 105px;
+      min-height: 100px;
       resize: vertical;
     }
 
@@ -419,10 +533,10 @@
     }
 
     .ai-result {
-      margin-top: 20px;
-      padding: 18px;
-      background: var(--background);
-      border: 1px solid var(--border-color);
+      margin-top: 19px;
+      padding: 17px;
+      background: #100f19;
+      border: 1px solid var(--border);
       border-radius: 12px;
       overflow-wrap: anywhere;
     }
@@ -430,7 +544,7 @@
     .ai-result h3 { color: var(--accent); }
 
     .ai-result p {
-      font-size: .9rem;
+      font-size: .86rem;
       line-height: 1.65;
       white-space: pre-wrap;
     }
@@ -439,9 +553,9 @@
     .ai-result li { margin: 8px 0; line-height: 1.5; }
 
     .ai-result-section {
-      margin-top: 17px;
+      margin-top: 16px;
       padding-top: 13px;
-      border-top: 1px solid var(--border-color);
+      border-top: 1px solid var(--border);
     }
 
     .ai-result-section strong {
@@ -452,42 +566,232 @@
 
     .ai-meta {
       color: var(--muted);
-      font-size: .78rem;
+      font-size: .75rem;
       overflow-wrap: anywhere;
     }
 
-    footer {
-      padding: 22px 16px;
-      border-top: 1px solid var(--border-color);
-      text-align: center;
+    /* TWO-COLUMN CONTENT */
+
+    .content-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr);
+      gap: 20px;
+      align-items: start;
+    }
+
+    /* FACTIONS */
+
+    .faction-list { display: grid; gap: 17px; }
+
+    .faction-row {
+      display: grid;
+      grid-template-columns: minmax(95px, .8fr) minmax(0, 1.5fr) 35px;
+      align-items: center;
+      gap: 11px;
+      font-size: .78rem;
+    }
+
+    .faction-name { overflow-wrap: anywhere; }
+
+    .bar {
+      height: 9px;
+      overflow: hidden;
+      background: #0e0d17;
+      border-radius: 999px;
+    }
+
+    .bar-fill {
+      width: 0;
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent-2), var(--accent));
+      border-radius: inherit;
+      transition: width .25s ease;
+    }
+
+    .faction-count {
+      text-align: right;
+      font-weight: 800;
+    }
+
+    /* HEALTH */
+
+    .health-list { display: grid; gap: 0; }
+
+    .health-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 13px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .health-row:first-child { padding-top: 0; }
+    .health-row:last-child { padding-bottom: 0; border-bottom: 0; }
+
+    .health-label {
+      font-size: .8rem;
+      font-weight: 750;
+    }
+
+    .health-description {
+      margin-top: 4px;
       color: var(--muted);
+      font-size: .72rem;
+      line-height: 1.5;
+    }
+
+    .health-state {
+      flex-shrink: 0;
+      font-size: .72rem;
+      font-weight: 800;
+    }
+
+    .health-state.ok { color: var(--green); }
+    .health-state.warn { color: var(--yellow); }
+    .health-state.bad { color: var(--red); }
+
+    /* TABLE */
+
+    .table-wrap { width: 100%; overflow-x: auto; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: .79rem;
+    }
+
+    th, td {
+      padding: 13px 12px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--muted);
+      font-size: .7rem;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    td { overflow-wrap: anywhere; }
+    tbody tr:last-child td { border-bottom: 0; }
+
+    .tag.ok {
+      color: var(--green);
+      border-color: #386b4c;
+    }
+
+    .tag.warn { color: var(--yellow); }
+
+    .empty-state {
+      padding: 18px 12px;
+      color: var(--muted);
+      text-align: center;
+      font-size: .82rem;
+      line-height: 1.6;
+    }
+
+    .monitoring-note {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .monitoring-note:last-child { border-bottom: 0; }
+
+    .monitoring-note strong {
       font-size: .8rem;
     }
 
-    [hidden] { display: none !important; }
+    .monitoring-note p {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: .75rem;
+      line-height: 1.55;
+    }
 
-    @media (max-width: 900px) {
-      .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    footer {
+      padding: 20px;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+      text-align: center;
+      font-size: .75rem;
+    }
+
+    /* RESPONSIVE */
+
+    @media (max-width: 1050px) {
+      .app-shell { grid-template-columns: 210px minmax(0, 1fr); }
+      .content { padding: 23px; }
+      .quick-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 800px) {
+      .app-shell { display: block; }
+
+      .sidebar {
+        position: static;
+        width: 100%;
+        height: auto;
+        padding: 12px 15px;
+        border-right: 0;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .brand { padding: 4px 5px 12px; }
+
+      .nav-label,
+      .sidebar-bottom { display: none; }
+
+      .nav-list {
+        display: flex;
+        gap: 7px;
+        overflow-x: auto;
+        padding-bottom: 3px;
+      }
+
+      .nav-link {
+        flex-shrink: 0;
+        padding: 9px 11px;
+        font-size: .75rem;
+      }
+
+      .nav-icon { width: auto; }
+
+      .topbar { padding: 13px 18px; }
       .content-grid { grid-template-columns: 1fr; }
     }
 
-    @media (max-width: 520px) {
-      main { margin-top: 22px; }
-      .panel { padding: 16px; }
-      .stat-card { padding: 14px; }
+    @media (max-width: 560px) {
+      .content { padding: 19px 13px; }
+      .topbar { align-items: flex-start; padding: 13px; }
+      .topbar-title { font-size: .8rem; }
+      .topbar-subtitle { font-size: .68rem; }
+      .topbar-actions { gap: 6px; }
+      .status-pill { font-size: .68rem; padding: 7px 8px; }
+      .topbar-actions .button { padding: 8px 9px; font-size: .72rem; }
+      .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+      .stat-card { padding: 13px; }
+      .stat-value { font-size: 1.55rem; }
+      .stat-label { font-size: .7rem; }
       .quick-grid { grid-template-columns: 1fr; }
+      .panel { padding: 16px; }
       .ai-form { grid-template-columns: 1fr; }
       .ai-field.full { grid-column: auto; }
-      .faction-row {
-        grid-template-columns: 95px minmax(0, 1fr) 25px;
-        gap: 8px;
-      }
-      .header-right { width: 100%; }
-      .header-right .button { flex: 1; }
+      .faction-row { grid-template-columns: 88px minmax(0, 1fr) 27px; gap: 8px; }
+      .welcome { align-items: flex-start; }
+      .welcome h1 { font-size: 1.9rem; }
+      .monitoring-note { flex-direction: column; }
     }
 
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after {
+        scroll-behavior: auto !important;
         transition: none !important;
       }
     }
@@ -495,1152 +799,477 @@
 </head>
 
 <body>
-  <header>
-    <div class="brand">
-      HYSTERIA'S <span>CURE</span> / ADMIN
-    </div>
+  <div class="app-shell">
 
-    <div class="header-right">
-      <span class="status-pill">
-        <span id="connection-dot" class="status-dot"></span>
-        <span id="connection-label">Checking connection</span>
-      </span>
-
-      <a href="student-dashboard.html" class="button">Student View</a>
-      <button id="logout-button" class="button" type="button">Log out</button>
-    </div>
-  </header>
-
-  <main>
-    <div id="access-message" class="notice warn" role="status" aria-live="polite">
-      Verifying administrator access...
-    </div>
-
-    <div id="dashboard" hidden>
-      <section class="welcome">
-        <div class="eyebrow">Control centre</div>
-        <h1>Admin Dashboard</h1>
-        <p class="muted">
-          Monitor your platform, inspect available data, and access your
-          management tools from one place.
-        </p>
-        <p class="muted">
-          Last refreshed: <span id="last-refreshed">Waiting for data...</span>
-        </p>
-      </section>
-
-      <div id="dashboard-warning" class="notice warn" hidden></div>
-
-      <!-- OVERVIEW STATISTICS -->
-      <section aria-labelledby="overview-title">
-        <div class="section-heading">
-          <div>
-            <h2 id="overview-title">Platform Overview</h2>
-            <p class="muted">Live counts from your Firebase database.</p>
-          </div>
-          <button id="refresh-button" class="button" type="button">Refresh</button>
-        </div>
-
-        <div class="stats-grid">
-          <article class="stat-card">
-            <div class="stat-label">Registered Students</div>
-            <div class="stat-value" id="stat-users">—</div>
-            <div class="stat-note" id="note-users">Waiting for Firebase</div>
-          </article>
-
-          <article class="stat-card">
-            <div class="stat-label">Question Bank</div>
-            <div class="stat-value" id="stat-questions">—</div>
-            <div class="stat-note" id="note-questions">Waiting for Firebase</div>
-          </article>
-
-          <article class="stat-card">
-            <div class="stat-label">Achievements</div>
-            <div class="stat-value" id="stat-achievements">—</div>
-            <div class="stat-note" id="note-achievements">Waiting for Firebase</div>
-          </article>
-
-          <article class="stat-card">
-            <div class="stat-label">Questions Answered</div>
-            <div class="stat-value" id="stat-answered">—</div>
-            <div class="stat-note" id="note-answered">
-              Based on saved student progress
-            </div>
-          </article>
-        </div>
-      </section>
-
-      <!-- MANAGEMENT SHORTCUTS -->
-      <section class="panel">
-        <div class="section-heading">
-          <div>
-            <h2>Management Centre</h2>
-            <p class="muted">Open a tool without searching through your files.</p>
-          </div>
-        </div>
-
-        <div class="quick-grid">
-          <a class="quick-card" href="admin.html">
-            <div class="quick-icon">📝</div>
-            <h3>Questions & Achievements</h3>
-            <p>Publish questions and manage achievement definitions.</p>
-          </a>
-
-          <a class="quick-card" href="admin-materials.html">
-            <div class="quick-icon">📚</div>
-            <h3>Learning Materials</h3>
-            <p>Open the learning-material administration page.</p>
-          </a>
-
-          <a class="quick-card" href="admin-users.html">
-            <div class="quick-icon">👥</div>
-            <h3>Student Management</h3>
-            <p>Open student and faction management tools.</p>
-          </a>
-
-          <a class="quick-card" href="pages.html">
-            <div class="quick-icon">🗂️</div>
-            <h3>Page Directory</h3>
-            <p>Find the other pages available in the project.</p>
-          </a>
-
-          <a class="quick-card" href="rewards.html">
-            <div class="quick-icon">🏆</div>
-            <h3>Rewards Page</h3>
-            <p>Inspect the student-facing rewards interface.</p>
-          </a>
-
-          <a class="quick-card" href="question-bank.html">
-            <div class="quick-icon">📖</div>
-            <h3>Question Bank</h3>
-            <p>Inspect the question bank from the student side.</p>
-          </a>
-        </div>
-
-        <p class="muted">
-          These shortcuts open the corresponding pages. They do not imply
-          that every linked feature is fully implemented yet.
-        </p>
-      </section>
-
-      <!-- AI CONTROL CENTRE -->
-      <section class="panel" aria-labelledby="ai-title">
-        <div class="section-heading">
-          <div>
-            <div class="eyebrow">Teacher model</div>
-            <h2 id="ai-title">GPT-6 Luna — AI Control Centre</h2>
-            <p class="muted">
-              Generate original syllabus-aware questions for review.
-              Generated questions are not published automatically.
-            </p>
-          </div>
-          <span class="tag warn">Review required</span>
-        </div>
-
-        <div class="notice warn">
-          GPT-6 Luna is the temporary teacher/reference model for the
-          platform. It is not HAI. Its observations are recorded separately
-          so they can later be evaluated and curated for HAI development.
-          Recording an observation does not train or update HAI.
-        </div>
-
-        <form id="ai-generation-form" class="ai-form">
-          <div class="ai-field">
-            <label for="ai-subject">Subject</label>
-            <input
-              id="ai-subject"
-              name="subject"
-              type="text"
-              maxlength="80"
-              placeholder="e.g. Physics"
-              required
-            >
-          </div>
-
-          <div class="ai-field">
-            <label for="ai-topic">Topic</label>
-            <input
-              id="ai-topic"
-              name="topic"
-              type="text"
-              maxlength="120"
-              placeholder="e.g. Electromagnetic induction"
-              required
-            >
-          </div>
-
-          <div class="ai-field">
-            <label for="ai-difficulty">Difficulty</label>
-            <select id="ai-difficulty" name="difficulty" required>
-              <option value="1">Level 1 — Basic</option>
-              <option value="2">Level 2</option>
-              <option value="3">Level 3</option>
-              <option value="4" selected>Level 4 — Intermediate</option>
-              <option value="5">Level 5</option>
-              <option value="6">Level 6</option>
-              <option value="7">Level 7 — Advanced</option>
-            </select>
-          </div>
-
-          <div class="ai-field">
-            <label for="ai-type">Question format</label>
-            <select id="ai-type" name="type" required>
-              <option value="multiple-choice">Multiple Choice</option>
-              <option value="written-response">Written Response</option>
-            </select>
-          </div>
-
-          <div class="ai-field full">
-            <label for="ai-instructions">Additional instructions (optional)</label>
-            <textarea
-              id="ai-instructions"
-              name="instructions"
-              maxlength="1000"
-              placeholder="Add syllabus requirements, specific concepts, or other instructions..."
-            ></textarea>
-          </div>
-
-          <div class="ai-field full">
-            <button
-              id="ai-generate-button"
-              class="button primary"
-              type="submit"
-            >
-              Generate Question
-            </button>
-          </div>
-        </form>
-
-        <div
-          id="ai-generation-status"
-          class="notice warn"
-          role="status"
-          aria-live="polite"
-          hidden
-        ></div>
-
-        <div id="ai-generation-result" class="ai-result" hidden>
-          <h3>Generated Question</h3>
-          <div id="ai-result-content"></div>
-        </div>
-      </section>
-
-      <div class="content-grid">
-        <!-- FACTION OVERVIEW -->
-        <section class="panel">
-          <div class="section-heading">
-            <div>
-              <h2>Faction Overview</h2>
-              <p class="muted">
-                Registered profiles grouped by their saved faction.
-              </p>
-            </div>
-          </div>
-
-          <div id="faction-list" class="faction-list">
-            <div class="empty-state">Waiting for student data...</div>
-          </div>
-
-          <p id="faction-note" class="muted"></p>
-        </section>
-
-        <!-- SYSTEM HEALTH -->
-        <section class="panel">
-          <div class="section-heading">
-            <div>
-              <h2>System Health</h2>
-              <p class="muted">Basic connectivity and data checks.</p>
-            </div>
-          </div>
-
-          <div class="health-list">
-            <div class="health-row">
-              <div>
-                <div class="health-label">Administrator Authentication</div>
-                <div class="health-description">
-                  Your account's administrator UID is checked.
-                </div>
-              </div>
-              <span id="health-auth" class="health-state warn">Checking</span>
-            </div>
-
-            <div class="health-row">
-              <div>
-                <div class="health-label">Firebase Database</div>
-                <div class="health-description">
-                  Based on whether database reads succeed.
-                </div>
-              </div>
-              <span id="health-database" class="health-state warn">Checking</span>
-            </div>
-
-            <div class="health-row">
-              <div>
-                <div class="health-label">Student Profiles</div>
-                <div class="health-description">
-                  Checks whether the users data can be read.
-                </div>
-              </div>
-              <span id="health-profiles" class="health-state warn">Checking</span>
-            </div>
-
-            <div class="health-row">
-              <div>
-                <div class="health-label">Question Bank</div>
-                <div class="health-description">
-                  Checks whether question records can be read.
-                </div>
-              </div>
-              <span id="health-questions" class="health-state warn">Checking</span>
-            </div>
-
-            <div class="health-row">
-              <div>
-                <div class="health-label">Achievement Data</div>
-                <div class="health-description">
-                  Checks the rewardSystem/achievements path.
-                </div>
-              </div>
-              <span id="health-achievements" class="health-state warn">Checking</span>
-            </div>
-          </div>
-
-          <p class="muted" style="margin-bottom:0;margin-top:18px;">
-            These checks do not prove that all writes, security rules, or
-            student-facing features work correctly. Those need separate tests.
-          </p>
-        </section>
+    <aside class="sidebar">
+      <div class="brand">
+        HYSTERIA'S <span>CURE</span>
+        <small>ADMINISTRATION</small>
       </div>
 
-      <!-- RECENT QUESTIONS -->
-      <section class="panel">
-        <div class="section-heading">
-          <div>
-            <h2>Recently Added Questions</h2>
+      <div class="nav-label">Dashboard</div>
+      <nav class="nav-list" aria-label="Dashboard navigation">
+        <a class="nav-link active" href="#overview">
+          <span class="nav-icon">◈</span> Overview
+        </a>
+        <a class="nav-link" href="#management">
+          <span class="nav-icon">▦</span> Management
+        </a>
+        <a class="nav-link" href="#ai-centre">
+          <span class="nav-icon">✧</span> GPT-6 Luna
+        </a>
+        <a class="nav-link" href="#factions">
+          <span class="nav-icon">♜</span> Factions
+        </a>
+        <a class="nav-link" href="#system-health">
+          <span class="nav-icon">◉</span> System Health
+        </a>
+        <a class="nav-link" href="#recent-activity">
+          <span class="nav-icon">≡</span> Recent Questions
+        </a>
+        <a class="nav-link" href="#learning-activity">
+          <span class="nav-icon">⌁</span> Learning Activity
+        </a>
+      </nav>
+
+      <div class="nav-label">Platform</div>
+      <nav class="nav-list" aria-label="Platform navigation">
+        <a class="nav-link" href="student-dashboard.html">
+          <span class="nav-icon">⌂</span> Student View
+        </a>
+        <a class="nav-link" href="pages.html">
+          <span class="nav-icon">▤</span> Page Directory
+        </a>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <strong>Administrator Access</strong>
+        <p>This control centre is restricted to your authorised administrator account.</p>
+      </div>
+    </aside>
+
+    <div class="main-area">
+
+      <header class="topbar">
+        <div>
+          <div class="topbar-title">Hysteria's Cure / Control Centre</div>
+          <div class="topbar-subtitle">Platform administration</div>
+        </div>
+
+        <div class="topbar-actions">
+          <span class="status-pill">
+            <span id="connection-dot" class="status-dot"></span>
+            <span id="connection-label">Checking connection</span>
+          </span>
+          <button id="logout-button" class="button" type="button">Log out</button>
+        </div>
+      </header>
+
+      <main class="content">
+
+        <div id="access-message" class="notice warn" role="status" aria-live="polite">
+          Verifying administrator access...
+        </div>
+
+        <div id="dashboard" hidden>
+
+          <section class="welcome" id="overview">
+            <div>
+              <div class="eyebrow">Administrator control centre</div>
+              <h1>Dashboard Overview</h1>
+              <p class="muted">
+                Your platform at a glance. Monitor activity, manage resources,
+                and oversee the learning environment.
+              </p>
+              <p class="muted">
+                Last refreshed: <span id="last-refreshed">Waiting for data...</span>
+              </p>
+            </div>
+
+            <button id="refresh-button" class="button" type="button">
+              ↻ Refresh data
+            </button>
+          </section>
+
+          <div id="dashboard-warning" class="notice warn" hidden></div>
+
+          <!-- PLATFORM STATISTICS -->
+          <section aria-labelledby="overview-title">
+            <div class="section-heading">
+              <div>
+                <h2 id="overview-title">Platform Statistics</h2>
+                <p class="muted">Live information from Firebase.</p>
+              </div>
+            </div>
+
+            <div class="stats-grid">
+              <article class="stat-card">
+                <div class="stat-top">
+                  <div class="stat-label">Registered Students</div>
+                  <div class="stat-icon">👥</div>
+                </div>
+                <div class="stat-value" id="stat-users">—</div>
+                <div class="stat-note" id="note-users">Waiting for Firebase</div>
+              </article>
+
+              <article class="stat-card">
+                <div class="stat-top">
+                  <div class="stat-label">Question Bank</div>
+                  <div class="stat-icon">📚</div>
+                </div>
+                <div class="stat-value" id="stat-questions">—</div>
+                <div class="stat-note" id="note-questions">Waiting for Firebase</div>
+              </article>
+
+              <article class="stat-card">
+                <div class="stat-top">
+                  <div class="stat-label">Achievements</div>
+                  <div class="stat-icon">🏆</div>
+                </div>
+                <div class="stat-value" id="stat-achievements">—</div>
+                <div class="stat-note" id="note-achievements">Waiting for Firebase</div>
+              </article>
+
+              <article class="stat-card">
+                <div class="stat-top">
+                  <div class="stat-label">Questions Answered</div>
+                  <div class="stat-icon">✍️</div>
+                </div>
+                <div class="stat-value" id="stat-answered">—</div>
+                <div class="stat-note" id="note-answered">Based on saved student progress</div>
+              </article>
+            </div>
+          </section>
+
+          <!-- MANAGEMENT -->
+          <section class="panel" id="management">
+            <div class="section-heading">
+              <div>
+                <h2>Management Centre</h2>
+                <p class="muted">Quick access to your administration tools.</p>
+              </div>
+            </div>
+
+            <div class="quick-grid">
+              <a class="quick-card" href="admin.html">
+                <div class="quick-icon">📝</div>
+                <h3>Questions & Achievements</h3>
+                <p>Manage question records and achievement definitions.</p>
+                <span class="quick-arrow">Open management →</span>
+              </a>
+
+              <a class="quick-card" href="admin-materials.html">
+                <div class="quick-icon">📚</div>
+                <h3>Learning Materials</h3>
+                <p>Manage learning materials available to the platform.</p>
+                <span class="quick-arrow">Open materials →</span>
+              </a>
+
+              <a class="quick-card" href="admin-users.html">
+                <div class="quick-icon">👥</div>
+                <h3>Student Management</h3>
+                <p>Access student and faction management tools.</p>
+                <span class="quick-arrow">Manage students →</span>
+              </a>
+
+              <a class="quick-card" href="pages.html">
+                <div class="quick-icon">🗂️</div>
+                <h3>Page Directory</h3>
+                <p>Find other pages available in the project.</p>
+                <span class="quick-arrow">Browse pages →</span>
+              </a>
+
+              <a class="quick-card" href="rewards.html">
+                <div class="quick-icon">🏆</div>
+                <h3>Rewards Page</h3>
+                <p>Inspect the student-facing rewards interface.</p>
+                <span class="quick-arrow">Open rewards →</span>
+              </a>
+
+              <a class="quick-card" href="question-bank.html">
+                <div class="quick-icon">📖</div>
+                <h3>Student Question Bank</h3>
+                <p>Inspect the question bank from the student side.</p>
+                <span class="quick-arrow">Open question bank →</span>
+              </a>
+            </div>
+          </section>
+
+          <!-- GPT-6 LUNA -->
+          <section class="panel ai-panel" id="ai-centre" aria-labelledby="ai-title">
+            <div class="ai-heading">
+              <div>
+                <div class="eyebrow">Teacher / Reference Model</div>
+                <div class="ai-title-line">
+                  <div class="ai-mark">L</div>
+                  <h2 id="ai-title">GPT-6 Luna Control Centre</h2>
+                </div>
+                <p class="muted">
+                  Generate original syllabus-aware questions for review.
+                  Nothing generated here is published automatically.
+                </p>
+              </div>
+              <span class="tag">Human review required</span>
+            </div>
+
+            <div class="notice warn">
+              GPT-6 Luna is the temporary teacher/reference model for the
+              platform. It is not HAI. Its observations are recorded separately
+              for later evaluation and curation. Recording an observation does
+              not train or update HAI.
+            </div>
+
+            <form id="ai-generation-form" class="ai-form">
+              <div class="ai-field">
+                <label for="ai-subject">Subject</label>
+                <input id="ai-subject" name="subject" type="text"
+                  maxlength="80" placeholder="e.g. Physics" required>
+              </div>
+
+              <div class="ai-field">
+                <label for="ai-topic">Topic</label>
+                <input id="ai-topic" name="topic" type="text"
+                  maxlength="120" placeholder="e.g. Electromagnetic induction" required>
+              </div>
+
+              <div class="ai-field">
+                <label for="ai-difficulty">Difficulty</label>
+                <select id="ai-difficulty" name="difficulty" required>
+                  <option value="1">Level 1 — Basic</option>
+                  <option value="2">Level 2</option>
+                  <option value="3">Level 3</option>
+                  <option value="4" selected>Level 4 — Intermediate</option>
+                  <option value="5">Level 5</option>
+                  <option value="6">Level 6</option>
+                  <option value="7">Level 7 — Advanced</option>
+                </select>
+              </div>
+
+              <div class="ai-field">
+                <label for="ai-type">Question Format</label>
+                <select id="ai-type" name="type" required>
+                  <option value="multiple-choice">Multiple Choice</option>
+                  <option value="written-response">Written Response</option>
+                </select>
+              </div>
+
+              <div class="ai-field full">
+                <label for="ai-instructions">Additional Instructions</label>
+                <textarea id="ai-instructions" name="instructions"
+                  maxlength="1000"
+                  placeholder="Add syllabus requirements, concepts, or other instructions..."></textarea>
+              </div>
+
+              <div class="ai-field full">
+                <button id="ai-generate-button" class="button primary"
+                  type="submit">
+                  ✧ Generate Question
+                </button>
+              </div>
+            </form>
+
+            <div id="ai-generation-status" class="notice warn"
+              role="status" aria-live="polite" hidden></div>
+
+            <div id="ai-generation-result" class="ai-result" hidden>
+              <h3>Generated Question</h3>
+              <div id="ai-result-content"></div>
+            </div>
+          </section>
+
+          <!-- FACTIONS AND HEALTH -->
+          <div class="content-grid">
+
+            <section class="panel" id="factions">
+              <div class="section-heading">
+                <div>
+                  <h2>Faction Overview</h2>
+                  <p class="muted">Student distribution across the factions.</p>
+                </div>
+              </div>
+
+              <div id="faction-list" class="faction-list">
+                <div class="empty-state">Waiting for student data...</div>
+              </div>
+              <p id="faction-note" class="muted"></p>
+            </section>
+
+            <section class="panel" id="system-health">
+              <div class="section-heading">
+                <div>
+                  <h2>System Health</h2>
+                  <p class="muted">Basic connectivity and data checks.</p>
+                </div>
+              </div>
+
+              <div class="health-list">
+                <div class="health-row">
+                  <div>
+                    <div class="health-label">Administrator Authentication</div>
+                    <div class="health-description">Administrator UID verification.</div>
+                  </div>
+                  <span id="health-auth" class="health-state warn">Checking</span>
+                </div>
+
+                <div class="health-row">
+                  <div>
+                    <div class="health-label">Firebase Database</div>
+                    <div class="health-description">Database read connectivity.</div>
+                  </div>
+                  <span id="health-database" class="health-state warn">Checking</span>
+                </div>
+
+                <div class="health-row">
+                  <div>
+                    <div class="health-label">Student Profiles</div>
+                    <div class="health-description">Access to saved user profiles.</div>
+                  </div>
+                  <span id="health-profiles" class="health-state warn">Checking</span>
+                </div>
+
+                <div class="health-row">
+                  <div>
+                    <div class="health-label">Question Bank</div>
+                    <div class="health-description">Access to question records.</div>
+                  </div>
+                  <span id="health-questions" class="health-state warn">Checking</span>
+                </div>
+
+                <div class="health-row">
+                  <div>
+                    <div class="health-label">Achievement Data</div>
+                    <div class="health-description">Access to rewardSystem/achievements.</div>
+                  </div>
+                  <span id="health-achievements" class="health-state warn">Checking</span>
+                </div>
+              </div>
+
+              <p class="muted">
+                Successful reads do not prove that all writes, security rules,
+                or student-facing features work correctly.
+              </p>
+            </section>
+
+          </div>
+
+          <!-- RECENT QUESTIONS -->
+          <section class="panel" id="recent-activity">
+            <div class="section-heading">
+              <div>
+                <h2>Recently Added Questions</h2>
+                <p class="muted">Latest records based on saved creation timestamps.</p>
+              </div>
+              <a href="admin.html" class="button">Manage Questions →</a>
+            </div>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Question ID</th>
+                    <th>Subject</th>
+                    <th>Topic</th>
+                    <th>Level</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="recent-questions">
+                  <tr>
+                    <td colspan="5" class="empty-state">
+                      Waiting for question data...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- LEARNING ACTIVITY -->
+          <section class="panel" id="learning-activity">
+            <div class="section-heading">
+              <div>
+                <h2>Learning Activity</h2>
+                <p class="muted">Combined totals from saved student progress.</p>
+              </div>
+            </div>
+
+            <div class="stats-grid" style="margin-bottom:0;">
+              <article class="stat-card">
+                <div class="stat-label">Correct Answers</div>
+                <div class="stat-value" id="stat-correct">—</div>
+                <div class="stat-note">Combined saved progress</div>
+              </article>
+
+              <article class="stat-card">
+                <div class="stat-label">Lifetime XP</div>
+                <div class="stat-value" id="stat-xp">—</div>
+                <div class="stat-note">Combined saved XP</div>
+              </article>
+
+              <article class="stat-card">
+                <div class="stat-label">Points</div>
+                <div class="stat-value" id="stat-points">—</div>
+                <div class="stat-note">Current saved balances</div>
+              </article>
+
+              <article class="stat-card">
+                <div class="stat-label">Completed Sessions</div>
+                <div class="stat-value" id="stat-sessions">—</div>
+                <div class="stat-note">Combined saved sessions</div>
+              </article>
+            </div>
+
             <p class="muted">
-              The most recent records, based on their saved creation timestamps.
+              These are database totals, not monthly totals. Monthly earning
+              limits and rank calculations are not enforced by this dashboard.
             </p>
-          </div>
-          <a href="admin.html" class="button">Manage Questions</a>
-        </div>
+          </section>
 
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Question ID</th>
-                <th>Subject</th>
-                <th>Topic</th>
-                <th>Level</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody id="recent-questions">
-              <tr>
-                <td colspan="5" class="empty-state">
-                  Waiting for question data...
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <!-- STUDENT ACTIVITY SUMMARY -->
-      <section class="panel">
-        <div class="section-heading">
-          <div>
-            <h2>Learning Activity</h2>
-            <p class="muted">
-              Aggregated totals from saved student progress records.
-            </p>
-          </div>
-        </div>
-
-        <div class="stats-grid" style="margin-bottom:0;">
-          <article class="stat-card">
-            <div class="stat-label">Correct Answers</div>
-            <div class="stat-value" id="stat-correct">—</div>
-            <div class="stat-note">Combined saved progress</div>
-          </article>
-
-          <article class="stat-card">
-            <div class="stat-label">Lifetime XP</div>
-            <div class="stat-value" id="stat-xp">—</div>
-            <div class="stat-note">Combined saved XP</div>
-          </article>
-
-          <article class="stat-card">
-            <div class="stat-label">Points</div>
-            <div class="stat-value" id="stat-points">—</div>
-            <div class="stat-note">Current saved point balances</div>
-          </article>
-
-          <article class="stat-card">
-            <div class="stat-label">Completed Sessions</div>
-            <div class="stat-value" id="stat-sessions">—</div>
-            <div class="stat-note">Combined saved session totals</div>
-          </article>
-        </div>
-
-        <p class="muted">
-          These are database totals, not necessarily monthly totals.
-          Monthly earning limits and rank calculations are not enforced by
-          this dashboard.
-        </p>
-      </section>
-
-      <!-- KNOWN LIMITATIONS -->
-      <section class="panel">
-        <h2>Monitoring Notes</h2>
-
-        <div class="health-list">
-          <div class="health-row">
-            <div>
-              <div class="health-label">Recent Administrative Activity</div>
-              <div class="health-description">
-                A reliable audit log has not been connected to this dashboard.
-                Administrative actions cannot yet be listed here.
+          <!-- MONITORING NOTES -->
+          <section class="panel">
+            <div class="section-heading">
+              <div>
+                <h2>Monitoring Notes</h2>
+                <p class="muted">Features requiring separate implementation or testing.</p>
               </div>
             </div>
-            <span class="health-state warn">Not configured</span>
-          </div>
 
-          <div class="health-row">
-            <div>
-              <div class="health-label">Monthly Rewards</div>
-              <div class="health-description">
-                Monthly point allowances and monthly earnings require their
-                own implementation and validation.
+            <div class="monitoring-note">
+              <div>
+                <strong>Administrative Activity Log</strong>
+                <p>A reliable audit log has not yet been connected to this dashboard.</p>
               </div>
+              <span class="health-state warn">Not configured</span>
             </div>
-            <span class="health-state warn">Needs testing</span>
-          </div>
 
-          <div class="health-row">
-            <div>
-              <div class="health-label">Achievement Payouts</div>
-              <div class="health-description">
-                Saving an achievement definition does not automatically
-                implement student unlocking or secure bonus payouts.
+            <div class="monitoring-note">
+              <div>
+                <strong>Monthly Rewards</strong>
+                <p>Monthly point allowances and earnings require their own implementation and validation.</p>
               </div>
+              <span class="health-state warn">Needs testing</span>
             </div>
-            <span class="health-state warn">Needs integration</span>
-          </div>
+
+            <div class="monitoring-note">
+              <div>
+                <strong>Achievement Payouts</strong>
+                <p>Achievement definitions alone do not implement secure unlocking or bonus payouts.</p>
+              </div>
+              <span class="health-state warn">Needs integration</span>
+            </div>
+          </section>
+
         </div>
-      </section>
+      </main>
+
+      <footer>
+        Hysteria's Cure · Administration
+      </footer>
     </div>
-  </main>
+  </div>
 
-  <footer>
-    Hysteria's Cure · Administration
-  </footer>
-
-  <script type="module">
-    import { auth, database } from "./js/firebase-client.js";
-
-    import {
-      onAuthStateChanged,
-      signOut
-    } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
-
-    import {
-      ref,
-      onValue,
-      get
-    } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-database.js";
-
-    const ADMIN_UID = "RtaLjBtKSUgRnWB7ag06CLRCStM2";
-
-    const AI_BACKEND_URL =
-      "https://silver-raindrop-743021.netlify.app/.netlify/functions/generate-question";
-
-    const $ = id => document.getElementById(id);
-
-    const accessMessage = $("access-message");
-    const dashboard = $("dashboard");
-    const logoutButton = $("logout-button");
-    const refreshButton = $("refresh-button");
-
-    let currentAdmin = null;
-    let listeners = [];
-
-    let loaded = {
-      users: false,
-      questions: false,
-      achievements: false
-    };
-
-    let latestData = {
-      users: null,
-      questions: null,
-      achievements: null
-    };
-
-    function setHealth(id, state, label) {
-      const element = $(id);
-      element.textContent = label;
-      element.className = `health-state ${state}`;
-    }
-
-    function setConnection(connected, label) {
-      $("connection-label").textContent = label;
-      $("connection-dot").className =
-        `status-dot ${connected ? "ok" : "bad"}`;
-    }
-
-    function setStat(id, value) {
-      $(id).textContent = Number(value || 0).toLocaleString();
-    }
-
-    function recordCount(data) {
-      if (!data || typeof data !== "object") return 0;
-      return Object.keys(data).length;
-    }
-
-    function validNumber(value) {
-      const number = Number(value);
-      return Number.isFinite(number) && number >= 0 ? number : 0;
-    }
-
-    function escapeHTML(value) {
-      return String(value ?? "").replace(/[&<>"']/g, character => ({
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': "&quot;",
-        "'": "&#39;"
-      })[character]);
-    }
-
-    function showWarning(message, type = "warn") {
-      const box = $("dashboard-warning");
-      box.hidden = false;
-      box.className = `notice ${type}`;
-      box.textContent = message;
-    }
-
-    function clearWarning() {
-      $("dashboard-warning").hidden = true;
-      $("dashboard-warning").textContent = "";
-    }
-
-    function refreshTimestamp() {
-      $("last-refreshed").textContent = new Date().toLocaleString();
-    }
-
-    function stopListeners() {
-      listeners.forEach(stop => {
-        if (typeof stop === "function") stop();
-      });
-      listeners = [];
-    }
-
-    function getProgress(user) {
-      return user && typeof user.progress === "object" &&
-        user.progress !== null
-        ? user.progress
-        : {};
-    }
-
-    function updateOverview() {
-      if (latestData.users !== null) {
-        const users = latestData.users;
-        const userCount = recordCount(users);
-
-        setStat("stat-users", userCount);
-        $("note-users").textContent =
-          "Profiles stored in the users path";
-
-        const factionKeys = [
-          "readers",
-          "gamers",
-          "movie-lovers",
-          "independent"
-        ];
-
-        const factionCounts = Object.fromEntries(
-          factionKeys.map(key => [key, 0])
-        );
-
-        let answered = 0;
-        let correct = 0;
-        let xp = 0;
-        let points = 0;
-        let sessions = 0;
-
-        Object.values(users || {}).forEach(user => {
-          if (!user || typeof user !== "object") return;
-
-          const faction = String(user.faction || "").toLowerCase();
-
-          if (Object.prototype.hasOwnProperty.call(factionCounts, faction)) {
-            factionCounts[faction]++;
-          }
-
-          const progress = getProgress(user);
-
-          answered += validNumber(progress.totalAnswered);
-          correct += validNumber(progress.totalCorrect);
-          xp += validNumber(progress.xp);
-          points += validNumber(progress.points);
-          sessions += validNumber(progress.sessionsCompleted);
-        });
-
-        setStat("stat-answered", answered);
-        setStat("stat-correct", correct);
-        setStat("stat-xp", xp);
-        setStat("stat-points", points);
-        setStat("stat-sessions", sessions);
-
-        renderFactions(factionCounts, userCount);
-        setHealth("health-profiles", "ok", "Readable");
-      }
-
-      if (latestData.questions !== null) {
-        const questions = latestData.questions;
-
-        setStat("stat-questions", recordCount(questions));
-        $("note-questions").textContent =
-          "Records stored in questionBank";
-
-        renderRecentQuestions(questions);
-        setHealth("health-questions", "ok", "Readable");
-      }
-
-      if (latestData.achievements !== null) {
-        const achievements = latestData.achievements;
-        const items = Object.values(achievements || {});
-        const active = items.filter(item =>
-          item && item.active === true
-        ).length;
-
-        setStat("stat-achievements", items.length);
-        $("note-achievements").textContent =
-          `${active.toLocaleString()} active · ${items.length.toLocaleString()} total`;
-
-        setHealth("health-achievements", "ok", "Readable");
-      }
-
-      const allLoaded =
-        loaded.users && loaded.questions && loaded.achievements;
-
-      setHealth(
-        "health-database",
-        allLoaded ? "ok" : "warn",
-        allLoaded ? "Reads successful" : "Partially checked"
-      );
-
-      if (allLoaded) {
-        setConnection(true, "Database connected");
-        clearWarning();
-      }
-
-      refreshTimestamp();
-    }
-
-    function renderFactions(counts, total) {
-      const names = {
-        readers: "Readers",
-        gamers: "Gamers",
-        "movie-lovers": "Movie Lovers",
-        independent: "Independent"
-      };
-
-      $("faction-list").innerHTML = Object.entries(names).map(
-        ([key, name]) => {
-          const count = counts[key] || 0;
-          const percent = total ? (count / total) * 100 : 0;
-
-          return `
-            <div class="faction-row">
-              <div class="faction-name">${name}</div>
-              <div
-                class="bar"
-                role="progressbar"
-                aria-label="${name} faction share"
-                aria-valuemin="0"
-                aria-valuemax="100"
-                aria-valuenow="${percent.toFixed(1)}"
-              >
-                <div class="bar-fill" style="width:${percent}%"></div>
-              </div>
-              <div class="faction-count">${count}</div>
-            </div>
-          `;
-        }
-      ).join("");
-
-      const missing = Math.max(
-        0,
-        total - Object.values(counts).reduce((sum, value) => sum + value, 0)
-      );
-
-      $("faction-note").textContent = missing
-        ? `${missing} profile(s) have no recognised faction.`
-        : "Counts are based on the saved faction field in each profile.";
-    }
-
-    function renderRecentQuestions(data) {
-      const tbody = $("recent-questions");
-
-      const questions = Object.entries(data || {})
-        .map(([key, value]) => ({
-          ...(value && typeof value === "object" ? value : {}),
-          id: value?.id || key
-        }))
-        .sort((a, b) => {
-          const dateA = Date.parse(a.createdAt || "") || 0;
-          const dateB = Date.parse(b.createdAt || "") || 0;
-          return dateB - dateA;
-        })
-        .slice(0, 8);
-
-      if (!questions.length) {
-        tbody.innerHTML = `
-          <tr>
-            <td colspan="5" class="empty-state">
-              No questions found in the readable questionBank path.
-            </td>
-          </tr>
-        `;
-        return;
-      }
-
-      tbody.innerHTML = questions.map(question => {
-        const verified = question.verified === true;
-
-        return `
-          <tr>
-            <td><code>${escapeHTML(question.id)}</code></td>
-            <td>${escapeHTML(question.subject || "Not set")}</td>
-            <td>${escapeHTML(question.topic || "Not set")}</td>
-            <td>${escapeHTML(question.difficulty ?? "—")}</td>
-            <td>
-              <span class="tag ${verified ? "ok" : "warn"}">
-                ${verified ? "Verified" : "Unverified"}
-              </span>
-            </td>
-          </tr>
-        `;
-      }).join("");
-    }
-
-    /* AI QUESTION GENERATION */
-
-    function setAIStatus(message, type = "warn") {
-      const status = $("ai-generation-status");
-      status.hidden = false;
-      status.className = `notice ${type}`;
-      status.textContent = message;
-    }
-
-    function hideAIResult() {
-      $("ai-generation-result").hidden = true;
-      $("ai-result-content").replaceChildren();
-    }
-
-    function appendResultText(parent, text) {
-      const paragraph = document.createElement("p");
-      paragraph.textContent = String(text ?? "");
-      parent.appendChild(paragraph);
-    }
-
-    function appendResultSection(parent, heading, content) {
-      if (content === undefined || content === null || content === "") {
-        return;
-      }
-
-      const section = document.createElement("div");
-      section.className = "ai-result-section";
-
-      const title = document.createElement("strong");
-      title.textContent = heading;
-      section.appendChild(title);
-
-      if (Array.isArray(content)) {
-        const list = document.createElement("ul");
-
-        content.forEach(item => {
-          const li = document.createElement("li");
-          li.textContent = typeof item === "object"
-            ? JSON.stringify(item)
-            : String(item);
-          list.appendChild(li);
-        });
-
-        section.appendChild(list);
-      } else {
-        const paragraph = document.createElement("p");
-        paragraph.textContent = typeof content === "object"
-          ? JSON.stringify(content, null, 2)
-          : String(content);
-        section.appendChild(paragraph);
-      }
-
-      parent.appendChild(section);
-    }
-
-    function displayAICandidate(candidate, observationId) {
-      const container = $("ai-result-content");
-      container.replaceChildren();
-
-      const question = candidate.question || candidate.prompt || "";
-
-      appendResultText(container, question || "Question text was not returned.");
-
-      if (Array.isArray(candidate.options)) {
-        appendResultSection(container, "Options", candidate.options);
-      }
-
-      appendResultSection(
-        container,
-        "Correct answer",
-        candidate.correctAnswer ?? candidate.answer
-      );
-
-      appendResultSection(
-        container,
-        "Expected answer",
-        candidate.expectedAnswer
-      );
-
-      appendResultSection(
-        container,
-        "Explanation",
-        candidate.explanation
-      );
-
-      appendResultSection(
-        container,
-        "Marking scheme",
-        candidate.markingScheme
-      );
-
-      appendResultSection(
-        container,
-        "Difficulty",
-        candidate.difficulty
-      );
-
-      const status = document.createElement("div");
-      status.className = "ai-result-section";
-
-      const statusText = document.createElement("p");
-      statusText.textContent =
-        "Status: Pending review. This question has not been published.";
-
-      status.appendChild(statusText);
-
-      const candidateId = document.createElement("p");
-      candidateId.className = "ai-meta";
-      candidateId.textContent =
-        `Candidate ID: ${candidate.id || "Not returned"}`;
-
-      status.appendChild(candidateId);
-
-      const observation = document.createElement("p");
-      observation.className = "ai-meta";
-      observation.textContent =
-        `Teacher observation ID: ${observationId || "Not returned"}`;
-
-      status.appendChild(observation);
-
-      container.appendChild(status);
-      $("ai-generation-result").hidden = false;
-    }
-
-    $("ai-generation-form").addEventListener("submit", async event => {
-      event.preventDefault();
-
-      const button = $("ai-generate-button");
-
-      if (!currentAdmin || auth.currentUser?.uid !== ADMIN_UID) {
-        setAIStatus(
-          "Administrator authentication is unavailable. Please sign in again.",
-          "error"
-        );
-        return;
-      }
-
-      const subject = $("ai-subject").value.trim();
-      const topic = $("ai-topic").value.trim();
-      const difficulty = Number($("ai-difficulty").value);
-      const type = $("ai-type").value;
-      const instructions = $("ai-instructions").value.trim();
-
-      if (!subject || !topic) {
-        setAIStatus("Please enter both a subject and a topic.", "error");
-        return;
-      }
-
-      if (!Number.isInteger(difficulty) || difficulty < 1 || difficulty > 7) {
-        setAIStatus("Difficulty must be between 1 and 7.", "error");
-        return;
-      }
-
-      if (!["multiple-choice", "written-response"].includes(type)) {
-        setAIStatus("Select a valid question format.", "error");
-        return;
-      }
-
-      button.disabled = true;
-      button.textContent = "Generating...";
-      hideAIResult();
-      setAIStatus("Contacting GPT-6 Luna. Please wait...", "warn");
-
-      try {
-        const token = await currentAdmin.getIdToken();
-
-        const response = await fetch(AI_BACKEND_URL, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`
-          },
-          body: JSON.stringify({
-            subject,
-            topic,
-            difficulty,
-            type,
-            instructions
-          })
-        });
-
-        let data;
-
-        try {
-          data = await response.json();
-        } catch {
-          throw new Error(
-            `The backend returned an unreadable response (HTTP ${response.status}).`
-          );
-        }
-
-        if (!response.ok) {
-          throw new Error(
-            data?.error ||
-            data?.message ||
-            `Question generation failed (HTTP ${response.status}).`
-          );
-        }
-
-        if (!data?.candidate || typeof data.candidate !== "object") {
-          throw new Error(
-            "The backend responded, but no valid question candidate was returned."
-          );
-        }
-
-        displayAICandidate(data.candidate, data.observationId);
-
-        setAIStatus(
-          "Question generated and saved for review. It has not been published or used to train HAI.",
-          "success"
-        );
-
-      } catch (error) {
-        console.error("AI question generation failed:", error);
-
-        let message = error?.message || "An unexpected error occurred.";
-
-        if (error instanceof TypeError) {
-          message =
-            "Could not reach the AI backend. Check your internet connection, Netlify deployment, and allowed website origin.";
-        }
-
-        setAIStatus(message, "error");
-
-      } finally {
-        button.disabled = false;
-        button.textContent = "Generate Question";
-      }
-    });
-
-    /* FIREBASE DASHBOARD */
-
-    function startListeners() {
-      stopListeners();
-
-      loaded = {
-        users: false,
-        questions: false,
-        achievements: false
-      };
-
-      latestData = {
-        users: null,
-        questions: null,
-        achievements: null
-      };
-
-      setConnection(false, "Loading data");
-      setHealth("health-database", "warn", "Checking");
-      setHealth("health-profiles", "warn", "Checking");
-      setHealth("health-questions", "warn", "Checking");
-      setHealth("health-achievements", "warn", "Checking");
-
-      const paths = [
-        {
-          key: "users",
-          path: "users",
-          health: "health-profiles",
-          label: "student profiles"
-        },
-        {
-          key: "questions",
-          path: "questionBank",
-          health: "health-questions",
-          label: "question bank"
-        },
-        {
-          key: "achievements",
-          path: "rewardSystem/achievements",
-          health: "health-achievements",
-          label: "achievements"
-        }
-      ];
-
-      let failedPaths = [];
-
-      paths.forEach(item => {
-        const unsubscribe = onValue(
-          ref(database, item.path),
-          snapshot => {
-            loaded[item.key] = true;
-            latestData[item.key] = snapshot.val() || {};
-
-            setHealth(item.health, "ok", "Readable");
-
-            failedPaths = failedPaths.filter(path => path !== item.path);
-
-            updateOverview();
-          },
-          error => {
-            console.error(
-              `Dashboard read failed (${item.path}):`,
-              error
-            );
-
-            loaded[item.key] = false;
-            latestData[item.key] = null;
-
-            setHealth(item.health, "bad", "Read failed");
-
-            failedPaths = [
-              ...new Set([...failedPaths, item.path])
-            ];
-
-            setConnection(false, "Some reads failed");
-
-            showWarning(
-              `Could not read ${item.label}. Check your internet connection and Firebase Realtime Database Rules. The dashboard will not invent missing statistics.`,
-              "error"
-            );
-
-            if (failedPaths.length > 0) {
-              setHealth("health-database", "bad", "Read error");
-            }
-          }
-        );
-
-        listeners.push(unsubscribe);
-      });
-    }
-
-    onAuthStateChanged(auth, user => {
-      stopListeners();
-      currentAdmin = null;
-
-      if (!user) {
-        window.location.replace("login.html");
-        return;
-      }
-
-      if (user.uid !== ADMIN_UID) {
-        dashboard.hidden = true;
-        accessMessage.hidden = false;
-        accessMessage.className = "notice error";
-        accessMessage.textContent =
-          "Access denied. This account is not authorised to use the admin dashboard.";
-
-        setHealth("health-auth", "bad", "Denied");
-        setConnection(false, "Access denied");
-        return;
-      }
-
-      currentAdmin = user;
-
-      accessMessage.hidden = true;
-      dashboard.hidden = false;
-
-      setHealth("health-auth", "ok", "Verified");
-
-      startListeners();
-    });
-
-    refreshButton.addEventListener("click", async () => {
-      if (!currentAdmin || auth.currentUser?.uid !== ADMIN_UID) return;
-
-      refreshButton.disabled = true;
-      refreshButton.textContent = "Refreshing...";
-
-      try {
-        await Promise.all([
-          get(ref(database, "users")),
-          get(ref(database, "questionBank")),
-          get(ref(database, "rewardSystem/achievements"))
-        ]);
-
-        refreshTimestamp();
-
-      } catch (error) {
-        console.error("Dashboard refresh failed:", error);
-
-        showWarning(
-          "Refresh failed. Check your connection and Firebase Database Rules.",
-          "error"
-        );
-
-      } finally {
-        refreshButton.disabled = false;
-        refreshButton.textContent = "Refresh";
-      }
-    });
-
-    logoutButton.addEventListener("click", async () => {
-      logoutButton.disabled = true;
-
-      try {
-        stopListeners();
-        await signOut(auth);
-        window.location.replace("login.html");
-
-      } catch (error) {
-        console.error("Logout failed:", error);
-
-        showWarning(
-          "Logout failed. Check your connection and try again.",
-          "error"
-        );
-
-        logoutButton.disabled = false;
-      }
-    });
-
-    window.addEventListener("online", () => {
-      if (currentAdmin) startListeners();
-    });
-
-    window.addEventListener("offline", () => {
-      setConnection(false, "Browser offline");
-
-      showWarning(
-        "Your device appears to be offline. Live dashboard information may be outdated.",
-        "warn"
-      );
-    });
-  </script>
+  <!-- Only one dashboard controller: do not add the old inline script back. -->
   <script type="module" src="./js/admin.js"></script>
-<script type="module" src="./js/faction-theme.js"></script>
+  <script type="module" src="./js/faction-theme.js"></script>
 </body>
 </html>
