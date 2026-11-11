@@ -33,7 +33,7 @@ import {
 const ADMIN_UID = "RtaLjBtKSUgRnWB7ag06CLRCStM2";
 
 const AI_BACKEND_URL =
-  "https://silver-raindrop-743021.netlify.app/.netlify/functions/generate-question";
+  "https://cute-horse-6988fb.netlify.app/.netlify/functions/generate-question";";
 
 /* =========================================
    ELEMENTS
