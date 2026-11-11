@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -38,7 +39,11 @@
       background: var(--bg-secondary, var(--background));
     }
 
-    .brand { font-weight: 800; font-size: 1.05rem; }
+    .brand {
+      font-weight: 800;
+      font-size: 1.05rem;
+    }
+
     .brand span { color: var(--accent); }
 
     button, .action {
@@ -171,7 +176,9 @@
       margin-bottom: 20px;
     }
 
-    #form-message, #achievement-message {
+    #form-message,
+    #achievement-message,
+    #ai-generation-status {
       margin-top: 16px;
       padding: 12px;
       border: 1px solid var(--border);
@@ -237,6 +244,33 @@
       gap: 10px;
     }
 
+    .ai-result-section {
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+      overflow-wrap: anywhere;
+    }
+
+    .ai-result-section:last-child {
+      border-bottom: 0;
+    }
+
+    .ai-result-section p {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      line-height: 1.6;
+    }
+
+    .ai-result-section li {
+      margin-bottom: 8px;
+      line-height: 1.5;
+    }
+
+    .ai-meta {
+      color: var(--muted);
+      font-size: .85rem;
+      overflow-wrap: anywhere;
+    }
+
     [hidden] { display: none !important; }
 
     @media (max-width: 600px) {
@@ -263,7 +297,10 @@
          style="padding:8px 14px;font-size:.85rem;margin-right:8px;">
         Student Dashboard
       </a>
-      <button id="logout-button" type="button">Log out</button>
+
+      <button id="logout-button" type="button">
+        Log out
+      </button>
     </div>
   </header>
 
@@ -274,8 +311,10 @@
 
     <div id="admin-content" hidden>
 
+      <!-- ADMINISTRATION NAVIGATION -->
       <section class="panel">
         <h1>Administration</h1>
+
         <p class="muted">
           Manage questions, learning materials, student accounts, and rewards.
         </p>
@@ -303,9 +342,81 @@
         </div>
       </section>
 
-      <!-- QUESTION MANAGEMENT -->
+      <!-- GPT-6 LUNA QUESTION GENERATOR -->
+      <section class="panel" id="ai-question-generator">
+        <h2>GPT-6 Luna — Question Generator</h2>
+
+        <p class="muted">
+          Generate educational question candidates for review.
+          Generated questions are not published automatically.
+        </p>
+
+        <form id="ai-generation-form">
+          <div class="form-group">
+            <label for="ai-subject">Subject</label>
+            <input id="ai-subject" type="text"
+                   maxlength="80" required
+                   placeholder="e.g. Physics">
+          </div>
+
+          <div class="form-group">
+            <label for="ai-topic">Topic</label>
+            <input id="ai-topic" type="text"
+                   maxlength="120" required
+                   placeholder="e.g. Electromagnetic induction">
+          </div>
+
+          <div class="form-group">
+            <label for="ai-difficulty">Difficulty (1–7)</label>
+            <input id="ai-difficulty" type="number"
+                   min="1" max="7" step="1"
+                   value="3" required>
+          </div>
+
+          <div class="form-group">
+            <label for="ai-type">Question type</label>
+            <select id="ai-type" required>
+              <option value="multiple-choice">Multiple choice</option>
+              <option value="written-response">Written response</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="ai-instructions">
+              Additional instructions
+            </label>
+
+            <textarea id="ai-instructions"
+                      maxlength="1000"
+                      placeholder="Optional instructions for GPT-6 Luna..."></textarea>
+          </div>
+
+          <button id="ai-generate-button"
+                  class="action" type="submit">
+            Generate Question
+          </button>
+        </form>
+
+        <p id="ai-generation-status"
+           role="status" aria-live="polite" hidden></p>
+
+        <div id="ai-generation-result" hidden>
+          <h3>Generated Candidate</h3>
+
+          <div id="ai-result-content"></div>
+
+          <button id="ai-publish-button"
+                  class="action"
+                  type="button" hidden>
+            Approve and Publish
+          </button>
+        </div>
+      </section>
+
+      <!-- MANUAL QUESTION MANAGEMENT -->
       <section class="panel">
         <h2>Add New Question</h2>
+
         <p class="muted">
           Add a question to the global question repository.
         </p>
@@ -334,8 +445,9 @@
 
           <div class="form-group">
             <label for="q-difficulty">Difficulty (1 to 7)</label>
-            <input type="number" id="q-difficulty" min="1"
-                   max="7" step="1" value="1" required>
+            <input type="number" id="q-difficulty"
+                   min="1" max="7" step="1"
+                   value="1" required>
           </div>
 
           <div class="form-group">
@@ -349,15 +461,18 @@
 
             <input type="text" class="q-option"
                    aria-label="Option A" placeholder="Option A"
-                   maxlength="2000" required style="margin-bottom:8px;">
+                   maxlength="2000" required
+                   style="margin-bottom:8px;">
 
             <input type="text" class="q-option"
                    aria-label="Option B" placeholder="Option B"
-                   maxlength="2000" required style="margin-bottom:8px;">
+                   maxlength="2000" required
+                   style="margin-bottom:8px;">
 
             <input type="text" class="q-option"
                    aria-label="Option C" placeholder="Option C"
-                   maxlength="2000" style="margin-bottom:8px;">
+                   maxlength="2000"
+                   style="margin-bottom:8px;">
 
             <input type="text" class="q-option"
                    aria-label="Option D" placeholder="Option D"
@@ -368,17 +483,23 @@
             <label for="q-answer-index">
               Correct Answer Index (0 = A, 1 = B, 2 = C, 3 = D)
             </label>
-            <input type="number" id="q-answer-index" min="0"
-                   max="3" step="1" value="0" required>
+
+            <input type="number" id="q-answer-index"
+                   min="0" max="3" step="1"
+                   value="0" required>
           </div>
 
           <div class="form-group">
-            <label for="q-explanation">Explanation (Optional)</label>
+            <label for="q-explanation">
+              Explanation (Optional)
+            </label>
+
             <textarea id="q-explanation" maxlength="10000"
                       placeholder="Explain why the correct answer is right..."></textarea>
           </div>
 
-          <button id="publish-button" type="submit" class="action">
+          <button id="publish-button"
+                  type="submit" class="action">
             Publish Question
           </button>
 
@@ -400,9 +521,11 @@
         <form id="achievement-form">
           <div class="form-group">
             <label for="achievement-id">Achievement ID</label>
+
             <input id="achievement-id" type="text" required
                    pattern="[A-Za-z0-9_-]+" maxlength="80"
                    placeholder="e.g. first_100_questions">
+
             <p class="muted">
               Use a stable ID. Changing it creates a different achievement.
             </p>
@@ -410,21 +533,22 @@
 
           <div class="form-group">
             <label for="achievement-title">Title</label>
-            <input id="achievement-title" type="text" required
-                   maxlength="100" placeholder="e.g. Hundred Club">
+            <input id="achievement-title" type="text"
+                   required maxlength="100"
+                   placeholder="e.g. Hundred Club">
           </div>
 
           <div class="form-group">
             <label for="achievement-description">Description</label>
-            <textarea id="achievement-description" required
-                      maxlength="500"
+            <textarea id="achievement-description"
+                      required maxlength="500"
                       placeholder="What must a student do to earn it?"></textarea>
           </div>
 
           <div class="form-group">
             <label for="achievement-icon">Icon or emoji</label>
-            <input id="achievement-icon" type="text" maxlength="20"
-                   placeholder="🏆" value="🏆">
+            <input id="achievement-icon" type="text"
+                   maxlength="20" placeholder="🏆" value="🏆">
           </div>
 
           <div class="form-group">
@@ -440,8 +564,9 @@
 
           <div class="form-group">
             <label for="achievement-target">Target</label>
-            <input id="achievement-target" type="number" min="1"
-                   step="1" value="10" required>
+            <input id="achievement-target" type="number"
+                   min="1" step="1" value="10" required>
+
             <p class="muted">
               For accuracy, enter a percentage from 1 to 100.
             </p>
@@ -449,8 +574,8 @@
 
           <div class="form-group">
             <label for="achievement-bonus">Bonus Points</label>
-            <input id="achievement-bonus" type="number" min="0"
-                   step="1" value="0" required>
+            <input id="achievement-bonus" type="number"
+                   min="0" step="1" value="0" required>
           </div>
 
           <div class="form-group">
@@ -462,33 +587,39 @@
           </div>
 
           <div class="form-actions">
-            <button id="achievement-save" class="action" type="submit">
+            <button id="achievement-save"
+                    class="action" type="submit">
               Save Achievement
             </button>
-            <button id="achievement-cancel" type="button" hidden>
+
+            <button id="achievement-cancel"
+                    type="button" hidden>
               Cancel Editing
             </button>
           </div>
 
-          <p id="achievement-message" role="status"
-             aria-live="polite" hidden></p>
+          <p id="achievement-message"
+             role="status" aria-live="polite" hidden></p>
         </form>
 
         <hr style="border:0;border-top:1px solid var(--border);margin:24px 0;">
 
         <h2>Existing Achievements</h2>
+
         <p class="muted">
           Changes appear here when Firebase updates. Deactivating an
           achievement keeps its definition but marks it inactive.
         </p>
 
-        <div id="achievement-list" class="achievement-list" aria-live="polite">
+        <div id="achievement-list"
+             class="achievement-list" aria-live="polite">
           <p class="muted">Loading achievements...</p>
         </div>
       </section>
     </div>
   </main>
 
+  <!-- EXISTING ADMIN FUNCTIONS -->
   <script type="module">
     import { auth, database } from "./js/firebase-client.js";
 
@@ -803,8 +934,6 @@
         return;
       }
 
-      const clickedButton = editButton || toggleButton || deleteButton;
-
       const id = editButton
         ? editButton.dataset.achievementEdit
         : toggleButton
@@ -925,7 +1054,7 @@
       loadAchievements();
     });
 
-    // PUBLISH QUESTIONS
+    // MANUAL QUESTION PUBLISHING
     addForm.addEventListener("submit", async event => {
       event.preventDefault();
 
@@ -1028,7 +1157,7 @@
         });
 
         showFormMessage(
-          "Question saved to Firebase. Confirm that it appears in the question bank during the integration pass."
+          "Question saved to Firebase. Confirm that it appears in the question bank."
         );
 
         addForm.reset();
@@ -1067,6 +1196,10 @@
     });
   </script>
 
+  <!-- GPT-6 LUNA CONTROLLER -->
+  <script type="module" src="js/admin-ai.js"></script>
+
+  <!-- EXISTING THEME CONTROLLER -->
   <script type="module" src="js/faction-theme.js"></script>
 </body>
 </html>
