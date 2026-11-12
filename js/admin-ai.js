@@ -378,10 +378,9 @@ async function generateQuestion(event) {
       error?.message ||
       "An unexpected error occurred.";
 
-    if (error instanceof TypeError) {
-      message =
-        "Could not reach the AI backend. Check your connection, Netlify deployment and allowed website origin.";
-    }
+if (error instanceof TypeError) {
+  message = `Network error: ${error.message}`;
+}
 
     setStatus(message, "error");
 
