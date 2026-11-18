@@ -1,0 +1,165 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HAI API Diagnostic</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #10131c;
+      color: #f1f3f8;
+      padding: 20px;
+      line-height: 1.6;
+    }
+
+    h2 { color: #8daaff; }
+
+    button {
+      background: #5479ed;
+      color: white;
+      border: 0;
+      padding: 13px 18px;
+      border-radius: 8px;
+      font-size: 16px;
+      margin: 12px 0;
+    }
+
+    .result {
+      background: #1c2230;
+      padding: 14px;
+      border-radius: 8px;
+      margin: 12px 0;
+      overflow-wrap: anywhere;
+    }
+
+    pre {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>HAI API Diagnostic</h2>
+
+  <p>
+    This page checks communication between
+    Hysteria's Cure and the HAI server.
+  </p>
+
+  <button onclick="runTests()">Run Diagnostic</button>
+
+  <div id="results"></div>
+
+  <script>
+    const API = "https://hai-api-l7js.onrender.com";
+
+    const results = document.getElementById("results");
+
+    function show(title, message) {
+      const box = document.createElement("div");
+      box.className = "result";
+
+      const heading = document.createElement("strong");
+      heading.textContent = title;
+
+      const output = document.createElement("pre");
+      output.textContent = message;
+
+      box.append(heading, output);
+      results.appendChild(box);
+    }
+
+    async function runTests() {
+      results.innerHTML = "";
+
+      show("Starting", "Running HAI connection tests...");
+
+      // TEST 1: Health endpoint
+      try {
+        const response = await fetch(API + "/health");
+
+        const data = await response.json();
+
+        show(
+          "TEST 1 — Health",
+          "HTTP " + response.status + "\n" +
+          JSON.stringify(data, null, 2)
+        );
+
+      } catch (error) {
+        show(
+          "TEST 1 — Health FAILED",
+          error.name + ": " + error.message
+        );
+      }
+
+      // TEST 2: CORS preflight
+      try {
+        const response = await fetch(
+          API + "/textbooks/generate",
+          {
+            method: "OPTIONS",
+            headers: {
+              "Origin": location.origin,
+              "Access-Control-Request-Method": "POST",
+              "Access-Control-Request-Headers":
+                "authorization,content-type"
+            }
+          }
+        );
+
+        show(
+          "TEST 2 — Preflight",
+          "HTTP " + response.status + "\n" +
+          "Allow-Origin: " +
+          (response.headers.get("access-control-allow-origin") || "Missing") +
+          "\nAllow-Methods: " +
+          (response.headers.get("access-control-allow-methods") || "Missing") +
+          "\nAllow-Headers: " +
+          (response.headers.get("access-control-allow-headers") || "Missing")
+        );
+
+      } catch (error) {
+        show(
+          "TEST 2 — Preflight FAILED",
+          error.name + ": " + error.message
+        );
+      }
+
+      // TEST 3: Harmless unauthenticated POST
+      try {
+        const response = await fetch(
+          API + "/textbooks/generate",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({})
+          }
+        );
+
+        const body = await response.text();
+
+        show(
+          "TEST 3 — POST connectivity",
+          "HTTP " + response.status + "\n" +
+          body.slice(0, 1500)
+        );
+
+      } catch (error) {
+        show(
+          "TEST 3 — POST FAILED",
+          error.name + ": " + error.message
+        );
+      }
+
+      show("Finished", "Send me the results of all three tests.");
+    }
+  </script>
+
+</body>
+</html>
