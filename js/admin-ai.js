@@ -247,13 +247,17 @@ async function requestJSON(url, options, serviceName) {
 
   try {
     response = await fetch(url, options);
-  } catch (error) {
-    console.error(`${serviceName} network error:`, error);
+} catch (error) {
+  console.error(`${serviceName} network error:`, {
+    name: error.name,
+    message: error.message,
+    url
+  });
 
-    throw new Error(
-      `Could not connect to ${serviceName}. Check network connectivity, CORS configuration and backend availability.`
-    );
-  }
+  throw new Error(
+    `${serviceName} failed: ${error.name}: ${error.message}`
+  );
+}
 
   return readResponse(response);
 }
