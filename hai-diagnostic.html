@@ -97,12 +97,18 @@
         );
       }
 
-      // TEST 2: Inspect OPTIONS response
+
+      // TEST 2: Genuine browser CORS preflight
       try {
         const response = await fetch(
           API + "/textbooks/generate",
           {
-            method: "OPTIONS"
+            method: "OPTIONS",
+            headers: {
+              "Access-Control-Request-Method": "POST",
+              "Access-Control-Request-Headers":
+                "authorization,content-type"
+            }
           }
         );
 
@@ -112,40 +118,22 @@
           headers[key] = value;
         });
 
-        const body = await response.text();
-
         show(
-          "TEST 2 — OPTIONS inspection",
+          "TEST 2 — CORS preflight",
           "HTTP " + response.status + "\n\n" +
           "Response headers:\n" +
           JSON.stringify(headers, null, 2) +
-          "\n\nResponse body:\n" +
-          body
+          "\n\nExpected origin:\n" +
+          location.origin
         );
 
       } catch (error) {
         show(
-          "TEST 2 — OPTIONS FAILED",
+          "TEST 2 — CORS FAILED",
           error.name + ": " + error.message
         );
       }
 
-      // TEST 3: Harmless unauthenticated POST
-      try {
-        const response = await fetch(
-          API + "/textbooks/generate",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({})
-          }
-        );
-
-        const body = await response.text();
-
-        show(
           "TEST 3 — POST connectivity",
           "HTTP " + response.status + "\n" +
           body.slice(0, 1500)
