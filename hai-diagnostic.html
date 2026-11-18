@@ -5,6 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>HAI API Diagnostic</title>
+
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -40,6 +41,7 @@
     }
   </style>
 </head>
+
 <body>
 
   <h2>HAI API Diagnostic</h2>
@@ -80,7 +82,6 @@
       // TEST 1: Health endpoint
       try {
         const response = await fetch(API + "/health");
-
         const data = await response.json();
 
         show(
@@ -96,35 +97,35 @@
         );
       }
 
-      // TEST 2: CORS preflight
+      // TEST 2: Inspect OPTIONS response
       try {
         const response = await fetch(
           API + "/textbooks/generate",
           {
-            method: "OPTIONS",
-            headers: {
-              "Origin": location.origin,
-              "Access-Control-Request-Method": "POST",
-              "Access-Control-Request-Headers":
-                "authorization,content-type"
-            }
+            method: "OPTIONS"
           }
         );
 
+        const headers = {};
+
+        response.headers.forEach((value, key) => {
+          headers[key] = value;
+        });
+
+        const body = await response.text();
+
         show(
-          "TEST 2 — Preflight",
-          "HTTP " + response.status + "\n" +
-          "Allow-Origin: " +
-          (response.headers.get("access-control-allow-origin") || "Missing") +
-          "\nAllow-Methods: " +
-          (response.headers.get("access-control-allow-methods") || "Missing") +
-          "\nAllow-Headers: " +
-          (response.headers.get("access-control-allow-headers") || "Missing")
+          "TEST 2 — OPTIONS inspection",
+          "HTTP " + response.status + "\n\n" +
+          "Response headers:\n" +
+          JSON.stringify(headers, null, 2) +
+          "\n\nResponse body:\n" +
+          body
         );
 
       } catch (error) {
         show(
-          "TEST 2 — Preflight FAILED",
+          "TEST 2 — OPTIONS FAILED",
           error.name + ": " + error.message
         );
       }
@@ -157,7 +158,10 @@
         );
       }
 
-      show("Finished", "Send me the results of all three tests.");
+      show(
+        "Finished",
+        "Please send all three test results."
+      );
     }
   </script>
 
