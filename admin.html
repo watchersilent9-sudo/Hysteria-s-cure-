@@ -341,79 +341,119 @@
           </a>
         </div>
       </section>
+      
+<!-- HAI TEXTBOOK QUESTION GENERATOR -->
+<section class="panel" id="ai-question-generator">
 
-      <!-- GPT-6 LUNA QUESTION GENERATOR -->
-      <section class="panel" id="ai-question-generator">
-        <h2>GPT-6 Luna — Question Generator</h2>
+  <h2>HAI — Textbook Question Generator</h2>
 
-        <p class="muted">
-          Generate educational question candidates for review.
-          Generated questions are not published automatically.
-        </p>
+  <p class="muted">
+    Generate multiple-choice questions from approved textbooks
+    using HAI's knowledge-processing engines. Generated questions
+    must be reviewed before submission to the question bank.
+  </p>
 
-        <form id="ai-generation-form" onsubmit="return false;">
-          <div class="form-group">
-            <label for="ai-subject">Subject</label>
-            <input id="ai-subject" type="text"
-                   maxlength="80" required
-                   placeholder="e.g. Physics">
-          </div>
+  <div class="form-group">
+    <label for="hai-material">Published Textbook</label>
+    <select id="hai-material" required>
+      <option value="">Loading published textbooks...</option>
+    </select>
+    <button id="hai-refresh-materials"
+            type="button"
+            class="small-button"
+            style="margin-top:8px;">
+      Refresh Textbooks
+    </button>
+  </div>
 
-          <div class="form-group">
-            <label for="ai-topic">Topic</label>
-            <input id="ai-topic" type="text"
-                   maxlength="120" required
-                   placeholder="e.g. Electromagnetic induction">
-          </div>
+  <div class="form-group">
+    <label for="hai-subject">Subject</label>
+    <input id="hai-subject" type="text"
+           maxlength="100" required
+           placeholder="e.g. Biology">
+  </div>
 
-          <div class="form-group">
-            <label for="ai-difficulty">Difficulty (1–7)</label>
-            <input id="ai-difficulty" type="number"
-                   min="1" max="7" step="1"
-                   value="3" required>
-          </div>
+  <div class="form-group">
+    <label for="hai-topic">Topic</label>
+    <input id="hai-topic" type="text"
+           maxlength="200" required
+           placeholder="e.g. Nutrition in Plants">
+  </div>
 
-          <div class="form-group">
-            <label for="ai-type">Question type</label>
-            <select id="ai-type" required>
-              <option value="multiple-choice">Multiple choice</option>
-              <option value="written-response">Written response</option>
-            </select>
-          </div>
+  <div class="form-group">
+    <label for="hai-chapter">Chapter</label>
+    <input id="hai-chapter" type="text"
+           maxlength="200"
+           placeholder="Chapter name">
+  </div>
 
-          <div class="form-group">
-            <label for="ai-instructions">
-              Additional instructions
-            </label>
+  <div class="form-group">
+    <label for="hai-count">Number of Questions</label>
+    <input id="hai-count" type="number"
+           min="1" max="100" step="1"
+           value="10" required>
+  </div>
 
-            <textarea id="ai-instructions"
-                      maxlength="1000"
-                      placeholder="Optional instructions for GPT-6 Luna..."></textarea>
-          </div>
+  <div class="form-group">
+    <label for="hai-difficulty">Difficulty (1–7)</label>
+    <input id="hai-difficulty" type="number"
+           min="1" max="7" step="1"
+           value="2" required>
+    <p class="muted">
+      Levels 1–3 use basic question templates.
+      Levels 4–7 use understanding question templates.
+    </p>
+  </div>
 
-          <button id="ai-generate-button"
-                  class="action" type="button">
-            Generate Question
-          </button>
-        </form>
+  <button id="hai-generate-button"
+          class="action" type="button">
+    Generate Questions
+  </button>
 
-        <p id="ai-generation-status"
-           role="status" aria-live="polite">
-          Loading GPT-6 Luna...
-        </p>
+  <p id="hai-generation-status"
+     role="status" aria-live="polite">
+    Waiting for administrator authentication.
+  </p>
 
-        <div id="ai-generation-result" hidden>
-          <h3>Generated Candidate</h3>
+  <div id="hai-generation-statistics" hidden
+       class="achievement-item">
+  </div>
 
-          <div id="ai-result-content"></div>
+  <div id="hai-generation-results" hidden>
+    <h3>Generated Questions</h3>
 
-          <button id="ai-publish-button"
-                  class="action"
-                  type="button" hidden>
-            Approve and Publish
-          </button>
-        </div>
-      </section>
+    <p class="muted">
+      Review each question and its answer. Select only
+      the questions you want to send to the administrator
+      review queue.
+    </p>
+
+    <div class="form-actions" style="margin-bottom:14px;">
+      <button id="hai-select-all" type="button"
+              class="small-button">
+        Select All
+      </button>
+
+      <button id="hai-deselect-all" type="button"
+              class="small-button">
+        Deselect All
+      </button>
+    </div>
+
+    <div id="hai-question-list"
+         class="achievement-list"></div>
+
+    <p id="hai-selection-count" class="muted">
+      0 questions selected.
+    </p>
+
+    <button id="hai-submit-button"
+            class="action" type="button" hidden>
+      Submit Selected Questions for Review
+    </button>
+  </div>
+        </section>
+      
 
       <!-- MANUAL QUESTION MANAGEMENT -->
       <section class="panel">
