@@ -18,7 +18,9 @@
       --accent: var(--accent-bright, #c6a7ff);
     }
 
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
 
     body {
       margin: 0;
@@ -44,9 +46,12 @@
       font-size: 1.05rem;
     }
 
-    .brand span { color: var(--accent); }
+    .brand span {
+      color: var(--accent);
+    }
 
-    button, .action {
+    button,
+    .action {
       border: 0;
       border-radius: 10px;
       padding: 12px 16px;
@@ -102,7 +107,10 @@
       margin-bottom: 24px;
     }
 
-    h1, h2 { margin-top: 0; }
+    h1,
+    h2 {
+      margin-top: 0;
+    }
 
     .admin-nav {
       display: grid;
@@ -138,7 +146,9 @@
       line-height: 1.6;
     }
 
-    .form-group { margin-bottom: 16px; }
+    .form-group {
+      margin-bottom: 16px;
+    }
 
     label {
       display: block;
@@ -147,7 +157,9 @@
       font-size: .9rem;
     }
 
-    input, select, textarea {
+    input,
+    select,
+    textarea {
       width: 100%;
       padding: 12px;
       border-radius: 10px;
@@ -155,6 +167,11 @@
       border: 1px solid var(--border);
       color: var(--text);
       font: inherit;
+    }
+
+    input[type="checkbox"] {
+      width: auto;
+      padding: 0;
     }
 
     textarea {
@@ -178,7 +195,7 @@
 
     #form-message,
     #achievement-message,
-    #ai-generation-status {
+    #hai-generation-status {
       margin-top: 16px;
       padding: 12px;
       border: 1px solid var(--border);
@@ -217,6 +234,7 @@
       font-size: .86rem;
       line-height: 1.6;
       margin-top: 7px;
+      overflow-wrap: anywhere;
     }
 
     .achievement-actions {
@@ -235,8 +253,13 @@
       margin-left: 6px;
     }
 
-    .badge-active { color: #9be6b1; }
-    .badge-inactive { color: #ffb5bd; }
+    .badge-active {
+      color: #9be6b1;
+    }
+
+    .badge-inactive {
+      color: #ffb5bd;
+    }
 
     .form-actions {
       display: flex;
@@ -265,21 +288,51 @@
       line-height: 1.5;
     }
 
-    .ai-meta {
-      color: var(--muted);
-      font-size: .85rem;
+    .hai-question {
+      line-height: 1.7;
       overflow-wrap: anywhere;
     }
 
-    [hidden] { display: none !important; }
+    .hai-options {
+      padding-left: 24px;
+      line-height: 1.8;
+    }
+
+    .hai-correct-answer {
+      color: #9be6b1;
+      font-weight: 700;
+    }
+
+    .hai-selection-label {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      cursor: pointer;
+    }
+
+    .hai-selection-label input {
+      width: auto;
+      margin: 0;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
 
     @media (max-width: 600px) {
-      .panel { padding: 18px; }
-      main { margin-top: 24px; }
+      .panel {
+        padding: 18px;
+      }
+
+      main {
+        margin-top: 24px;
+      }
     }
 
     @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after {
+      *,
+      *::before,
+      *::after {
         transition: none !important;
       }
     }
@@ -293,7 +346,8 @@
     </div>
 
     <div>
-      <a class="action" href="student-dashboard.html"
+      <a class="action"
+         href="student-dashboard.html"
          style="padding:8px 14px;font-size:.85rem;margin-right:8px;">
         Student Dashboard
       </a>
@@ -320,6 +374,7 @@
         </p>
 
         <div class="admin-nav">
+
           <a class="admin-card" href="admin.html">
             <h3>Question Management</h3>
             <p>Create and publish questions to the question bank.</p>
@@ -339,186 +394,280 @@
             <h3>Page Directory</h3>
             <p>Find the other student and administration pages.</p>
           </a>
+
         </div>
       </section>
-      
-<!-- HAI TEXTBOOK QUESTION GENERATOR -->
-<section class="panel" id="ai-question-generator">
 
-  <h2>HAI — Textbook Question Generator</h2>
 
-  <p class="muted">
-    Generate multiple-choice questions from approved textbooks
-    using HAI's knowledge-processing engines. Generated questions
-    must be reviewed before submission to the question bank.
-  </p>
+      <!-- HAI TEXTBOOK QUESTION GENERATOR -->
+      <section class="panel" id="ai-question-generator">
 
-  <div class="form-group">
-    <label for="hai-material">Published Textbook</label>
-    <select id="hai-material" required>
-      <option value="">Loading published textbooks...</option>
-    </select>
-    <button id="hai-refresh-materials"
+        <h2>HAI — Textbook Question Generator</h2>
+
+        <p class="muted">
+          Generate multiple-choice questions from published textbooks
+          using HAI's knowledge-processing engines. Every generated
+          question must be reviewed before submission to the question bank.
+        </p>
+
+        <div class="form-group">
+          <label for="hai-material">Published Textbook</label>
+
+          <select id="hai-material" required disabled>
+            <option value="">Waiting for administrator authentication...</option>
+          </select>
+
+          <button
+            id="hai-refresh-materials"
             type="button"
             class="small-button"
-            style="margin-top:8px;">
-      Refresh Textbooks
-    </button>
-  </div>
+            style="margin-top:8px;"
+            disabled>
+            Refresh Textbooks
+          </button>
+        </div>
 
-  <div class="form-group">
-    <label for="hai-subject">Subject</label>
-    <input id="hai-subject" type="text"
-           maxlength="100" required
-           placeholder="e.g. Biology">
-  </div>
+        <div class="form-group">
+          <label for="hai-subject">Subject</label>
 
-  <div class="form-group">
-    <label for="hai-topic">Topic</label>
-    <input id="hai-topic" type="text"
-           maxlength="200" required
-           placeholder="e.g. Nutrition in Plants">
-  </div>
+          <input
+            id="hai-subject"
+            type="text"
+            maxlength="100"
+            required
+            placeholder="e.g. Biology">
+        </div>
 
-  <div class="form-group">
-    <label for="hai-chapter">Chapter</label>
-    <input id="hai-chapter" type="text"
-           maxlength="200"
-           placeholder="Chapter name">
-  </div>
+        <div class="form-group">
+          <label for="hai-topic">Topic</label>
 
-  <div class="form-group">
-    <label for="hai-count">Number of Questions</label>
-    <input id="hai-count" type="number"
-           min="1" max="100" step="1"
-           value="10" required>
-  </div>
+          <input
+            id="hai-topic"
+            type="text"
+            maxlength="200"
+            required
+            placeholder="e.g. Nutrition in Plants">
+        </div>
 
-  <div class="form-group">
-    <label for="hai-difficulty">Difficulty (1–7)</label>
-    <input id="hai-difficulty" type="number"
-           min="1" max="7" step="1"
-           value="2" required>
-    <p class="muted">
-      Levels 1–3 use basic question templates.
-      Levels 4–7 use understanding question templates.
-    </p>
-  </div>
+        <div class="form-group">
+          <label for="hai-chapter">Chapter</label>
 
-  <button id="hai-generate-button"
-          class="action" type="button">
-    Generate Questions
-  </button>
+          <input
+            id="hai-chapter"
+            type="text"
+            maxlength="200"
+            placeholder="Chapter name">
+        </div>
 
-  <p id="hai-generation-status"
-     role="status" aria-live="polite">
-    Waiting for administrator authentication.
-  </p>
+        <div class="form-group">
+          <label for="hai-count">Number of Questions</label>
 
-  <div id="hai-generation-statistics" hidden
-       class="achievement-item">
-  </div>
+          <input
+            id="hai-count"
+            type="number"
+            min="1"
+            max="100"
+            step="1"
+            value="10"
+            required>
+        </div>
 
-  <div id="hai-generation-results" hidden>
-    <h3>Generated Questions</h3>
+        <div class="form-group">
+          <label for="hai-difficulty">Difficulty (1–7)</label>
 
-    <p class="muted">
-      Review each question and its answer. Select only
-      the questions you want to send to the administrator
-      review queue.
-    </p>
+          <input
+            id="hai-difficulty"
+            type="number"
+            min="1"
+            max="7"
+            step="1"
+            value="2"
+            required>
 
-    <div class="form-actions" style="margin-bottom:14px;">
-      <button id="hai-select-all" type="button"
+          <p class="muted">
+            Levels 1–3 use basic question templates.
+            Levels 4–7 use understanding question templates.
+          </p>
+        </div>
+
+        <button
+          id="hai-generate-button"
+          class="action"
+          type="button"
+          disabled>
+          Generate Questions
+        </button>
+
+        <p
+          id="hai-generation-status"
+          role="status"
+          aria-live="polite">
+          Waiting for administrator authentication.
+        </p>
+
+        <!-- GENERATION STATISTICS -->
+        <div
+          id="hai-generation-statistics"
+          hidden
+          class="achievement-item">
+        </div>
+
+        <!-- GENERATED QUESTION REVIEW -->
+        <div id="hai-generation-results" hidden>
+
+          <hr style="border:0;border-top:1px solid var(--border);margin:24px 0;">
+
+          <h3>Generated Questions</h3>
+
+          <p class="muted">
+            Review each generated question and its answer.
+            Select only the questions you want to submit for review.
+          </p>
+
+          <div class="form-actions" style="margin-bottom:14px;">
+
+            <button
+              id="hai-select-all"
+              type="button"
               class="small-button">
-        Select All
-      </button>
+              Select All
+            </button>
 
-      <button id="hai-deselect-all" type="button"
+            <button
+              id="hai-deselect-all"
+              type="button"
               class="small-button">
-        Deselect All
-      </button>
-    </div>
+              Deselect All
+            </button>
 
-    <div id="hai-question-list"
-         class="achievement-list"></div>
+          </div>
 
-    <p id="hai-selection-count" class="muted">
-      0 questions selected.
-    </p>
+          <div
+            id="hai-question-list"
+            class="achievement-list">
+          </div>
 
-    <button id="hai-submit-button"
-            class="action" type="button" hidden>
-      Submit Selected Questions for Review
-    </button>
-  </div>
-        </section>
-      
+          <p
+            id="hai-selection-count"
+            class="muted"
+            aria-live="polite">
+            0 questions selected.
+          </p>
+
+          <button
+            id="hai-submit-button"
+            class="action"
+            type="button"
+            hidden>
+            Submit Selected Questions for Review
+          </button>
+
+        </div>
+      </section>
+
 
       <!-- MANUAL QUESTION MANAGEMENT -->
       <section class="panel">
         <h2>Add New Question</h2>
 
         <p class="muted">
-          Add a question to the global question repository.
+          Add a question directly to the global question repository.
         </p>
 
         <form id="add-question-form">
+
           <div class="form-group">
             <label for="q-id">Question ID</label>
-            <input type="text" id="q-id" required
-                   pattern="[A-Za-z0-9_-]+" maxlength="100"
-                   placeholder="e.g. math_001">
+
+            <input
+              type="text"
+              id="q-id"
+              required
+              pattern="[A-Za-z0-9_-]+"
+              maxlength="100"
+              placeholder="e.g. math_001">
           </div>
 
           <div class="form-group">
             <label for="q-subject">Subject</label>
-            <input type="text" id="q-subject" required
-                   maxlength="100"
-                   placeholder="e.g. Mathematics, Biology">
+
+            <input
+              type="text"
+              id="q-subject"
+              required
+              maxlength="100"
+              placeholder="e.g. Mathematics, Biology">
           </div>
 
           <div class="form-group">
             <label for="q-topic">Topic</label>
-            <input type="text" id="q-topic" required
-                   maxlength="150"
-                   placeholder="e.g. Algebra, Excretion">
+
+            <input
+              type="text"
+              id="q-topic"
+              required
+              maxlength="150"
+              placeholder="e.g. Algebra, Excretion">
           </div>
 
           <div class="form-group">
             <label for="q-difficulty">Difficulty (1 to 7)</label>
-            <input type="number" id="q-difficulty"
-                   min="1" max="7" step="1"
-                   value="1" required>
+
+            <input
+              type="number"
+              id="q-difficulty"
+              min="1"
+              max="7"
+              step="1"
+              value="1"
+              required>
           </div>
 
           <div class="form-group">
             <label for="q-text">Question Text</label>
-            <textarea id="q-text" required maxlength="10000"
-                      placeholder="Type the question here..."></textarea>
+
+            <textarea
+              id="q-text"
+              required
+              maxlength="10000"
+              placeholder="Type the question here..."></textarea>
           </div>
 
           <div class="form-group">
             <label>Options (at least 2, up to 4)</label>
 
-            <input type="text" class="q-option"
-                   aria-label="Option A" placeholder="Option A"
-                   maxlength="2000" required
-                   style="margin-bottom:8px;">
+            <input
+              type="text"
+              class="q-option"
+              aria-label="Option A"
+              placeholder="Option A"
+              maxlength="2000"
+              required
+              style="margin-bottom:8px;">
 
-            <input type="text" class="q-option"
-                   aria-label="Option B" placeholder="Option B"
-                   maxlength="2000" required
-                   style="margin-bottom:8px;">
+            <input
+              type="text"
+              class="q-option"
+              aria-label="Option B"
+              placeholder="Option B"
+              maxlength="2000"
+              required
+              style="margin-bottom:8px;">
 
-            <input type="text" class="q-option"
-                   aria-label="Option C" placeholder="Option C"
-                   maxlength="2000"
-                   style="margin-bottom:8px;">
+            <input
+              type="text"
+              class="q-option"
+              aria-label="Option C"
+              placeholder="Option C"
+              maxlength="2000"
+              style="margin-bottom:8px;">
 
-            <input type="text" class="q-option"
-                   aria-label="Option D" placeholder="Option D"
-                   maxlength="2000">
+            <input
+              type="text"
+              class="q-option"
+              aria-label="Option D"
+              placeholder="Option D"
+              maxlength="2000">
           </div>
 
           <div class="form-group">
@@ -526,9 +675,14 @@
               Correct Answer Index (0 = A, 1 = B, 2 = C, 3 = D)
             </label>
 
-            <input type="number" id="q-answer-index"
-                   min="0" max="3" step="1"
-                   value="0" required>
+            <input
+              type="number"
+              id="q-answer-index"
+              min="0"
+              max="3"
+              step="1"
+              value="0"
+              required>
           </div>
 
           <div class="form-group">
@@ -536,22 +690,33 @@
               Explanation (Optional)
             </label>
 
-            <textarea id="q-explanation" maxlength="10000"
-                      placeholder="Explain why the correct answer is right..."></textarea>
+            <textarea
+              id="q-explanation"
+              maxlength="10000"
+              placeholder="Explain why the correct answer is right..."></textarea>
           </div>
 
-          <button id="publish-button"
-                  type="submit" class="action">
+          <button
+            id="publish-button"
+            type="submit"
+            class="action">
             Publish Question
           </button>
 
-          <p id="form-message" role="status"
-             aria-live="polite" hidden></p>
+          <p
+            id="form-message"
+            role="status"
+            aria-live="polite"
+            hidden>
+          </p>
+
         </form>
       </section>
 
+
       <!-- ACHIEVEMENT MANAGEMENT -->
       <section class="panel" id="achievement-management">
+
         <h2>Achievement Management</h2>
 
         <p class="muted">
@@ -561,12 +726,17 @@
         </p>
 
         <form id="achievement-form">
+
           <div class="form-group">
             <label for="achievement-id">Achievement ID</label>
 
-            <input id="achievement-id" type="text" required
-                   pattern="[A-Za-z0-9_-]+" maxlength="80"
-                   placeholder="e.g. first_100_questions">
+            <input
+              id="achievement-id"
+              type="text"
+              required
+              pattern="[A-Za-z0-9_-]+"
+              maxlength="80"
+              placeholder="e.g. first_100_questions">
 
             <p class="muted">
               Use a stable ID. Changing it creates a different achievement.
@@ -575,26 +745,39 @@
 
           <div class="form-group">
             <label for="achievement-title">Title</label>
-            <input id="achievement-title" type="text"
-                   required maxlength="100"
-                   placeholder="e.g. Hundred Club">
+
+            <input
+              id="achievement-title"
+              type="text"
+              required
+              maxlength="100"
+              placeholder="e.g. Hundred Club">
           </div>
 
           <div class="form-group">
             <label for="achievement-description">Description</label>
-            <textarea id="achievement-description"
-                      required maxlength="500"
-                      placeholder="What must a student do to earn it?"></textarea>
+
+            <textarea
+              id="achievement-description"
+              required
+              maxlength="500"
+              placeholder="What must a student do to earn it?"></textarea>
           </div>
 
           <div class="form-group">
             <label for="achievement-icon">Icon or emoji</label>
-            <input id="achievement-icon" type="text"
-                   maxlength="20" placeholder="🏆" value="🏆">
+
+            <input
+              id="achievement-icon"
+              type="text"
+              maxlength="20"
+              placeholder="🏆"
+              value="🏆">
           </div>
 
           <div class="form-group">
             <label for="achievement-requirement">Unlock Requirement</label>
+
             <select id="achievement-requirement" required>
               <option value="answered">Questions answered</option>
               <option value="correct">Correct answers</option>
@@ -606,8 +789,14 @@
 
           <div class="form-group">
             <label for="achievement-target">Target</label>
-            <input id="achievement-target" type="number"
-                   min="1" step="1" value="10" required>
+
+            <input
+              id="achievement-target"
+              type="number"
+              min="1"
+              step="1"
+              value="10"
+              required>
 
             <p class="muted">
               For accuracy, enter a percentage from 1 to 100.
@@ -616,12 +805,19 @@
 
           <div class="form-group">
             <label for="achievement-bonus">Bonus Points</label>
-            <input id="achievement-bonus" type="number"
-                   min="0" step="1" value="0" required>
+
+            <input
+              id="achievement-bonus"
+              type="number"
+              min="0"
+              step="1"
+              value="0"
+              required>
           </div>
 
           <div class="form-group">
             <label for="achievement-active">Status</label>
+
             <select id="achievement-active" required>
               <option value="true">Active</option>
               <option value="false">Inactive</option>
@@ -629,19 +825,30 @@
           </div>
 
           <div class="form-actions">
-            <button id="achievement-save"
-                    class="action" type="submit">
+
+            <button
+              id="achievement-save"
+              class="action"
+              type="submit">
               Save Achievement
             </button>
 
-            <button id="achievement-cancel"
-                    type="button" hidden>
+            <button
+              id="achievement-cancel"
+              type="button"
+              hidden>
               Cancel Editing
             </button>
+
           </div>
 
-          <p id="achievement-message"
-             role="status" aria-live="polite" hidden></p>
+          <p
+            id="achievement-message"
+            role="status"
+            aria-live="polite"
+            hidden>
+          </p>
+
         </form>
 
         <hr style="border:0;border-top:1px solid var(--border);margin:24px 0;">
@@ -653,13 +860,18 @@
           achievement keeps its definition but marks it inactive.
         </p>
 
-        <div id="achievement-list"
-             class="achievement-list" aria-live="polite">
+        <div
+          id="achievement-list"
+          class="achievement-list"
+          aria-live="polite">
           <p class="muted">Loading achievements...</p>
         </div>
+
       </section>
+
     </div>
   </main>
+
 
   <!-- EXISTING ADMIN FUNCTIONS -->
   <script type="module">
@@ -1238,10 +1450,12 @@
     });
   </script>
 
-  <!-- GPT-6 LUNA CONTROLLER -->
+
+  <!-- HAI TEXTBOOK GENERATOR -->
   <script type="module" src="js/admin-ai.js"></script>
 
   <!-- EXISTING THEME CONTROLLER -->
   <script type="module" src="js/faction-theme.js"></script>
+
 </body>
 </html>
