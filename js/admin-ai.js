@@ -5,10 +5,10 @@
  *
  * Workflow:
  * 1. Load published, successfully extracted textbooks from Supabase.
- * 2. Retrieve the extracted text.
+ * 2. Retrieve extracted textbook content.
  * 3. Generate question candidates through HAI.
- * 4. Let the administrator review and select candidates.
- * 5. Submit selected candidates to Firebase's pending question queue.
+ * 4. Allow administrator review and selection.
+ * 5. Submit selected candidates to Firebase's pending queue.
  */
 
 import { auth } from "./firebase-client.js";
@@ -37,7 +37,7 @@ const MAX_TEXT_LENGTH = 300000;
 
 
 /* =========================================
-   ELEMENTS AND STATE
+   ELEMENTS
 ========================================= */
 
 const $ = id => document.getElementById(id);
@@ -61,21 +61,48 @@ const elements = {
   submit: $("hai-submit-button")
 };
 
+
+/* =========================================
+   STATE
+========================================= */
+
 let currentAdmin = null;
 let materials = [];
 let candidates = [];
+
 let selectedQuestions = new Set();
+
 let generationInProgress = false;
 let submissionInProgress = false;
 
 
 /* =========================================
-   GENERAL UTILITIES
+   INITIAL VALIDATION
+========================================= */
+
+const requiredElements = Object.entries(elements)
+  .filter(([key, element]) => !element);
+
+if (requiredElements.length) {
+  console.error(
+    "HAI Admin: Missing HTML elements:",
+    requiredElements.map(([key]) => key)
+  );
+
+  throw new Error(
+    "HAI Admin interface is incomplete. Check the hai element IDs in admin.html."
+  );
+}
+
+
+/* =========================================
+   UTILITIES
 ========================================= */
 
 function setStatus(message, type = "warn") {
   elements.status.hidden = false;
   elements.status.textContent = message;
+
   elements.status.style.borderColor =
     type === "error" ? "#ff7777" :
     type === "success" ? "#65c98b" :
@@ -85,66 +112,6 @@ function setStatus(message, type = "warn") {
 function setBusy(button, busy, busyText, normalText) {
   button.disabled = busy;
   button.textContent = busy ? busyText : normalText;
-}
-
-function getToken() {
-  if (
-    !currentAdmin ||
-    auth.currentUser?.uid !== ADMIN_UID
-  ) {
-    throw new Error(
-      "Administrator authentication is unavailable. Please sign in again."
-    );
-  }
-
-  return currentAdmin.getIdToken();
-}
-
-async function readResponse(response) {
-  let data;
-
-  try {
-    data = await response.json();
-  } catch {
-    throw new Error(
-      `The server returned an unreadable response (HTTP ${response.status}).`
-    );
-  }
-
-  if (!response.ok) {
-    throw new Error(
-      data?.detail ||
-      data?.message ||
-      data?.error ||
-      `Request failed (HTTP ${response.status}).`
-    );
-  }
-
-  return data;
-}
-
-function clearCandidates() {
-  candidates = [];
-  selectedQuestions.clear();
-
-  elements.questionList.replaceChildren();
-  elements.results.hidden = true;
-  elements.statistics.hidden = true;
-  elements.submit.hidden = true;
-
-  updateSelectionCount();
-}
-
-function updateSelectionCount() {
-  const count = selectedQuestions.size;
-
-  elements.selectionCount.textContent =
-    `${count} question${count === 1 ? "" : "s"} selected.`;
-
-  elements.submit.hidden = count === 0 || candidates.length === 0;
-
-  elements.submit.disabled =
-    submissionInProgress || count === 0;
 }
 
 function createElement(tag, className, text) {
@@ -161,31 +128,75 @@ function createElement(tag, className, text) {
   return element;
 }
 
+function clearCandidates() {
+  candidates = [];
+  selectedQuestions.clear();
+
+  elements.questionList.replaceChildren();
+
+  elements.results.hidden = true;
+  elements.statistics.hidden = true;
+  elements.submit.hidden = true;
+
+  updateSelectionCount();
+}
+
+function updateSelectionCount() {
+  const count = selectedQuestions.size;
+
+  elements.selectionCount.textContent =
+    `${count} question${count === 1 ? "" : "s"} selected.`;
+
+  elements.submit.hidden =
+    count === 0 || candidates.length === 0;
+
+  elements.submit.disabled =
+    submissionInProgress || count === 0;
+}
+
 
 /* =========================================
    AUTHENTICATION
 ========================================= */
 
+function getToken() {
+  if (
+    !currentAdmin ||
+    auth.currentUser?.uid !== ADMIN_UID
+  ) {
+    throw new Error(
+      "Administrator authentication is unavailable. Please sign in again."
+    );
+  }
+
+  return currentAdmin.getIdToken();
+}
+
 onAuthStateChanged(auth, async user => {
   currentAdmin = null;
+
   clearCandidates();
 
   if (!user) {
+    elements.generate.disabled = true;
+    elements.refresh.disabled = true;
+
     setStatus(
       "Sign in as an administrator to use HAI.",
       "error"
     );
+
     return;
   }
 
   if (user.uid !== ADMIN_UID) {
+    elements.generate.disabled = true;
+    elements.refresh.disabled = true;
+
     setStatus(
       "Access denied. This account is not authorised to use HAI.",
       "error"
     );
-
-    elements.generate.disabled = true;
-    elements.refresh.disabled = true;
 
     return;
   }
@@ -205,6 +216,50 @@ onAuthStateChanged(auth, async user => {
 
 
 /* =========================================
+   RESPONSE HANDLING
+========================================= */
+
+async function readResponse(response) {
+  let data;
+
+  try {
+    data = await response.json();
+  } catch {
+    throw new Error(
+      `Server returned an unreadable response (HTTP ${response.status}).`
+    );
+  }
+
+  if (!response.ok) {
+    throw new Error(
+      data?.detail ||
+      data?.message ||
+      data?.error ||
+      `Request failed (HTTP ${response.status}).`
+    );
+  }
+
+  return data;
+}
+
+async function requestJSON(url, options, serviceName) {
+  let response;
+
+  try {
+    response = await fetch(url, options);
+  } catch (error) {
+    console.error(`${serviceName} network error:`, error);
+
+    throw new Error(
+      `Could not connect to ${serviceName}. Check network connectivity, CORS configuration and backend availability.`
+    );
+  }
+
+  return readResponse(response);
+}
+
+
+/* =========================================
    SUPABASE REQUESTS
 ========================================= */
 
@@ -212,8 +267,8 @@ async function supabaseRequest(method, body = null) {
   const token = await getToken();
 
   const headers = {
-    "Authorization": `Bearer ${token}`,
-    "apikey": SUPABASE_PUBLISHABLE_KEY
+    Authorization: `Bearer ${token}`,
+    apikey: SUPABASE_PUBLISHABLE_KEY
   };
 
   const options = {
@@ -226,17 +281,16 @@ async function supabaseRequest(method, body = null) {
     options.body = JSON.stringify(body);
   }
 
-  const response = await fetch(
+  return requestJSON(
     SUPABASE_FUNCTION_URL,
-    options
+    options,
+    "Supabase textbook service"
   );
-
-  return readResponse(response);
 }
 
 
 /* =========================================
-   LOAD AVAILABLE TEXTBOOKS
+   LOAD TEXTBOOKS
 ========================================= */
 
 async function loadMaterials() {
@@ -250,6 +304,7 @@ async function loadMaterials() {
   );
 
   elements.material.disabled = true;
+
   elements.material.replaceChildren(
     new Option("Loading textbooks...", "")
   );
@@ -259,7 +314,7 @@ async function loadMaterials() {
 
     if (!data.success || !Array.isArray(data.materials)) {
       throw new Error(
-        "Supabase did not return a valid textbook list."
+        "Supabase returned an invalid textbook list."
       );
     }
 
@@ -271,13 +326,13 @@ async function loadMaterials() {
 
     elements.material.replaceChildren();
 
-    if (materials.length === 0) {
+    if (!materials.length) {
       elements.material.add(
         new Option("No extracted textbooks available", "")
       );
 
       setStatus(
-        "No published textbooks with completed text extraction were found. Check the Learning Materials page.",
+        "No published textbooks with completed extraction were found.",
         "warn"
       );
 
@@ -289,30 +344,27 @@ async function loadMaterials() {
     );
 
     materials.forEach(material => {
-      const option = new Option(
-        `${material.title || material.original_filename || "Untitled textbook"} — ${material.subject || "Unspecified subject"}`,
-        material.id
+      elements.material.add(
+        new Option(
+          `${material.title || material.original_filename || "Untitled textbook"} — ${material.subject || "Unspecified subject"}`,
+          material.id
+        )
       );
-
-      elements.material.add(option);
     });
 
     setStatus(
-      `${materials.length} extracted textbook${materials.length === 1 ? "" : "s"} available.`,
+      `${materials.length} extracted textbook(s) available.`,
       "success"
     );
 
   } catch (error) {
-    console.error("HAI textbook loading failed:", error);
+    console.error("Supabase textbook loading failed:", error);
 
     elements.material.replaceChildren(
       new Option("Could not load textbooks", "")
     );
 
-    setStatus(
-      error.message || "Could not load textbooks from Supabase.",
-      "error"
-    );
+    setStatus(error.message, "error");
 
   } finally {
     elements.material.disabled = false;
@@ -336,27 +388,31 @@ elements.material.addEventListener("change", () => {
     item => item.id === elements.material.value
   );
 
+  clearCandidates();
+
   if (!material) return;
 
   elements.subject.value =
     String(material.subject || "").slice(0, 100);
 
   elements.topic.value =
-    String(material.topic || material.title || "").slice(0, 200);
+    String(
+      material.topic ||
+      material.title ||
+      ""
+    ).slice(0, 200);
 
   elements.chapter.value = "";
 
-  clearCandidates();
-
   setStatus(
-    "Textbook selected. Confirm the subject and topic before generating questions.",
+    "Textbook selected. Confirm the subject and topic before generating.",
     "success"
   );
 });
 
 
 /* =========================================
-   RETRIEVE EXTRACTED TEXT
+   RETRIEVE TEXTBOOK CONTENT
 ========================================= */
 
 async function retrieveTextbook(materialId) {
@@ -373,15 +429,18 @@ async function retrieveTextbook(materialId) {
 
   const text = data.extraction.extracted_text;
 
-  if (typeof text !== "string" || text.trim().length < 20) {
+  if (
+    typeof text !== "string" ||
+    text.trim().length < 20
+  ) {
     throw new Error(
-      "This textbook does not contain enough extracted text for question generation."
+      "This textbook does not contain enough extracted text."
     );
   }
 
   if (text.length > MAX_TEXT_LENGTH) {
     throw new Error(
-      `This textbook contains ${text.length.toLocaleString()} characters. HAI currently accepts a maximum of ${MAX_TEXT_LENGTH.toLocaleString()}. The text has not been shortened or silently truncated.`
+      `Textbook exceeds the current ${MAX_TEXT_LENGTH.toLocaleString()} character limit. No text was silently truncated.`
     );
   }
 
@@ -393,7 +452,7 @@ async function retrieveTextbook(materialId) {
 
 
 /* =========================================
-   GENERATE QUESTIONS
+   HAI GENERATION
 ========================================= */
 
 elements.generate.addEventListener("click", async () => {
@@ -402,6 +461,7 @@ elements.generate.addEventListener("click", async () => {
   const materialId = elements.material.value;
   const subject = elements.subject.value.trim();
   const topic = elements.topic.value.trim();
+
   const chapter =
     elements.chapter.value.trim() || "Unspecified";
 
@@ -414,32 +474,23 @@ elements.generate.addEventListener("click", async () => {
   }
 
   if (!subject || subject.length > 100) {
-    setStatus(
-      "Enter a valid subject (maximum 100 characters).",
-      "error"
-    );
+    setStatus("Enter a valid subject.", "error");
     return;
   }
 
   if (!topic || topic.length > 200) {
-    setStatus(
-      "Enter a valid topic (maximum 200 characters).",
-      "error"
-    );
+    setStatus("Enter a valid topic.", "error");
     return;
   }
 
   if (chapter.length > 200) {
-    setStatus(
-      "Chapter name must not exceed 200 characters.",
-      "error"
-    );
+    setStatus("Chapter name is too long.", "error");
     return;
   }
 
   if (!Number.isInteger(count) || count < 1 || count > 100) {
     setStatus(
-      "Question count must be a whole number from 1 to 100.",
+      "Question count must be between 1 and 100.",
       "error"
     );
     return;
@@ -451,7 +502,7 @@ elements.generate.addEventListener("click", async () => {
     difficulty > 7
   ) {
     setStatus(
-      "Difficulty must be a whole number from 1 to 7.",
+      "Difficulty must be between 1 and 7.",
       "error"
     );
     return;
@@ -470,13 +521,21 @@ elements.generate.addEventListener("click", async () => {
 
   clearCandidates();
 
-  setStatus(
-    "Retrieving extracted textbook content from Supabase...",
-    "warn"
-  );
-
   try {
-    const textbook = await retrieveTextbook(materialId);
+    setStatus(
+      "Retrieving textbook content from Supabase...",
+      "warn"
+    );
+
+    let textbook;
+
+    try {
+      textbook = await retrieveTextbook(materialId);
+    } catch (error) {
+      throw new Error(
+        `Supabase textbook retrieval failed: ${error.message}`
+      );
+    }
 
     const documentName = String(
       textbook.material?.title ||
@@ -487,37 +546,42 @@ elements.generate.addEventListener("click", async () => {
     const token = await getToken();
 
     setStatus(
-      "Sending textbook content to HAI for question generation. This may take a little while...",
+      "Sending extracted content to HAI...",
       "warn"
     );
 
-    const response = await fetch(
-      `${HAI_API_URL}/textbooks/generate`,
-      {
-        method: "POST",
+    let data;
 
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
+    try {
+      data = await requestJSON(
+        `${HAI_API_URL}/textbooks/generate`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            text: textbook.text,
+            subject,
+            topic,
+            document: documentName,
+            chapter,
+            count,
+            difficulty
+          })
         },
-
-        body: JSON.stringify({
-          text: textbook.text,
-          subject,
-          topic,
-          document: documentName,
-          chapter,
-          count,
-          difficulty
-        })
-      }
-    );
-
-    const data = await readResponse(response);
+        "HAI generation API"
+      );
+    } catch (error) {
+      throw new Error(
+        `HAI generation failed: ${error.message}`
+      );
+    }
 
     if (!Array.isArray(data.questions)) {
       throw new Error(
-        "HAI responded without a valid questions list."
+        "HAI returned an invalid questions list."
       );
     }
 
@@ -531,34 +595,29 @@ elements.generate.addEventListener("click", async () => {
       question.answerIndex <= 3
     );
 
-    if (candidates.length === 0) {
+    if (!candidates.length) {
       throw new Error(
-        "HAI did not return any valid four-option multiple-choice questions. Try another topic or textbook."
+        "HAI did not return any valid four-option questions."
       );
     }
 
-    selectedQuestions = new Set();
+    selectedQuestions.clear();
 
     displayStatistics(data.statistics || {});
     renderCandidates();
 
     setStatus(
-      `HAI generated ${candidates.length} valid question candidate${candidates.length === 1 ? "" : "s"}. Review them before submitting.`,
+      `HAI generated ${candidates.length} valid question candidates. Review them before submission.`,
       "success"
     );
 
   } catch (error) {
-    console.error("HAI generation failed:", error);
+    console.error("HAI generation error:", error);
 
-    let message =
-      error.message || "An unexpected generation error occurred.";
-
-    if (error instanceof TypeError) {
-      message =
-        "Could not reach Supabase or the HAI API. Check your internet connection and the backend deployment.";
-    }
-
-    setStatus(message, "error");
+    setStatus(
+      error.message || "Question generation failed.",
+      "error"
+    );
 
   } finally {
     generationInProgress = false;
@@ -588,23 +647,27 @@ function displayStatistics(statistics) {
 
   const entries = Object.entries(statistics);
 
-  if (entries.length === 0) {
+  if (!entries.length) {
     elements.statistics.appendChild(
-      createElement("p", "muted", "No statistics were returned.")
+      createElement(
+        "p",
+        "muted",
+        "No statistics were returned."
+      )
     );
   } else {
     entries.forEach(([key, value]) => {
-      const row = createElement(
-        "p",
-        "achievement-meta",
-        `${key.replace(/_/g, " ")}: ${
-          typeof value === "object"
-            ? JSON.stringify(value)
-            : String(value)
-        }`
+      elements.statistics.appendChild(
+        createElement(
+          "p",
+          "achievement-meta",
+          `${key.replace(/_/g, " ")}: ${
+            typeof value === "object"
+              ? JSON.stringify(value)
+              : String(value)
+          }`
+        )
       );
-
-      elements.statistics.appendChild(row);
     });
   }
 
@@ -613,7 +676,7 @@ function displayStatistics(statistics) {
 
 
 /* =========================================
-   DISPLAY QUESTION CANDIDATES
+   QUESTION CANDIDATES
 ========================================= */
 
 function renderCandidates() {
@@ -636,12 +699,11 @@ function renderCandidates() {
       `Question ${index + 1}`
     );
 
-    const checkboxLabel = createElement("label");
+    const label = createElement("label");
 
-    checkboxLabel.style.display = "flex";
-    checkboxLabel.style.alignItems = "center";
-    checkboxLabel.style.gap = "8px";
-    checkboxLabel.style.cursor = "pointer";
+    label.style.display = "flex";
+    label.style.alignItems = "center";
+    label.style.gap = "8px";
 
     const checkbox = document.createElement("input");
 
@@ -649,10 +711,6 @@ function renderCandidates() {
     checkbox.checked = selectedQuestions.has(index);
     checkbox.style.width = "auto";
     checkbox.style.margin = "0";
-    checkbox.setAttribute(
-      "aria-label",
-      `Select question ${index + 1}`
-    );
 
     checkbox.addEventListener("change", () => {
       if (checkbox.checked) {
@@ -664,23 +722,19 @@ function renderCandidates() {
       updateSelectionCount();
     });
 
-    checkboxLabel.append(
+    label.append(
       checkbox,
       document.createTextNode("Keep this question")
     );
 
-    top.append(title, checkboxLabel);
+    top.append(title, label);
     card.appendChild(top);
 
     card.appendChild(
-      createElement(
-        "p",
-        "",
-        candidate.question
-      )
+      createElement("p", "", candidate.question)
     );
 
-    const optionsList = document.createElement("ol");
+    const options = document.createElement("ol");
 
     candidate.options.forEach((option, optionIndex) => {
       const item = createElement(
@@ -690,14 +744,14 @@ function renderCandidates() {
       );
 
       if (optionIndex === candidate.answerIndex) {
-        item.style.color = "#9be6b1";
         item.style.fontWeight = "700";
+        item.style.color = "#9be6b1";
       }
 
-      optionsList.appendChild(item);
+      options.appendChild(item);
     });
 
-    card.appendChild(optionsList);
+    card.appendChild(options);
 
     card.appendChild(
       createElement(
@@ -755,7 +809,7 @@ function renderCandidates() {
 
 
 /* =========================================
-   SELECT ALL / DESELECT ALL
+   SELECT / DESELECT
 ========================================= */
 
 elements.selectAll.addEventListener("click", () => {
@@ -773,7 +827,7 @@ elements.deselectAll.addEventListener("click", () => {
 
 
 /* =========================================
-   SUBMIT SELECTED QUESTIONS TO FIREBASE
+   SUBMIT TO FIREBASE PENDING QUEUE
 ========================================= */
 
 elements.submit.addEventListener("click", async () => {
@@ -790,14 +844,9 @@ elements.submit.addEventListener("click", async () => {
     .map(index => candidates[index])
     .filter(Boolean);
 
-  if (selected.length === 0) {
-    setStatus("Select at least one valid question.", "error");
-    return;
-  }
-
-  if (selected.length > 100) {
+  if (!selected.length || selected.length > 100) {
     setStatus(
-      "A maximum of 100 questions can be submitted in one batch.",
+      "Select between 1 and 100 valid questions.",
       "error"
     );
     return;
@@ -815,18 +864,17 @@ elements.submit.addEventListener("click", async () => {
   elements.generate.disabled = true;
   elements.refresh.disabled = true;
 
-  setStatus(
-    `Submitting ${selected.length} question${selected.length === 1 ? "" : "s"} to Firebase for review...`,
-    "warn"
-  );
-
   try {
     const token = await getToken();
 
     const questions = selected.map(question => ({
-      subject: String(question.subject || elements.subject.value).slice(0, 100),
+      subject: String(
+        question.subject || elements.subject.value
+      ).slice(0, 100),
 
-      topic: String(question.topic || elements.topic.value).slice(0, 200),
+      topic: String(
+        question.topic || elements.topic.value
+      ).slice(0, 200),
 
       question: question.question,
 
@@ -847,28 +895,30 @@ elements.submit.addEventListener("click", async () => {
       )
     }));
 
-    const response = await fetch(
+    setStatus(
+      "Submitting questions to the Firebase review queue...",
+      "warn"
+    );
+
+    const data = await requestJSON(
       `${HAI_API_URL}/questions/pending/batch`,
       {
         method: "POST",
-
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
+          Authorization: `Bearer ${token}`
         },
-
         body: JSON.stringify({ questions })
-      }
+      },
+      "HAI Firebase submission API"
     );
-
-    const data = await readResponse(response);
 
     if (
       typeof data.submitted_count !== "number" ||
       data.submitted_count !== questions.length
     ) {
       throw new Error(
-        "The server response did not confirm that every selected question was submitted."
+        "The server did not confirm that every selected question was submitted."
       );
     }
 
@@ -883,27 +933,22 @@ elements.submit.addEventListener("click", async () => {
     renderCandidates();
 
     setStatus(
-      `${data.submitted_count} question${data.submitted_count === 1 ? "" : "s"} successfully submitted to Firebase. They are unverified and awaiting administrator review; they have not been published.`,
+      `${data.submitted_count} questions submitted successfully. They are awaiting administrator review and have not been published.`,
       "success"
     );
 
-    if (candidates.length === 0) {
+    if (!candidates.length) {
       elements.results.hidden = true;
       elements.statistics.hidden = true;
     }
 
   } catch (error) {
-    console.error("HAI question submission failed:", error);
+    console.error("Question submission failed:", error);
 
-    let message =
-      error.message || "Could not submit the selected questions.";
-
-    if (error instanceof TypeError) {
-      message =
-        "Could not reach the HAI API. Check your internet connection and backend availability.";
-    }
-
-    setStatus(message, "error");
+    setStatus(
+      `Submission failed: ${error.message}`,
+      "error"
+    );
 
   } finally {
     submissionInProgress = false;
@@ -927,4 +972,7 @@ elements.submit.addEventListener("click", async () => {
    REFRESH TEXTBOOKS
 ========================================= */
 
-elements.refresh.addEventListener("click", loadMaterials);
+elements.refresh.addEventListener(
+  "click",
+  loadMaterials
+);
