@@ -1,27 +1,25 @@
 
 /*
  * Hysteria's Cure
- * Admin Controller — GPT-6 Luna Integration
+ * Admin Controller — HAI Textbook Question Generator
  *
  * Handles:
- * - Administrator authentication for AI actions
- * - GPT-6 Luna question generation
- * - Candidate preview
- * - Administrator approval and publishing
- * - Candidate status updates
+ * - Administrator authentication
+ * - Published textbook retrieval from Supabase
+ * - Extracted text retrieval
+ * - HAI textbook processing
+ * - Generated question preview
+ * - Selective submission to Firebase
+ *
+ * Submitted questions remain unverified.
  */
 
-import { auth, database } from "./firebase-client.js";
+import { auth } from "./firebase-client.js";
 
 import {
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
 
-import {
-  ref,
-  get,
-  update
-} from "https://www.gstatic.com/firebasejs/13.0.0/firebase-database.js";
 
 /* =========================================
    CONFIGURATION
@@ -29,8 +27,15 @@ import {
 
 const ADMIN_UID = "RtaLjBtKSUgRnWB7ag06CLRCStM2";
 
-const AI_BACKEND_URL =
-  "https://cute-horse-6988fb.netlify.app/.netlify/functions/generate-question";
+const HAI_API_URL =
+  "https://hai-api-l7js.onrender.com";
+
+const MATERIALS_API_URL =
+  "https://iltnklpuyifvnojiqrkh.supabase.co/functions/v1/manage-learning-materials";
+
+const SUPABASE_PUBLISHABLE_KEY =
+  "sb_publishable_wMSMx1WpGWn7Tk0zBUDAhg_Jlj8RWDO";
+
 
 /* =========================================
    ELEMENTS
@@ -38,37 +43,77 @@ const AI_BACKEND_URL =
 
 const $ = id => document.getElementById(id);
 
-const form = $("ai-generation-form");
-const statusElement = $("ai-generation-status");
-const resultElement = $("ai-generation-result");
-const resultContent = $("ai-result-content");
-const generateButton = $("ai-generate-button");
-const publishButton = $("ai-publish-button");
+const materialSelect = $("hai-material");
+const subjectInput = $("hai-subject");
+const topicInput = $("hai-topic");
+const chapterInput = $("hai-chapter");
+const countInput = $("hai-count");
+const difficultyInput = $("hai-difficulty");
+
+const generateButton = $("hai-generate-button");
+const refreshButton = $("hai-refresh-materials");
+
+const statusElement = $("hai-generation-status");
+const statisticsElement = $("hai-generation-statistics");
+const resultsElement = $("hai-generation-results");
+const questionList = $("hai-question-list");
+
+const selectionCount = $("hai-selection-count");
+const selectAllButton = $("hai-select-all");
+const deselectAllButton = $("hai-deselect-all");
+const submitButton = $("hai-submit-button");
+
+
+/* =========================================
+   STATE
+========================================= */
 
 let currentAdmin = null;
-let generatedCandidate = null;
+
+let availableMaterials = [];
+let generatedQuestions = [];
+
 let generationInProgress = false;
-let publishingInProgress = false;
+let submissionInProgress = false;
+
 
 /* =========================================
    INITIALISATION CHECK
 ========================================= */
 
 const requiredElements = {
-  form,
-  statusElement,
-  resultElement,
-  resultContent,
+  materialSelect,
+  subjectInput,
+  topicInput,
+  chapterInput,
+  countInput,
+  difficultyInput,
   generateButton,
-  publishButton
+  refreshButton,
+  statusElement,
+  statisticsElement,
+  resultsElement,
+  questionList,
+  selectionCount,
+  selectAllButton,
+  deselectAllButton,
+  submitButton
 };
 
 const missingElements = Object.entries(requiredElements)
   .filter(([, element]) => !element)
   .map(([name]) => name);
 
+if (missingElements.length) {
+  console.error(
+    "HAI generator could not initialise. Missing elements:",
+    missingElements
+  );
+}
+
+
 /* =========================================
-   UTILITIES
+   AUTHENTICATION
 ========================================= */
 
 function isAuthorised() {
@@ -79,6 +124,11 @@ function isAuthorised() {
     auth.currentUser.uid === ADMIN_UID
   );
 }
+
+
+/* =========================================
+   STATUS AND UTILITIES
+========================================= */
 
 function setStatus(message, type = "info") {
   if (!statusElement) return;
@@ -94,167 +144,695 @@ function setStatus(message, type = "info") {
         : "var(--border)";
 }
 
-function clearCandidate() {
-  generatedCandidate = null;
 
-  if (resultElement) {
-    resultElement.hidden = true;
-  }
+function clearGeneratedQuestions() {
+  generatedQuestions = [];
 
-  if (resultContent) {
-    resultContent.replaceChildren();
-  }
+  resultsElement.hidden = true;
+  statisticsElement.hidden = true;
 
-  if (publishButton) {
-    publishButton.hidden = true;
-    publishButton.disabled = false;
-  }
+  questionList.replaceChildren();
+
+  selectionCount.textContent =
+    "0 questions selected.";
+
+  submitButton.hidden = true;
+  submitButton.disabled = false;
 }
 
-function addText(parent, heading, value) {
-  if (
-    value === undefined ||
-    value === null ||
-    value === ""
-  ) {
-    return;
+
+async function getAdminToken() {
+  if (!isAuthorised()) {
+    throw new Error(
+      "Administrator authentication is unavailable."
+    );
   }
 
-  const section = document.createElement("div");
-  section.style.marginBottom = "14px";
-
-  const title = document.createElement("strong");
-  title.textContent = heading;
-
-  const content = document.createElement("p");
-  content.style.whiteSpace = "pre-wrap";
-  content.style.overflowWrap = "anywhere";
-
-  content.textContent =
-    typeof value === "object"
-      ? JSON.stringify(value, null, 2)
-      : String(value);
-
-  section.append(title, content);
-  parent.appendChild(section);
+  return currentAdmin.getIdToken();
 }
 
-function displayCandidate(candidate, observationId) {
-  resultContent.replaceChildren();
 
-  addText(
-    resultContent,
-    "Question",
-    candidate.question
-  );
+async function parseResponse(response) {
+  let data;
 
-  if (Array.isArray(candidate.options)) {
-    const listSection = document.createElement("div");
-    listSection.style.marginBottom = "14px";
-
-    const heading = document.createElement("strong");
-    heading.textContent = "Options";
-
-    const list = document.createElement("ol");
-
-    candidate.options.forEach((option, index) => {
-      const item = document.createElement("li");
-
-      item.textContent =
-        `${String.fromCharCode(65 + index)}. ${option}`;
-
-      list.appendChild(item);
-    });
-
-    listSection.append(heading, list);
-    resultContent.appendChild(listSection);
+  try {
+    data = await response.json();
+  } catch {
+    throw new Error(
+      `The server returned an unreadable response (HTTP ${response.status}).`
+    );
   }
 
-  addText(
-    resultContent,
-    "Correct answer",
-    candidate.correctAnswer
-  );
+  if (!response.ok || data.success === false) {
+    throw new Error(
+      data.detail?.message ||
+      data.detail ||
+      data.message ||
+      `Request failed (HTTP ${response.status}).`
+    );
+  }
 
-  addText(
-    resultContent,
-    "Expected answer",
-    candidate.expectedAnswer
-  );
-
-  addText(
-    resultContent,
-    "Explanation",
-    candidate.explanation
-  );
-
-  addText(
-    resultContent,
-    "Marking scheme",
-    candidate.markingScheme
-  );
-
-  addText(
-    resultContent,
-    "Difficulty",
-    candidate.difficulty
-  );
-
-  addText(
-    resultContent,
-    "Candidate ID",
-    candidate.id
-  );
-
-  addText(
-    resultContent,
-    "Teacher observation ID",
-    observationId
-  );
-
-  const note = document.createElement("p");
-  note.className = "muted";
-
-  note.textContent =
-    "This candidate is awaiting your review. It has not been published.";
-
-  resultContent.appendChild(note);
-
-  resultElement.hidden = false;
+  return data;
 }
+
 
 /* =========================================
-   GENERATE QUESTION
+   SUPABASE REQUESTS
 ========================================= */
 
-async function generateQuestion(event) {
-  if (event) {
-    event.preventDefault();
+async function materialRequest(method, body = null) {
+  const token = await getAdminToken();
+
+  const headers = {
+    "Authorization": `Bearer ${token}`,
+    "apikey": SUPABASE_PUBLISHABLE_KEY
+  };
+
+  const options = {
+    method,
+    headers
+  };
+
+  if (body !== null) {
+    headers["Content-Type"] = "application/json";
+    options.body = JSON.stringify(body);
   }
 
-  if (generationInProgress) return;
+  const response = await fetch(
+    MATERIALS_API_URL,
+    options
+  );
 
+  return parseResponse(response);
+}
+
+
+/* =========================================
+   MATERIAL DATA HELPERS
+========================================= */
+
+function getMaterialList(data) {
+  if (Array.isArray(data)) return data;
+
+  if (Array.isArray(data.materials)) {
+    return data.materials;
+  }
+
+  if (Array.isArray(data.data)) {
+    return data.data;
+  }
+
+  return [];
+}
+
+
+function getMaterialId(material) {
+  return String(
+    material.id ||
+    material.material_id ||
+    ""
+  );
+}
+
+
+function getMaterialTitle(material) {
+  return String(
+    material.title ||
+    material.name ||
+    material.file_name ||
+    "Untitled textbook"
+  );
+}
+
+
+function getExtractionStatus(material) {
+  return String(
+    material.extraction_status ||
+    material.extraction?.extraction_status ||
+    material.extraction?.status ||
+    ""
+  ).toLowerCase();
+}
+
+
+function isPublished(material) {
+  const status = String(
+    material.status ||
+    material.approval_status ||
+    ""
+  ).toLowerCase();
+
+  return (
+    status === "published" ||
+    material.published === true ||
+    material.is_published === true
+  );
+}
+
+
+function isExtractionComplete(material) {
+  return getExtractionStatus(material) === "completed";
+}
+
+
+function getEligibleMaterials(materials) {
+  return materials.filter(material =>
+    getMaterialId(material) &&
+    isPublished(material) &&
+    isExtractionComplete(material)
+  );
+}
+
+
+/* =========================================
+   LOAD PUBLISHED TEXTBOOKS
+========================================= */
+
+async function loadMaterials() {
   if (!isAuthorised()) {
     setStatus(
-      "Administrator authentication is unavailable. Please sign in again.",
+      "Administrator access required.",
       "error"
     );
     return;
   }
 
-  const subject = $("ai-subject").value.trim();
-  const topic = $("ai-topic").value.trim();
-  const difficulty = Number($("ai-difficulty").value);
-  const type = $("ai-type").value;
-  const instructions = $("ai-instructions").value.trim();
+  refreshButton.disabled = true;
+  refreshButton.textContent = "Refreshing...";
 
-  if (!subject || subject.length > 80) {
-    setStatus("Enter a valid subject.", "error");
+  materialSelect.disabled = true;
+
+  materialSelect.replaceChildren();
+
+  const loadingOption = document.createElement("option");
+  loadingOption.value = "";
+  loadingOption.textContent = "Loading textbooks...";
+
+  materialSelect.appendChild(loadingOption);
+
+  try {
+    const data = await materialRequest("GET");
+
+    const materials = getMaterialList(data);
+
+    availableMaterials = getEligibleMaterials(materials);
+
+    materialSelect.replaceChildren();
+
+    if (availableMaterials.length === 0) {
+      const option = document.createElement("option");
+
+      option.value = "";
+      option.textContent =
+        "No published textbooks with completed extraction";
+
+      materialSelect.appendChild(option);
+
+      setStatus(
+        "No eligible textbooks found. Publish a textbook and complete its extraction first.",
+        "info"
+      );
+
+      return;
+    }
+
+    const placeholder = document.createElement("option");
+
+    placeholder.value = "";
+    placeholder.textContent = "Select a textbook";
+
+    materialSelect.appendChild(placeholder);
+
+    availableMaterials.forEach(material => {
+      const option = document.createElement("option");
+
+      option.value = getMaterialId(material);
+      option.textContent = getMaterialTitle(material);
+
+      materialSelect.appendChild(option);
+    });
+
+    materialSelect.disabled = false;
+
+    setStatus(
+      `${availableMaterials.length} eligible textbook(s) loaded.`,
+      "success"
+    );
+
+  } catch (error) {
+    console.error(
+      "HAI textbook loading failed:",
+      error
+    );
+
+    materialSelect.replaceChildren();
+
+    const option = document.createElement("option");
+
+    option.value = "";
+    option.textContent = "Could not load textbooks";
+
+    materialSelect.appendChild(option);
+
+    setStatus(
+      error.message ||
+      "Could not retrieve textbooks from Supabase.",
+      "error"
+    );
+
+  } finally {
+    refreshButton.disabled = false;
+    refreshButton.textContent = "Refresh Textbooks";
+  }
+}
+
+
+/* =========================================
+   SELECTED MATERIAL
+========================================= */
+
+function getSelectedMaterial() {
+  const selectedId = materialSelect.value;
+
+  return availableMaterials.find(
+    material => getMaterialId(material) === selectedId
+  ) || null;
+}
+
+
+function populateMaterialDetails() {
+  const material = getSelectedMaterial();
+
+  if (!material) return;
+
+  const subject =
+    material.subject ||
+    "";
+
+  const topic =
+    material.topic ||
+    material.chapter ||
+    "";
+
+  const chapter =
+    material.chapter ||
+    material.topic ||
+    "";
+
+  if (subject) {
+    subjectInput.value = subject;
+  }
+
+  if (topic) {
+    topicInput.value = topic;
+  }
+
+  if (chapter) {
+    chapterInput.value = chapter;
+  }
+
+  clearGeneratedQuestions();
+}
+
+
+/* =========================================
+   RETRIEVE EXTRACTED TEXT
+========================================= */
+
+async function getExtractedText(material) {
+  const materialId = getMaterialId(material);
+
+  const data = await materialRequest(
+    "POST",
+    {
+      materialId
+    }
+  );
+
+  const extractedText =
+    data.extraction?.extracted_text ||
+    data.extracted_text ||
+    "";
+
+  if (
+    typeof extractedText !== "string" ||
+    extractedText.trim().length < 20
+  ) {
+    throw new Error(
+      "The selected textbook does not contain enough extracted text."
+    );
+  }
+
+  return {
+    text: extractedText,
+    metadata: data.material || material,
+    extraction: data.extraction || {}
+  };
+}
+
+
+/* =========================================
+   HAI GENERATION REQUEST
+========================================= */
+
+async function requestHAIGeneration(payload) {
+  const token = await getAdminToken();
+
+  const response = await fetch(
+    `${HAI_API_URL}/textbooks/generate`,
+    {
+      method: "POST",
+
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+
+      body: JSON.stringify(payload)
+    }
+  );
+
+  return parseResponse(response);
+}
+
+
+/* =========================================
+   QUESTION VALIDATION
+========================================= */
+
+function validateGeneratedQuestion(question) {
+  if (!question || typeof question !== "object") {
+    return false;
+  }
+
+  if (
+    typeof question.subject !== "string" ||
+    !question.subject.trim()
+  ) {
+    return false;
+  }
+
+  if (
+    typeof question.topic !== "string" ||
+    !question.topic.trim()
+  ) {
+    return false;
+  }
+
+  if (
+    typeof question.question !== "string" ||
+    !question.question.trim()
+  ) {
+    return false;
+  }
+
+  if (
+    !Array.isArray(question.options) ||
+    question.options.length !== 4 ||
+    question.options.some(
+      option =>
+        typeof option !== "string" ||
+        !option.trim()
+    )
+  ) {
+    return false;
+  }
+
+  if (
+    new Set(question.options).size !== 4
+  ) {
+    return false;
+  }
+
+  if (
+    !Number.isInteger(question.answerIndex) ||
+    question.answerIndex < 0 ||
+    question.answerIndex > 3
+  ) {
+    return false;
+  }
+
+  if (
+    typeof question.explanation !== "string" ||
+    !question.explanation.trim()
+  ) {
+    return false;
+  }
+
+  if (
+    !Number.isInteger(question.difficulty) ||
+    question.difficulty < 1 ||
+    question.difficulty > 7
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
+
+/* =========================================
+   DISPLAY HELPERS
+========================================= */
+
+function addResultText(parent, heading, value) {
+  const section = document.createElement("div");
+
+  section.className = "ai-result-section";
+
+  const title = document.createElement("strong");
+  title.textContent = heading;
+
+  const content = document.createElement("p");
+
+  content.textContent =
+    value === undefined || value === null
+      ? ""
+      : String(value);
+
+  section.append(title, content);
+
+  parent.appendChild(section);
+}
+
+
+/* =========================================
+   RENDER GENERATED QUESTIONS
+========================================= */
+
+function renderQuestions() {
+  questionList.replaceChildren();
+
+  generatedQuestions.forEach((question, index) => {
+    const card = document.createElement("article");
+
+    card.className = "achievement-item";
+
+    const top = document.createElement("div");
+    top.className = "achievement-top";
+
+    const heading = document.createElement("strong");
+
+    heading.textContent =
+      `Question ${index + 1}`;
+
+    const checkboxLabel = document.createElement("label");
+
+    checkboxLabel.style.display = "flex";
+    checkboxLabel.style.alignItems = "center";
+    checkboxLabel.style.gap = "8px";
+    checkboxLabel.style.cursor = "pointer";
+
+    const checkbox = document.createElement("input");
+
+    checkbox.type = "checkbox";
+    checkbox.checked = true;
+    checkbox.dataset.questionIndex = String(index);
+    checkbox.style.width = "auto";
+
+    const labelText = document.createElement("span");
+    labelText.textContent = "Select for review";
+
+    checkboxLabel.append(checkbox, labelText);
+
+    top.append(heading, checkboxLabel);
+
+    card.appendChild(top);
+
+    addResultText(
+      card,
+      "Question",
+      question.question
+    );
+
+    const optionsSection = document.createElement("div");
+
+    optionsSection.className = "ai-result-section";
+
+    const optionsHeading = document.createElement("strong");
+    optionsHeading.textContent = "Options";
+
+    const optionsList = document.createElement("ol");
+
+    question.options.forEach((option, optionIndex) => {
+      const item = document.createElement("li");
+
+      item.textContent =
+        `${String.fromCharCode(65 + optionIndex)}. ${option}`;
+
+      if (optionIndex === question.answerIndex) {
+        item.style.fontWeight = "800";
+      }
+
+      optionsList.appendChild(item);
+    });
+
+    optionsSection.append(
+      optionsHeading,
+      optionsList
+    );
+
+    card.appendChild(optionsSection);
+
+    addResultText(
+      card,
+      "Correct answer",
+      question.options[question.answerIndex]
+    );
+
+    addResultText(
+      card,
+      "Explanation",
+      question.explanation
+    );
+
+    addResultText(
+      card,
+      "Difficulty",
+      question.difficulty
+    );
+
+    addResultText(
+      card,
+      "Source",
+      question.sourceDetails
+    );
+
+    addResultText(
+      card,
+      "Syllabus objective",
+      question.syllabusObjective
+    );
+
+    questionList.appendChild(card);
+  });
+
+  questionList
+    .querySelectorAll('input[type="checkbox"]')
+    .forEach(checkbox => {
+      checkbox.addEventListener(
+        "change",
+        updateSelectionCount
+      );
+    });
+
+  updateSelectionCount();
+
+  resultsElement.hidden = false;
+}
+
+
+function getSelectedQuestions() {
+  const selectedIndexes = new Set(
+    [...questionList.querySelectorAll(
+      'input[type="checkbox"]:checked'
+    )].map(checkbox =>
+      Number(checkbox.dataset.questionIndex)
+    )
+  );
+
+  return generatedQuestions.filter(
+    (_, index) => selectedIndexes.has(index)
+  );
+}
+
+
+function updateSelectionCount() {
+  const selected = getSelectedQuestions();
+
+  selectionCount.textContent =
+    `${selected.length} of ${generatedQuestions.length} questions selected.`;
+
+  submitButton.hidden = selected.length === 0;
+}
+
+
+/* =========================================
+   SELECT ALL / DESELECT ALL
+========================================= */
+
+function setAllSelections(checked) {
+  questionList
+    .querySelectorAll('input[type="checkbox"]')
+    .forEach(checkbox => {
+      checkbox.checked = checked;
+    });
+
+  updateSelectionCount();
+}
+
+
+/* =========================================
+   GENERATE QUESTIONS
+========================================= */
+
+async function generateQuestions() {
+  if (generationInProgress) return;
+
+  if (!isAuthorised()) {
+    setStatus(
+      "Administrator authentication is unavailable.",
+      "error"
+    );
     return;
   }
 
-  if (!topic || topic.length > 120) {
-    setStatus("Enter a valid topic.", "error");
+  const material = getSelectedMaterial();
+
+  if (!material) {
+    setStatus(
+      "Select a published textbook first.",
+      "error"
+    );
+    return;
+  }
+
+  const subject = subjectInput.value.trim();
+  const topic = topicInput.value.trim();
+
+  const chapter =
+    chapterInput.value.trim() || topic;
+
+  const count = Number(countInput.value);
+  const difficulty = Number(difficultyInput.value);
+
+  if (!subject || !topic || !chapter) {
+    setStatus(
+      "Enter a subject, topic and chapter.",
+      "error"
+    );
+    return;
+  }
+
+  if (
+    !Number.isInteger(count) ||
+    count < 1 ||
+    count > 100
+  ) {
+    setStatus(
+      "Question count must be between 1 and 100.",
+      "error"
+    );
     return;
   }
 
@@ -270,134 +848,122 @@ async function generateQuestion(event) {
     return;
   }
 
-  if (
-    !["multiple-choice", "written-response"].includes(type)
-  ) {
-    setStatus("Select a valid question type.", "error");
-    return;
-  }
-
-  if (instructions.length > 1000) {
-    setStatus(
-      "Additional instructions are too long.",
-      "error"
-    );
-    return;
-  }
-
   generationInProgress = true;
 
   generateButton.disabled = true;
-  generateButton.textContent = "Generating...";
+  generateButton.textContent = "Processing Textbook...";
 
-  clearCandidate();
-
-  setStatus(
-    "Contacting GPT-6 Luna. Please wait..."
-  );
+  clearGeneratedQuestions();
 
   try {
-    const token = await currentAdmin.getIdToken();
-
-    const response = await fetch(AI_BACKEND_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
-      },
-      body: JSON.stringify({
-        subject,
-        topic,
-        difficulty,
-        type,
-        instructions
-      })
-    });
-
-    let data;
-
-    try {
-      data = await response.json();
-    } catch {
-      throw new Error(
-        `The backend returned an unreadable response (HTTP ${response.status}).`
-      );
-    }
-
-    if (!response.ok || data.status !== "success") {
-      throw new Error(
-        data.message ||
-        `Question generation failed (HTTP ${response.status}).`
-      );
-    }
-
-    const candidate = data.candidate;
-
-    if (
-      !candidate ||
-      typeof candidate !== "object" ||
-      !candidate.id ||
-      typeof candidate.question !== "string"
-    ) {
-      throw new Error(
-        "The backend returned an invalid candidate."
-      );
-    }
-
-    generatedCandidate = candidate;
-
-    displayCandidate(
-      candidate,
-      data.observationId
+    setStatus(
+      "Retrieving extracted textbook content from Supabase..."
     );
 
-    if (candidate.type === "multiple-choice") {
-      publishButton.hidden = false;
+    const extracted = await getExtractedText(material);
 
-      setStatus(
-        "Candidate generated and saved. Review it before approving.",
-        "success"
-      );
+    const documentTitle = getMaterialTitle(
+      extracted.metadata
+    );
 
-    } else {
-      publishButton.hidden = true;
+    setStatus(
+      "Sending textbook content to HAI. Processing knowledge..."
+    );
 
-      setStatus(
-        "Written-response candidate saved for review. Publishing is disabled until the question bank supports written-response questions.",
-        "success"
+    generateButton.textContent = "HAI Processing...";
+
+    const result = await requestHAIGeneration({
+      text: extracted.text,
+      subject,
+      topic,
+      document: documentTitle,
+      chapter,
+      count,
+      difficulty
+    });
+
+    if (
+      result.status !== "success" ||
+      !Array.isArray(result.questions)
+    ) {
+      throw new Error(
+        result.message ||
+        "HAI returned an invalid generation result."
       );
     }
+
+    const validQuestions = result.questions.filter(
+      validateGeneratedQuestion
+    );
+
+    if (validQuestions.length === 0) {
+      throw new Error(
+        "HAI did not produce any structurally valid questions."
+      );
+    }
+
+    generatedQuestions = validQuestions;
+
+    const statistics = result.statistics || {};
+
+    statisticsElement.replaceChildren();
+
+    const statisticsHeading = document.createElement("strong");
+    statisticsHeading.textContent = "Processing Results";
+
+    statisticsElement.appendChild(statisticsHeading);
+
+    const statisticsText = document.createElement("p");
+
+    statisticsText.className = "muted";
+
+    statisticsText.textContent = [
+      `Knowledge records: ${statistics.knowledge_records ?? "N/A"}`,
+      `Validation records: ${statistics.validation_records ?? "N/A"}`,
+      `Accepted relationships: ${statistics.accepted_relationships ?? "N/A"}`,
+      `Generated questions: ${statistics.generated_questions ?? validQuestions.length}`,
+      `Skipped relationships: ${statistics.skipped_relationships ?? "N/A"}`,
+      `Processing time: ${statistics.processing_seconds ?? "N/A"} seconds`
+    ].join("\n");
+
+    statisticsElement.appendChild(statisticsText);
+
+    statisticsElement.hidden = false;
+
+    renderQuestions();
+
+    setStatus(
+      `${validQuestions.length} question(s) generated. Review and select the ones you want to submit.`,
+      "success"
+    );
 
   } catch (error) {
     console.error(
-      "GPT-6 Luna generation failed:",
+      "HAI textbook generation failed:",
       error
     );
 
-    let message =
-      error?.message ||
-      "An unexpected error occurred.";
-
-if (error instanceof TypeError) {
-  message = `Network error: ${error.message}`;
-}
-
-    setStatus(message, "error");
+    setStatus(
+      error.message ||
+      "Textbook question generation failed.",
+      "error"
+    );
 
   } finally {
     generationInProgress = false;
 
     generateButton.disabled = false;
-    generateButton.textContent = "Generate Question";
+    generateButton.textContent = "Generate Questions";
   }
 }
 
+
 /* =========================================
-   APPROVE AND PUBLISH
+   SUBMIT SELECTED QUESTIONS
 ========================================= */
 
-async function approveCandidate() {
-  if (publishingInProgress) return;
+async function submitSelectedQuestions() {
+  if (submissionInProgress) return;
 
   if (!isAuthorised()) {
     setStatus(
@@ -407,279 +973,170 @@ async function approveCandidate() {
     return;
   }
 
-  const candidate = generatedCandidate;
+  const selectedQuestions = getSelectedQuestions();
 
-  if (
-    !candidate ||
-    candidate.type !== "multiple-choice" ||
-    !candidate.id
-  ) {
+  if (selectedQuestions.length === 0) {
     setStatus(
-      "There is no publishable multiple-choice candidate.",
-      "error"
-    );
-    return;
-  }
-
-  if (
-    !Array.isArray(candidate.options) ||
-    candidate.options.length !== 4 ||
-    candidate.options.some(
-      option =>
-        typeof option !== "string" ||
-        !option.trim()
-    ) ||
-    typeof candidate.correctAnswer !== "string" ||
-    !candidate.options.includes(candidate.correctAnswer) ||
-    !candidate.question?.trim() ||
-    !candidate.explanation?.trim()
-  ) {
-    setStatus(
-      "The candidate is incomplete or invalid. It cannot be published.",
+      "Select at least one question.",
       "error"
     );
     return;
   }
 
   const confirmed = window.confirm(
-    "Have you checked the question, all four options, the correct answer and the explanation? Publish this question to the live question bank?"
+    `Submit ${selectedQuestions.length} selected question(s) to Firebase for administrator review? They will remain unverified.`
   );
 
   if (!confirmed) return;
 
-  publishingInProgress = true;
+  submissionInProgress = true;
 
-  publishButton.disabled = true;
-  publishButton.textContent = "Publishing...";
+  submitButton.disabled = true;
+  submitButton.textContent = "Submitting...";
 
   try {
-    const candidateRef = ref(
-      database,
-      `aiQuestionCandidates/${candidate.id}`
+    const token = await getAdminToken();
+
+    const response = await fetch(
+      `${HAI_API_URL}/questions/pending/batch`,
+      {
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+
+        body: JSON.stringify({
+          questions: selectedQuestions
+        })
+      }
     );
 
-    const candidateSnapshot = await get(candidateRef);
-
-    if (!candidateSnapshot.exists()) {
-      throw new Error(
-        "The saved candidate could not be found. Nothing was published."
-      );
-    }
-
-    const savedCandidate = candidateSnapshot.val();
-
-    if (savedCandidate.status !== "pending_review") {
-      throw new Error(
-        "This candidate is no longer awaiting review. Nothing was published."
-      );
-    }
+    const result = await parseResponse(response);
 
     if (
-      savedCandidate.type !== "multiple-choice" ||
-      savedCandidate.createdBy !== currentAdmin.uid
+      result.status !== "success" ||
+      result.submitted_count !== selectedQuestions.length
     ) {
       throw new Error(
-        "Candidate verification failed. Nothing was published."
+        result.message ||
+        "Firebase did not confirm the complete submission."
       );
     }
 
-    if (
-      !Array.isArray(savedCandidate.options) ||
-      savedCandidate.options.length !== 4 ||
-      savedCandidate.options.some(
-        option =>
-          typeof option !== "string" ||
-          !option.trim()
-      ) ||
-      typeof savedCandidate.correctAnswer !== "string" ||
-      !savedCandidate.options.includes(savedCandidate.correctAnswer) ||
-      typeof savedCandidate.question !== "string" ||
-      !savedCandidate.question.trim() ||
-      typeof savedCandidate.explanation !== "string" ||
-      !savedCandidate.explanation.trim()
-    ) {
-      throw new Error(
-        "The saved candidate is incomplete or invalid."
-      );
-    }
-
-    const answerIndex =
-      savedCandidate.options.indexOf(
-        savedCandidate.correctAnswer
-      );
-
-    if (answerIndex < 0) {
-      throw new Error(
-        "The saved candidate's answer could not be verified."
-      );
-    }
-
-    const questionId =
-      "ai_" + crypto.randomUUID().replace(/-/g, "_");
-
-    const now = new Date().toISOString();
-
-    const questionRecord = {
-      id: questionId,
-      subject: savedCandidate.subject,
-      topic: savedCandidate.topic,
-      difficulty: savedCandidate.difficulty,
-      question: savedCandidate.question,
-      options: savedCandidate.options,
-      answerIndex,
-      explanation: savedCandidate.explanation,
-      verified: true,
-      createdAt: now,
-      createdBy: currentAdmin.uid,
-      source: "teacher_model",
-      sourceCandidateId: candidate.id,
-      generatedByModel:
-        savedCandidate.generatedByModel || "GPT-6 Luna"
-    };
-
-    /*
-     * Publish the question and update the candidate
-     * review status in one multi-location update.
-     */
-
-    await update(ref(database), {
-      [`questionBank/${questionId}`]: questionRecord,
-
-      [`aiQuestionCandidates/${candidate.id}/status`]:
-        "published",
-
-      [`aiQuestionCandidates/${candidate.id}/approvedBy`]:
-        currentAdmin.uid,
-
-      [`aiQuestionCandidates/${candidate.id}/approvedAt`]:
-        Date.now(),
-
-      [`aiQuestionCandidates/${candidate.id}/publishedQuestionId`]:
-        questionId
-    });
-
-    generatedCandidate = null;
-
-    publishButton.hidden = true;
+    clearGeneratedQuestions();
 
     setStatus(
-      `Approved and published successfully. Question ID: ${questionId}`,
+      `${result.submitted_count} question(s) submitted to Firebase for review. They are all unverified.`,
       "success"
     );
 
-    const publishedNote =
-      document.createElement("p");
-
-    publishedNote.className = "muted";
-
-    publishedNote.textContent =
-      "This question is now in the question bank. The original teacher observation remains separate.";
-
-    resultContent.appendChild(publishedNote);
-
   } catch (error) {
     console.error(
-      "Candidate publishing failed:",
+      "HAI question submission failed:",
       error
     );
 
     setStatus(
-      error?.message ||
-      "Could not publish the candidate.",
+      error.message ||
+      "Could not submit selected questions.",
       "error"
     );
 
   } finally {
-    publishingInProgress = false;
+    submissionInProgress = false;
 
-    publishButton.disabled = false;
-    publishButton.textContent = "Approve and Publish";
+    submitButton.disabled = false;
+    submitButton.textContent =
+      "Submit Selected Questions for Review";
   }
 }
 
+
 /* =========================================
-   AUTHENTICATION AND EVENT LISTENERS
+   EVENT LISTENERS
 ========================================= */
 
-if (missingElements.length > 0) {
-  console.error(
-    "GPT-6 Luna could not initialise. Missing HTML elements:",
-    missingElements
+if (missingElements.length === 0) {
+
+  refreshButton.addEventListener(
+    "click",
+    loadMaterials
   );
 
-  setStatus(
-    "Generator initialisation failed. Missing page elements: " +
-    missingElements.join(", "),
-    "error"
+  materialSelect.addEventListener(
+    "change",
+    populateMaterialDetails
   );
-
-} else {
-
-  /*
-   * Generate button uses click rather than native
-   * form submission to prevent accidental reloads.
-   */
 
   generateButton.addEventListener(
     "click",
-    generateQuestion
+    generateQuestions
   );
 
-  /*
-   * Prevent Enter-key submission from reloading
-   * the page. The click handler handles generation.
-   */
-
-  form.addEventListener("submit", event => {
-    event.preventDefault();
-  });
-
-  publishButton.addEventListener(
+  selectAllButton.addEventListener(
     "click",
-    approveCandidate
+    () => setAllSelections(true)
   );
 
-  /*
-   * Firebase administrator authentication.
-   */
+  deselectAllButton.addEventListener(
+    "click",
+    () => setAllSelections(false)
+  );
+
+  submitButton.addEventListener(
+    "click",
+    submitSelectedQuestions
+  );
 
   onAuthStateChanged(
     auth,
-    user => {
+
+    async user => {
       currentAdmin = null;
-      clearCandidate();
+
+      clearGeneratedQuestions();
 
       if (!user) {
+        availableMaterials = [];
+
         setStatus(
-          "Sign in as the administrator to use GPT-6 Luna.",
+          "Sign in as the administrator to use HAI.",
           "error"
         );
+
         return;
       }
 
       if (user.uid !== ADMIN_UID) {
+        availableMaterials = [];
+
         setStatus(
-          "Access denied. This account is not authorised to use GPT-6 Luna.",
+          "Access denied. Administrator privileges required.",
           "error"
         );
+
         return;
       }
 
       currentAdmin = user;
 
       setStatus(
-        "GPT-6 Luna is ready. Generated questions will require your approval.",
-        "success"
+        "Administrator verified. Loading published textbooks..."
       );
+
+      await loadMaterials();
     },
+
     error => {
       console.error(
-        "GPT-6 Luna authentication listener failed:",
+        "HAI authentication listener failed:",
         error
       );
 
       setStatus(
-        "Could not verify administrator authentication. Check Firebase configuration and reload the page.",
+        "Could not verify administrator authentication.",
         "error"
       );
     }
