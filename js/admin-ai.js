@@ -190,11 +190,22 @@ async function getToken(forceRefresh = false) {
   }
 
   if (!token || typeof token !== "string") {
-    throw new Error(
-      "Firebase returned an empty authentication token."
-    );
-  }
+  throw new Error(
+    "Firebase returned an empty authentication token."
+  );
+}
 
+if (!/^[\x21-\x7E]+$/.test(token)) {
+  throw new Error(
+    "Firebase token contains invalid HTTP header characters. Please sign in again."
+  );
+}
+
+if (token.split(".").length !== 3) {
+  throw new Error(
+    "Firebase returned an incorrectly formatted authentication token."
+  );
+}
   console.info("HAI AUTH DIAGNOSTIC:", {
     userExists: !!authenticatedUser,
     sameUser: authenticatedUser.uid === currentAdmin.uid,
