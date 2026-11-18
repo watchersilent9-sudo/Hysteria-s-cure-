@@ -1,0 +1,285 @@
+:root {
+  color-scheme: dark;
+  --studio-bg: var(--bg-primary, #11101b);
+  --studio-panel: var(--bg-card, #1c1a2b);
+  --studio-text: var(--text-primary, #f7f4ff);
+  --studio-muted: var(--text-secondary, #b7b1ca);
+  --studio-accent: var(--accent-bright, #c6a7ff);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--studio-bg);
+  color: var(--studio-text);
+  font-family: system-ui, sans-serif;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 18px 6%;
+  background: var(--bg-secondary, var(--studio-bg));
+  border-bottom: 1px solid var(--border);
+}
+
+.brand {
+  font-weight: 800;
+}
+
+.brand span {
+  color: var(--studio-accent);
+}
+
+nav {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+nav a {
+  color: var(--studio-accent);
+  text-decoration: none;
+  font-weight: 700;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 11px 15px;
+  background: var(--bg-secondary, #38334d);
+  color: var(--studio-text);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
+
+main {
+  width: min(calc(100% - 30px), 1050px);
+  margin: 32px auto 60px;
+}
+
+.intro {
+  margin-bottom: 24px;
+}
+
+.intro h1 {
+  margin-bottom: 8px;
+}
+
+.intro p,
+.section-heading p,
+.muted {
+  color: var(--studio-muted);
+  line-height: 1.6;
+}
+
+.panel {
+  background: var(--studio-panel);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 22px;
+  margin-bottom: 22px;
+}
+
+.panel h2 {
+  margin-top: 0;
+}
+
+.section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.section-heading p {
+  margin: 6px 0 0;
+}
+
+.form-group {
+  margin-bottom: 17px;
+}
+
+label {
+  display: block;
+  font-size: .9rem;
+  font-weight: 700;
+  margin-bottom: 7px;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  padding: 12px;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  background: var(--studio-bg);
+  color: var(--studio-text);
+}
+
+textarea {
+  min-height: 90px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.primary-button {
+  background: var(--accent-dark, #7556a8);
+  color: white;
+  border: 0;
+}
+
+.primary-button:hover {
+  background: var(--studio-accent);
+  color: var(--studio-bg);
+}
+
+.secondary-button {
+  margin-top: 8px;
+}
+
+#page-message,
+#generation-status,
+#api-status,
+#submission-status {
+  padding: 13px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow-wrap: anywhere;
+  line-height: 1.5;
+}
+
+#page-message:empty,
+#submission-status:empty {
+  display: none;
+}
+
+.statistics {
+  margin-top: 18px;
+  padding: 15px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow-wrap: anywhere;
+}
+
+.review-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin: 18px 0;
+}
+
+.question-list {
+  display: grid;
+  gap: 16px;
+  margin-top: 18px;
+}
+
+.question-card {
+  padding: 17px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--studio-bg);
+  min-width: 0;
+}
+
+.question-card.approved {
+  border-color: #65c98b;
+}
+
+.question-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 15px;
+}
+
+.approval-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.approval-control input {
+  width: auto;
+}
+
+.option-group {
+  margin: 12px 0;
+}
+
+.option-group label {
+  margin-top: 10px;
+}
+
+.answer-select {
+  margin-top: 8px;
+}
+
+.question-meta {
+  color: var(--studio-muted);
+  font-size: .85rem;
+  line-height: 1.5;
+  margin-top: 12px;
+}
+
+.submit-area {
+  margin-top: 25px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+
+[hidden] {
+  display: none !important;
+}
+
+@media (max-width: 650px) {
+  header {
+    padding: 15px;
+  }
+
+  main {
+    margin-top: 22px;
+  }
+
+  .panel {
+    padding: 17px;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+}
