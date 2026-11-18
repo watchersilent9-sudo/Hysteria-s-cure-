@@ -159,17 +159,53 @@ function updateSelectionCount() {
    AUTHENTICATION
 ========================================= */
 
-function getToken() {
+async function getToken(forceRefresh = false) {
+  const authenticatedUser = auth.currentUser;
+
   if (
     !currentAdmin ||
-    auth.currentUser?.uid !== ADMIN_UID
+    !authenticatedUser ||
+    authenticatedUser.uid !== ADMIN_UID ||
+    currentAdmin.uid !== ADMIN_UID ||
+    authenticatedUser.uid !== currentAdmin.uid
   ) {
     throw new Error(
       "Administrator authentication is unavailable. Please sign in again."
     );
   }
 
-  return currentAdmin.getIdToken();
+  let token;
+
+  try {
+    token = await authenticatedUser.getIdToken(forceRefresh);
+  } catch (error) {
+    console.error("Firebase token retrieval failed:", {
+      name: error.name,
+      message: error.message
+    });
+
+    throw new Error(
+      "Firebase could not refresh your authentication token. Please sign in again."
+    );
+  }
+
+  if (!token || typeof token !== "string") {
+    throw new Error(
+      "Firebase returned an empty authentication token."
+    );
+  }
+
+  console.info("HAI AUTH DIAGNOSTIC:", {
+    userExists: !!authenticatedUser,
+    sameUser: authenticatedUser.uid === currentAdmin.uid,
+    adminUidMatches: authenticatedUser.uid === ADMIN_UID,
+    tokenExists: !!token,
+    tokenLength: token.length,
+    firebaseProject: auth.app.options.projectId,
+    forceRefresh
+  });
+
+  return token;
 }
 
 onAuthStateChanged(auth, async user => {
@@ -247,17 +283,17 @@ async function requestJSON(url, options, serviceName) {
 
   try {
     response = await fetch(url, options);
-} catch (error) {
-  console.error(`${serviceName} network error:`, {
-    name: error.name,
-    message: error.message,
-    url
-  });
+  } catch (error) {
+    console.error(`${serviceName} network error:`, {
+      name: error.name,
+      message: error.message,
+      url
+    });
 
-  throw new Error(
-    `${serviceName} failed: ${error.name}: ${error.message}`
-  );
-}
+    throw new Error(
+      `${serviceName} failed: ${error.name}: ${error.message}`
+    );
+  }
 
   return readResponse(response);
 }
@@ -547,7 +583,8 @@ elements.generate.addEventListener("click", async () => {
       "Untitled textbook"
     ).slice(0, 200);
 
-    const token = await getToken();
+    // Force-refresh Firebase ID token before HAI request.
+    const token = await getToken(true);
 
     setStatus(
       "Sending extracted content to HAI...",
@@ -869,7 +906,8 @@ elements.submit.addEventListener("click", async () => {
   elements.refresh.disabled = true;
 
   try {
-    const token = await getToken();
+    // Force-refresh Firebase ID token before submission.
+    const token = await getToken(true);
 
     const questions = selected.map(question => ({
       subject: String(
