@@ -1,3 +1,4 @@
+
 /*
  * Hysteria's Cure
  * HAI Question Studio
@@ -75,6 +76,28 @@ const el = {
 
 
 /* =========================================
+   ELEMENT VALIDATION
+========================================= */
+
+const requiredElements = Object.entries(el).filter(
+  ([, element]) => !element
+);
+
+if (requiredElements.length) {
+  console.error(
+    "HAI Studio is missing HTML elements:",
+    requiredElements.map(([name]) => name)
+  );
+
+  throw new Error(
+    `HAI Studio initialization failed. Missing elements: ${
+      requiredElements.map(([name]) => name).join(", ")
+    }`
+  );
+}
+
+
+/* =========================================
    STATE
 ========================================= */
 
@@ -114,6 +137,69 @@ function isAdmin() {
   );
 }
 
+function createElement(tag, className, value) {
+  const node = document.createElement(tag);
+
+  if (className) {
+    node.className = className;
+  }
+
+  if (value !== undefined && value !== null) {
+    node.textContent = String(value);
+  }
+
+  return node;
+}
+
+
+/* =========================================
+   GENERATION BUTTON STATE
+========================================= */
+
+function updateGenerateButton() {
+  const materialSelected =
+    Boolean(el.material.value);
+
+  const subjectProvided =
+    Boolean(el.subject.value.trim());
+
+  const topicProvided =
+    Boolean(el.topic.value.trim());
+
+  const count = Number(el.count.value);
+  const difficulty = Number(el.difficulty.value);
+
+  const validCount =
+    Number.isInteger(count) &&
+    count >= 1 &&
+    count <= 100;
+
+  const validDifficulty =
+    Number.isInteger(difficulty) &&
+    difficulty >= 1 &&
+    difficulty <= 7;
+
+  const ready =
+    isAdmin() &&
+    materialSelected &&
+    subjectProvided &&
+    topicProvided &&
+    validCount &&
+    validDifficulty;
+
+  el.generate.disabled =
+    !ready ||
+    generationInProgress ||
+    submissionInProgress;
+
+  return ready;
+}
+
+
+/* =========================================
+   REVIEW STATE
+========================================= */
+
 function clearReview() {
   candidates = [];
 
@@ -139,20 +225,6 @@ function updateApprovalCount() {
 
   el.submit.textContent =
     `Submit ${approved} approved question${approved === 1 ? "" : "s"}`;
-}
-
-function createElement(tag, className, value) {
-  const node = document.createElement(tag);
-
-  if (className) {
-    node.className = className;
-  }
-
-  if (value !== undefined && value !== null) {
-    node.textContent = String(value);
-  }
-
-  return node;
 }
 
 
@@ -184,42 +256,6 @@ async function getToken(forceRefresh = false) {
 
   return token;
 }
-
-onAuthStateChanged(auth, async user => {
-  currentAdmin = null;
-  clearReview();
-
-  if (!user) {
-    el.content.hidden = true;
-
-    window.location.replace("login.html");
-    return;
-  }
-
-  if (user.uid !== ADMIN_UID) {
-    el.content.hidden = true;
-
-    setMessage(
-      el.pageMessage,
-      "Access denied. Administrator privileges are required.",
-      "error"
-    );
-
-    return;
-  }
-
-  currentAdmin = user;
-  el.content.hidden = false;
-  el.pageMessage.hidden = true;
-
-  setMessage(
-    el.generationStatus,
-    "Administrator verified. Loading textbooks...",
-    "success"
-  );
-
-  await loadMaterials();
-});
 
 
 /* =========================================
@@ -413,10 +449,32 @@ async function loadMaterials() {
       "Loading...",
       "Refresh textbooks"
     );
+
+    updateGenerateButton();
   }
 }
 
-el.refresh.addEventListener("click", loadMaterials);
+
+/* =========================================
+   FORM INPUT LISTENERS
+========================================= */
+
+[
+  el.material,
+  el.subject,
+  el.topic,
+  el.chapter,
+  el.count,
+  el.difficulty
+].forEach(element => {
+  element.addEventListener("input", updateGenerateButton);
+  element.addEventListener("change", updateGenerateButton);
+});
+
+
+/* =========================================
+   TEXTBOOK SELECTION
+========================================= */
 
 el.material.addEventListener("change", () => {
   const material = materials.find(
@@ -425,7 +483,10 @@ el.material.addEventListener("change", () => {
 
   clearReview();
 
-  if (!material) return;
+  if (!material) {
+    updateGenerateButton();
+    return;
+  }
 
   el.subject.value =
     String(material.subject || "").slice(0, 100);
@@ -440,6 +501,8 @@ el.material.addEventListener("change", () => {
     "Textbook selected. Confirm the subject and topic.",
     "success"
   );
+
+  updateGenerateButton();
 });
 
 
@@ -544,6 +607,15 @@ async function retrieveTextbook(materialId) {
 ========================================= */
 
 el.generate.addEventListener("click", async () => {
+  if (!updateGenerateButton()) {
+    setMessage(
+      el.generationStatus,
+      "Complete all required fields before generating questions.",
+      "error"
+    );
+    return;
+  }
+
   if (generationInProgress || !isAdmin()) return;
 
   const materialId = el.material.value;
@@ -553,49 +625,9 @@ el.generate.addEventListener("click", async () => {
   const count = Number(el.count.value);
   const difficulty = Number(el.difficulty.value);
 
-  if (!materialId || !subject || !topic) {
-    setMessage(
-      el.generationStatus,
-      "Select a textbook and provide a subject and topic.",
-      "error"
-    );
-    return;
-  }
-
-  if (
-    !Number.isInteger(count) ||
-    count < 1 ||
-    count > 100
-  ) {
-    setMessage(
-      el.generationStatus,
-      "Question count must be between 1 and 100.",
-      "error"
-    );
-    return;
-  }
-
-  if (
-    !Number.isInteger(difficulty) ||
-    difficulty < 1 ||
-    difficulty > 7
-  ) {
-    setMessage(
-      el.generationStatus,
-      "Difficulty must be between 1 and 7.",
-      "error"
-    );
-    return;
-  }
-
   generationInProgress = true;
 
-  setBusy(
-    el.generate,
-    true,
-    "Generating...",
-    "Generate questions"
-  );
+  updateGenerateButton();
 
   el.refresh.disabled = true;
   clearReview();
@@ -708,14 +740,9 @@ el.generate.addEventListener("click", async () => {
   } finally {
     generationInProgress = false;
 
-    setBusy(
-      el.generate,
-      false,
-      "Generating...",
-      "Generate questions"
-    );
-
     el.refresh.disabled = false;
+
+    updateGenerateButton();
   }
 });
 
@@ -864,12 +891,12 @@ function renderCandidates() {
     answerSelect.className = "answer-select";
 
     candidate.options.forEach((_, optionIndex) => {
-      const option = new Option(
-        `Option ${String.fromCharCode(65 + optionIndex)}`,
-        String(optionIndex)
+      answerSelect.add(
+        new Option(
+          `Option ${String.fromCharCode(65 + optionIndex)}`,
+          String(optionIndex)
+        )
       );
-
-      answerSelect.add(option);
     });
 
     answerSelect.value = String(candidate.answerIndex);
@@ -1006,7 +1033,10 @@ function validateApprovedQuestions(approved) {
       );
     }
 
-    if (!question.explanation.trim()) {
+    if (
+      typeof question.explanation !== "string" ||
+      !question.explanation.trim()
+    ) {
       throw new Error(
         `Question ${index + 1} needs an explanation before submission.`
       );
@@ -1067,6 +1097,7 @@ el.submit.addEventListener("click", async () => {
 
   submissionInProgress = true;
   updateApprovalCount();
+  updateGenerateButton();
 
   setBusy(
     el.submit,
@@ -1138,7 +1169,6 @@ el.submit.addEventListener("click", async () => {
       );
     }
 
-    // Remove only the questions confirmed as submitted.
     const submittedSet = new Set(approved);
 
     candidates = candidates.filter(
@@ -1165,9 +1195,54 @@ el.submit.addEventListener("click", async () => {
   } finally {
     submissionInProgress = false;
 
-    el.generate.disabled = !isAdmin();
     el.refresh.disabled = !isAdmin();
 
     updateApprovalCount();
+    updateGenerateButton();
   }
+});
+
+
+/* =========================================
+   INITIALIZE
+========================================= */
+
+onAuthStateChanged(auth, async user => {
+  currentAdmin = null;
+  clearReview();
+
+  if (!user) {
+    el.content.hidden = true;
+    window.location.replace("login.html");
+    return;
+  }
+
+  if (user.uid !== ADMIN_UID) {
+    el.content.hidden = true;
+
+    setMessage(
+      el.pageMessage,
+      "Access denied. Administrator privileges are required.",
+      "error"
+    );
+
+    return;
+  }
+
+  currentAdmin = user;
+
+  el.content.hidden = false;
+  el.pageMessage.hidden = true;
+
+  updateGenerateButton();
+
+  setMessage(
+    el.generationStatus,
+    "Administrator verified. Loading textbooks...",
+    "success"
+  );
+
+  await loadMaterials();
+
+  updateGenerateButton();
 });
