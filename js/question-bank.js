@@ -1,3 +1,4 @@
+
 import { auth, database } from "./firebase-client.js";
 
 import {
@@ -16,6 +17,9 @@ import {
 
 const ADMIN_UID = "RtaLjBtKSUgRnWB7ag06CLRCStM2";
 
+const HAI_PENDING_URL =
+  "https://hai-api-l7js.onrender.com/questions/pending";
+
 const statusBox = document.getElementById("status");
 const appContent = document.getElementById("app-content");
 const form = document.getElementById("question-form");
@@ -30,6 +34,23 @@ let currentUser = null;
 let questions = {};
 let editingId = null;
 let stopListening = null;
+
+// ==========================================
+// HAI PENDING REVIEW BUTTON
+// ==========================================
+
+const pendingButton = document.createElement("button");
+
+pendingButton.type = "button";
+pendingButton.textContent = "Send to pending review";
+pendingButton.className = saveButton.className;
+pendingButton.style.marginLeft = "8px";
+
+saveButton.insertAdjacentElement("afterend", pendingButton);
+
+// ==========================================
+// GENERAL FUNCTIONS
+// ==========================================
 
 function showStatus(message, type = "") {
   statusBox.textContent = message;
@@ -57,6 +78,58 @@ function resetForm() {
   saveButton.textContent = "Save question";
   cancelButton.hidden = true;
 }
+
+function collectQuestionData() {
+  const options = [0, 1, 2, 3].map(i =>
+    field(`option${i}`).value.trim()
+  );
+
+  if (options.some(option => !option)) {
+    showStatus("Please fill in all four answer options.", "error");
+    return null;
+  }
+
+  const difficulty = Number(field("difficulty").value);
+  const answerIndex = Number(field("answerIndex").value);
+
+  if (!Number.isInteger(difficulty) || difficulty < 1 || difficulty > 7) {
+    showStatus("Choose a difficulty from 1 to 7.", "error");
+    return null;
+  }
+
+  if (!Number.isInteger(answerIndex) || answerIndex < 0 || answerIndex > 3) {
+    showStatus("Choose a valid correct answer.", "error");
+    return null;
+  }
+
+  const data = {
+    subject: field("subject").value.trim(),
+    topic: field("topic").value.trim(),
+    question: field("question").value.trim(),
+    difficulty,
+    options,
+    answerIndex,
+    explanation: field("explanation").value.trim(),
+    sourceDetails: field("sourceDetails").value.trim(),
+    syllabusObjective: field("syllabusObjective").value.trim()
+  };
+
+  if (
+    !data.subject ||
+    !data.topic ||
+    !data.question ||
+    !data.explanation
+  ) {
+    showStatus("Complete all required fields.", "error");
+    return null;
+  }
+
+  return data;
+}
+
+// ==========================================
+// EDITING
+// ==========================================
 
 function beginEditing(id) {
   const question = questions[id];
@@ -89,6 +162,10 @@ function beginEditing(id) {
   form.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
+// ==========================================
+// QUESTION DISPLAY
+// ==========================================
+
 function renderQuestions() {
   const query = searchInput.value.trim().toLowerCase();
 
@@ -97,7 +174,8 @@ function renderQuestions() {
       question.subject,
       question.topic,
       question.question,
-      question.sourceType
+      question.sourceType,
+      question.sourceDetails
     ].join(" ").toLowerCase();
 
     return text.includes(query);
@@ -198,6 +276,10 @@ function renderQuestions() {
   });
 }
 
+// ==========================================
+// AUTHENTICATION AND FIREBASE LISTENER
+// ==========================================
+
 onAuthStateChanged(auth, user => {
   if (stopListening) {
     stopListening();
@@ -242,6 +324,10 @@ onAuthStateChanged(auth, user => {
   );
 });
 
+// ==========================================
+// EXISTING DIRECT FIREBASE SAVE
+// ==========================================
+
 form.addEventListener("submit", async event => {
   event.preventDefault();
 
@@ -250,51 +336,19 @@ form.addEventListener("submit", async event => {
     return;
   }
 
-  const options = [0, 1, 2, 3].map(i =>
-    field(`option${i}`).value.trim()
-  );
-
-  if (options.some(option => !option)) {
-    showStatus("Please fill in all four answer options.", "error");
-    return;
-  }
-
-  const difficulty = Number(field("difficulty").value);
-  const answerIndex = Number(field("answerIndex").value);
-
-  if (!Number.isInteger(difficulty) || difficulty < 1 || difficulty > 7) {
-    showStatus("Choose a difficulty from 1 to 7.", "error");
-    return;
-  }
-
-  if (!Number.isInteger(answerIndex) || answerIndex < 0 || answerIndex > 3) {
-    showStatus("Choose a valid correct answer.", "error");
-    return;
-  }
+  const questionData = collectQuestionData();
+  if (!questionData) return;
 
   const now = Date.now();
 
   const data = {
     type: "multiple-choice",
-    subject: field("subject").value.trim(),
-    topic: field("topic").value.trim(),
-    question: field("question").value.trim(),
-    difficulty,
+    ...questionData,
     sourceType: field("sourceType").value,
-    sourceDetails: field("sourceDetails").value.trim(),
-    syllabusObjective: field("syllabusObjective").value.trim(),
-    options,
-    answerIndex,
-    explanation: field("explanation").value.trim(),
     verified: field("verified").checked,
     updatedAt: now,
     updatedBy: currentUser.uid
   };
-
-  if (!data.subject || !data.topic || !data.question || !data.explanation) {
-    showStatus("Complete all required fields.", "error");
-    return;
-  }
 
   saveButton.disabled = true;
 
@@ -327,7 +381,79 @@ form.addEventListener("submit", async event => {
   }
 });
 
+// ==========================================
+// NEW: SEND QUESTION TO HAI PENDING API
+// ==========================================
+
+pendingButton.addEventListener("click", async () => {
+  if (!currentUser || currentUser.uid !== ADMIN_UID) {
+    showStatus("You are not authorised to submit questions.", "error");
+    return;
+  }
+
+  const questionData = collectQuestionData();
+  if (!questionData) return;
+
+  pendingButton.disabled = true;
+  saveButton.disabled = true;
+
+  try {
+    const idToken = await currentUser.getIdToken();
+
+    const response = await fetch(HAI_PENDING_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${idToken}`
+      },
+      body: JSON.stringify(questionData)
+    });
+
+    const responseText = await response.text();
+
+    let result = {};
+
+    try {
+      result = responseText ? JSON.parse(responseText) : {};
+    } catch {
+      result = { detail: responseText };
+    }
+
+    if (!response.ok) {
+      throw new Error(
+        result.detail ||
+        result.message ||
+        `Server rejected the request (${response.status}).`
+      );
+    }
+
+    showStatus(
+      "Question submitted successfully. It is awaiting administrator review.",
+      "success"
+    );
+
+    resetForm();
+
+  } catch (error) {
+    console.error("HAI pending submission error:", error);
+
+    showStatus(
+      `Submission failed: ${error.message}`,
+      "error"
+    );
+
+  } finally {
+    pendingButton.disabled = false;
+    saveButton.disabled = false;
+  }
+});
+
+// ==========================================
+// OTHER CONTROLS
+// ==========================================
+
 cancelButton.addEventListener("click", resetForm);
+
 searchInput.addEventListener("input", renderQuestions);
 
 field("logout-button").addEventListener("click", async () => {
