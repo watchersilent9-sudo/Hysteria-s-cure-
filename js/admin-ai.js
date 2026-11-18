@@ -1,17 +1,14 @@
 
 /*
  * Hysteria's Cure
- * Admin Controller — HAI Textbook Question Generator
+ * HAI Textbook Question Generator
  *
- * Handles:
- * - Administrator authentication
- * - Published textbook retrieval from Supabase
- * - Extracted text retrieval
- * - HAI textbook processing
- * - Generated question preview
- * - Selective submission to Firebase
- *
- * Submitted questions remain unverified.
+ * Workflow:
+ * 1. Load published, successfully extracted textbooks from Supabase.
+ * 2. Retrieve the extracted text.
+ * 3. Generate question candidates through HAI.
+ * 4. Let the administrator review and select candidates.
+ * 5. Submit selected candidates to Firebase's pending question queue.
  */
 
 import { auth } from "./firebase-client.js";
@@ -27,152 +24,83 @@ import {
 
 const ADMIN_UID = "RtaLjBtKSUgRnWB7ag06CLRCStM2";
 
-const HAI_API_URL =
-  "https://hai-api-l7js.onrender.com";
-
-const MATERIALS_API_URL =
+const SUPABASE_FUNCTION_URL =
   "https://iltnklpuyifvnojiqrkh.supabase.co/functions/v1/manage-learning-materials";
 
 const SUPABASE_PUBLISHABLE_KEY =
   "sb_publishable_wMSMx1WpGWn7Tk0zBUDAhg_Jlj8RWDO";
 
+const HAI_API_URL =
+  "https://hai-api-l7js.onrender.com";
+
+const MAX_TEXT_LENGTH = 300000;
+
 
 /* =========================================
-   ELEMENTS
+   ELEMENTS AND STATE
 ========================================= */
 
 const $ = id => document.getElementById(id);
 
-const materialSelect = $("hai-material");
-const subjectInput = $("hai-subject");
-const topicInput = $("hai-topic");
-const chapterInput = $("hai-chapter");
-const countInput = $("hai-count");
-const difficultyInput = $("hai-difficulty");
-
-const generateButton = $("hai-generate-button");
-const refreshButton = $("hai-refresh-materials");
-
-const statusElement = $("hai-generation-status");
-const statisticsElement = $("hai-generation-statistics");
-const resultsElement = $("hai-generation-results");
-const questionList = $("hai-question-list");
-
-const selectionCount = $("hai-selection-count");
-const selectAllButton = $("hai-select-all");
-const deselectAllButton = $("hai-deselect-all");
-const submitButton = $("hai-submit-button");
-
-
-/* =========================================
-   STATE
-========================================= */
+const elements = {
+  material: $("hai-material"),
+  refresh: $("hai-refresh-materials"),
+  subject: $("hai-subject"),
+  topic: $("hai-topic"),
+  chapter: $("hai-chapter"),
+  count: $("hai-count"),
+  difficulty: $("hai-difficulty"),
+  generate: $("hai-generate-button"),
+  status: $("hai-generation-status"),
+  statistics: $("hai-generation-statistics"),
+  results: $("hai-generation-results"),
+  questionList: $("hai-question-list"),
+  selectAll: $("hai-select-all"),
+  deselectAll: $("hai-deselect-all"),
+  selectionCount: $("hai-selection-count"),
+  submit: $("hai-submit-button")
+};
 
 let currentAdmin = null;
-
-let availableMaterials = [];
-let generatedQuestions = [];
-
+let materials = [];
+let candidates = [];
+let selectedQuestions = new Set();
 let generationInProgress = false;
 let submissionInProgress = false;
 
 
 /* =========================================
-   INITIALISATION CHECK
+   GENERAL UTILITIES
 ========================================= */
 
-const requiredElements = {
-  materialSelect,
-  subjectInput,
-  topicInput,
-  chapterInput,
-  countInput,
-  difficultyInput,
-  generateButton,
-  refreshButton,
-  statusElement,
-  statisticsElement,
-  resultsElement,
-  questionList,
-  selectionCount,
-  selectAllButton,
-  deselectAllButton,
-  submitButton
-};
-
-const missingElements = Object.entries(requiredElements)
-  .filter(([, element]) => !element)
-  .map(([name]) => name);
-
-if (missingElements.length) {
-  console.error(
-    "HAI generator could not initialise. Missing elements:",
-    missingElements
-  );
+function setStatus(message, type = "warn") {
+  elements.status.hidden = false;
+  elements.status.textContent = message;
+  elements.status.style.borderColor =
+    type === "error" ? "#ff7777" :
+    type === "success" ? "#65c98b" :
+    "var(--border)";
 }
 
-
-/* =========================================
-   AUTHENTICATION
-========================================= */
-
-function isAuthorised() {
-  return Boolean(
-    currentAdmin &&
-    auth.currentUser &&
-    currentAdmin.uid === ADMIN_UID &&
-    auth.currentUser.uid === ADMIN_UID
-  );
+function setBusy(button, busy, busyText, normalText) {
+  button.disabled = busy;
+  button.textContent = busy ? busyText : normalText;
 }
 
-
-/* =========================================
-   STATUS AND UTILITIES
-========================================= */
-
-function setStatus(message, type = "info") {
-  if (!statusElement) return;
-
-  statusElement.hidden = false;
-  statusElement.textContent = message;
-
-  statusElement.style.borderColor =
-    type === "error"
-      ? "#ff7777"
-      : type === "success"
-        ? "#69c98b"
-        : "var(--border)";
-}
-
-
-function clearGeneratedQuestions() {
-  generatedQuestions = [];
-
-  resultsElement.hidden = true;
-  statisticsElement.hidden = true;
-
-  questionList.replaceChildren();
-
-  selectionCount.textContent =
-    "0 questions selected.";
-
-  submitButton.hidden = true;
-  submitButton.disabled = false;
-}
-
-
-async function getAdminToken() {
-  if (!isAuthorised()) {
+function getToken() {
+  if (
+    !currentAdmin ||
+    auth.currentUser?.uid !== ADMIN_UID
+  ) {
     throw new Error(
-      "Administrator authentication is unavailable."
+      "Administrator authentication is unavailable. Please sign in again."
     );
   }
 
   return currentAdmin.getIdToken();
 }
 
-
-async function parseResponse(response) {
+async function readResponse(response) {
   let data;
 
   try {
@@ -183,11 +111,11 @@ async function parseResponse(response) {
     );
   }
 
-  if (!response.ok || data.success === false) {
+  if (!response.ok) {
     throw new Error(
-      data.detail?.message ||
-      data.detail ||
-      data.message ||
+      data?.detail ||
+      data?.message ||
+      data?.error ||
       `Request failed (HTTP ${response.status}).`
     );
   }
@@ -195,13 +123,93 @@ async function parseResponse(response) {
   return data;
 }
 
+function clearCandidates() {
+  candidates = [];
+  selectedQuestions.clear();
+
+  elements.questionList.replaceChildren();
+  elements.results.hidden = true;
+  elements.statistics.hidden = true;
+  elements.submit.hidden = true;
+
+  updateSelectionCount();
+}
+
+function updateSelectionCount() {
+  const count = selectedQuestions.size;
+
+  elements.selectionCount.textContent =
+    `${count} question${count === 1 ? "" : "s"} selected.`;
+
+  elements.submit.hidden = count === 0 || candidates.length === 0;
+
+  elements.submit.disabled =
+    submissionInProgress || count === 0;
+}
+
+function createElement(tag, className, text) {
+  const element = document.createElement(tag);
+
+  if (className) {
+    element.className = className;
+  }
+
+  if (text !== undefined && text !== null) {
+    element.textContent = String(text);
+  }
+
+  return element;
+}
+
+
+/* =========================================
+   AUTHENTICATION
+========================================= */
+
+onAuthStateChanged(auth, async user => {
+  currentAdmin = null;
+  clearCandidates();
+
+  if (!user) {
+    setStatus(
+      "Sign in as an administrator to use HAI.",
+      "error"
+    );
+    return;
+  }
+
+  if (user.uid !== ADMIN_UID) {
+    setStatus(
+      "Access denied. This account is not authorised to use HAI.",
+      "error"
+    );
+
+    elements.generate.disabled = true;
+    elements.refresh.disabled = true;
+
+    return;
+  }
+
+  currentAdmin = user;
+
+  elements.generate.disabled = false;
+  elements.refresh.disabled = false;
+
+  setStatus(
+    "Administrator verified. Loading available textbooks...",
+    "success"
+  );
+
+  await loadMaterials();
+});
+
 
 /* =========================================
    SUPABASE REQUESTS
 ========================================= */
 
-async function materialRequest(method, body = null) {
-  const token = await getAdminToken();
+async function supabaseRequest(method, body = null) {
+  const token = await getToken();
 
   const headers = {
     "Authorization": `Bearer ${token}`,
@@ -219,566 +227,168 @@ async function materialRequest(method, body = null) {
   }
 
   const response = await fetch(
-    MATERIALS_API_URL,
+    SUPABASE_FUNCTION_URL,
     options
   );
 
-  return parseResponse(response);
+  return readResponse(response);
 }
 
 
 /* =========================================
-   MATERIAL DATA HELPERS
-========================================= */
-
-function getMaterialList(data) {
-  if (Array.isArray(data)) return data;
-
-  if (Array.isArray(data.materials)) {
-    return data.materials;
-  }
-
-  if (Array.isArray(data.data)) {
-    return data.data;
-  }
-
-  return [];
-}
-
-
-function getMaterialId(material) {
-  return String(
-    material.id ||
-    material.material_id ||
-    ""
-  );
-}
-
-
-function getMaterialTitle(material) {
-  return String(
-    material.title ||
-    material.name ||
-    material.file_name ||
-    "Untitled textbook"
-  );
-}
-
-
-function getExtractionStatus(material) {
-  return String(
-    material.extraction_status ||
-    material.extraction?.extraction_status ||
-    material.extraction?.status ||
-    ""
-  ).toLowerCase();
-}
-
-
-function isPublished(material) {
-  const status = String(
-    material.status ||
-    material.approval_status ||
-    ""
-  ).toLowerCase();
-
-  return (
-    status === "published" ||
-    material.published === true ||
-    material.is_published === true
-  );
-}
-
-
-function isExtractionComplete(material) {
-  return getExtractionStatus(material) === "completed";
-}
-
-
-function getEligibleMaterials(materials) {
-  return materials.filter(material =>
-    getMaterialId(material) &&
-    isPublished(material) &&
-    isExtractionComplete(material)
-  );
-}
-
-
-/* =========================================
-   LOAD PUBLISHED TEXTBOOKS
+   LOAD AVAILABLE TEXTBOOKS
 ========================================= */
 
 async function loadMaterials() {
-  if (!isAuthorised()) {
-    setStatus(
-      "Administrator access required.",
-      "error"
-    );
-    return;
-  }
+  if (!currentAdmin) return;
 
-  refreshButton.disabled = true;
-  refreshButton.textContent = "Refreshing...";
+  setBusy(
+    elements.refresh,
+    true,
+    "Loading...",
+    "Refresh Textbooks"
+  );
 
-  materialSelect.disabled = true;
-
-  materialSelect.replaceChildren();
-
-  const loadingOption = document.createElement("option");
-  loadingOption.value = "";
-  loadingOption.textContent = "Loading textbooks...";
-
-  materialSelect.appendChild(loadingOption);
+  elements.material.disabled = true;
+  elements.material.replaceChildren(
+    new Option("Loading textbooks...", "")
+  );
 
   try {
-    const data = await materialRequest("GET");
+    const data = await supabaseRequest("GET");
 
-    const materials = getMaterialList(data);
+    if (!data.success || !Array.isArray(data.materials)) {
+      throw new Error(
+        "Supabase did not return a valid textbook list."
+      );
+    }
 
-    availableMaterials = getEligibleMaterials(materials);
+    materials = data.materials.filter(material =>
+      material &&
+      material.status === "published" &&
+      material.extraction?.extraction_status === "completed"
+    );
 
-    materialSelect.replaceChildren();
+    elements.material.replaceChildren();
 
-    if (availableMaterials.length === 0) {
-      const option = document.createElement("option");
-
-      option.value = "";
-      option.textContent =
-        "No published textbooks with completed extraction";
-
-      materialSelect.appendChild(option);
+    if (materials.length === 0) {
+      elements.material.add(
+        new Option("No extracted textbooks available", "")
+      );
 
       setStatus(
-        "No eligible textbooks found. Publish a textbook and complete its extraction first.",
-        "info"
+        "No published textbooks with completed text extraction were found. Check the Learning Materials page.",
+        "warn"
       );
 
       return;
     }
 
-    const placeholder = document.createElement("option");
+    elements.material.add(
+      new Option("Choose a textbook...", "")
+    );
 
-    placeholder.value = "";
-    placeholder.textContent = "Select a textbook";
+    materials.forEach(material => {
+      const option = new Option(
+        `${material.title || material.original_filename || "Untitled textbook"} — ${material.subject || "Unspecified subject"}`,
+        material.id
+      );
 
-    materialSelect.appendChild(placeholder);
-
-    availableMaterials.forEach(material => {
-      const option = document.createElement("option");
-
-      option.value = getMaterialId(material);
-      option.textContent = getMaterialTitle(material);
-
-      materialSelect.appendChild(option);
+      elements.material.add(option);
     });
 
-    materialSelect.disabled = false;
-
     setStatus(
-      `${availableMaterials.length} eligible textbook(s) loaded.`,
+      `${materials.length} extracted textbook${materials.length === 1 ? "" : "s"} available.`,
       "success"
     );
 
   } catch (error) {
-    console.error(
-      "HAI textbook loading failed:",
-      error
+    console.error("HAI textbook loading failed:", error);
+
+    elements.material.replaceChildren(
+      new Option("Could not load textbooks", "")
     );
 
-    materialSelect.replaceChildren();
-
-    const option = document.createElement("option");
-
-    option.value = "";
-    option.textContent = "Could not load textbooks";
-
-    materialSelect.appendChild(option);
-
     setStatus(
-      error.message ||
-      "Could not retrieve textbooks from Supabase.",
+      error.message || "Could not load textbooks from Supabase.",
       "error"
     );
 
   } finally {
-    refreshButton.disabled = false;
-    refreshButton.textContent = "Refresh Textbooks";
+    elements.material.disabled = false;
+
+    setBusy(
+      elements.refresh,
+      false,
+      "Loading...",
+      "Refresh Textbooks"
+    );
   }
 }
 
 
 /* =========================================
-   SELECTED MATERIAL
+   SELECT TEXTBOOK
 ========================================= */
 
-function getSelectedMaterial() {
-  const selectedId = materialSelect.value;
-
-  return availableMaterials.find(
-    material => getMaterialId(material) === selectedId
-  ) || null;
-}
-
-
-function populateMaterialDetails() {
-  const material = getSelectedMaterial();
+elements.material.addEventListener("change", () => {
+  const material = materials.find(
+    item => item.id === elements.material.value
+  );
 
   if (!material) return;
 
-  const subject =
-    material.subject ||
-    "";
+  elements.subject.value =
+    String(material.subject || "").slice(0, 100);
 
-  const topic =
-    material.topic ||
-    material.chapter ||
-    "";
+  elements.topic.value =
+    String(material.topic || material.title || "").slice(0, 200);
 
-  const chapter =
-    material.chapter ||
-    material.topic ||
-    "";
+  elements.chapter.value = "";
 
-  if (subject) {
-    subjectInput.value = subject;
-  }
+  clearCandidates();
 
-  if (topic) {
-    topicInput.value = topic;
-  }
-
-  if (chapter) {
-    chapterInput.value = chapter;
-  }
-
-  clearGeneratedQuestions();
-}
+  setStatus(
+    "Textbook selected. Confirm the subject and topic before generating questions.",
+    "success"
+  );
+});
 
 
 /* =========================================
    RETRIEVE EXTRACTED TEXT
 ========================================= */
 
-async function getExtractedText(material) {
-  const materialId = getMaterialId(material);
-
-  const data = await materialRequest(
+async function retrieveTextbook(materialId) {
+  const data = await supabaseRequest(
     "POST",
-    {
-      materialId
-    }
+    { materialId }
   );
 
-  const extractedText =
-    data.extraction?.extracted_text ||
-    data.extracted_text ||
-    "";
-
-  if (
-    typeof extractedText !== "string" ||
-    extractedText.trim().length < 20
-  ) {
+  if (!data.success || !data.extraction) {
     throw new Error(
-      "The selected textbook does not contain enough extracted text."
+      "Supabase did not return the extracted textbook content."
+    );
+  }
+
+  const text = data.extraction.extracted_text;
+
+  if (typeof text !== "string" || text.trim().length < 20) {
+    throw new Error(
+      "This textbook does not contain enough extracted text for question generation."
+    );
+  }
+
+  if (text.length > MAX_TEXT_LENGTH) {
+    throw new Error(
+      `This textbook contains ${text.length.toLocaleString()} characters. HAI currently accepts a maximum of ${MAX_TEXT_LENGTH.toLocaleString()}. The text has not been shortened or silently truncated.`
     );
   }
 
   return {
-    text: extractedText,
-    metadata: data.material || material,
-    extraction: data.extraction || {}
+    text,
+    material: data.material
   };
-}
-
-
-/* =========================================
-   HAI GENERATION REQUEST
-========================================= */
-
-async function requestHAIGeneration(payload) {
-  const token = await getAdminToken();
-
-  const response = await fetch(
-    `${HAI_API_URL}/textbooks/generate`,
-    {
-      method: "POST",
-
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
-      },
-
-      body: JSON.stringify(payload)
-    }
-  );
-
-  return parseResponse(response);
-}
-
-
-/* =========================================
-   QUESTION VALIDATION
-========================================= */
-
-function validateGeneratedQuestion(question) {
-  if (!question || typeof question !== "object") {
-    return false;
-  }
-
-  if (
-    typeof question.subject !== "string" ||
-    !question.subject.trim()
-  ) {
-    return false;
-  }
-
-  if (
-    typeof question.topic !== "string" ||
-    !question.topic.trim()
-  ) {
-    return false;
-  }
-
-  if (
-    typeof question.question !== "string" ||
-    !question.question.trim()
-  ) {
-    return false;
-  }
-
-  if (
-    !Array.isArray(question.options) ||
-    question.options.length !== 4 ||
-    question.options.some(
-      option =>
-        typeof option !== "string" ||
-        !option.trim()
-    )
-  ) {
-    return false;
-  }
-
-  if (
-    new Set(question.options).size !== 4
-  ) {
-    return false;
-  }
-
-  if (
-    !Number.isInteger(question.answerIndex) ||
-    question.answerIndex < 0 ||
-    question.answerIndex > 3
-  ) {
-    return false;
-  }
-
-  if (
-    typeof question.explanation !== "string" ||
-    !question.explanation.trim()
-  ) {
-    return false;
-  }
-
-  if (
-    !Number.isInteger(question.difficulty) ||
-    question.difficulty < 1 ||
-    question.difficulty > 7
-  ) {
-    return false;
-  }
-
-  return true;
-}
-
-
-/* =========================================
-   DISPLAY HELPERS
-========================================= */
-
-function addResultText(parent, heading, value) {
-  const section = document.createElement("div");
-
-  section.className = "ai-result-section";
-
-  const title = document.createElement("strong");
-  title.textContent = heading;
-
-  const content = document.createElement("p");
-
-  content.textContent =
-    value === undefined || value === null
-      ? ""
-      : String(value);
-
-  section.append(title, content);
-
-  parent.appendChild(section);
-}
-
-
-/* =========================================
-   RENDER GENERATED QUESTIONS
-========================================= */
-
-function renderQuestions() {
-  questionList.replaceChildren();
-
-  generatedQuestions.forEach((question, index) => {
-    const card = document.createElement("article");
-
-    card.className = "achievement-item";
-
-    const top = document.createElement("div");
-    top.className = "achievement-top";
-
-    const heading = document.createElement("strong");
-
-    heading.textContent =
-      `Question ${index + 1}`;
-
-    const checkboxLabel = document.createElement("label");
-
-    checkboxLabel.style.display = "flex";
-    checkboxLabel.style.alignItems = "center";
-    checkboxLabel.style.gap = "8px";
-    checkboxLabel.style.cursor = "pointer";
-
-    const checkbox = document.createElement("input");
-
-    checkbox.type = "checkbox";
-    checkbox.checked = true;
-    checkbox.dataset.questionIndex = String(index);
-    checkbox.style.width = "auto";
-
-    const labelText = document.createElement("span");
-    labelText.textContent = "Select for review";
-
-    checkboxLabel.append(checkbox, labelText);
-
-    top.append(heading, checkboxLabel);
-
-    card.appendChild(top);
-
-    addResultText(
-      card,
-      "Question",
-      question.question
-    );
-
-    const optionsSection = document.createElement("div");
-
-    optionsSection.className = "ai-result-section";
-
-    const optionsHeading = document.createElement("strong");
-    optionsHeading.textContent = "Options";
-
-    const optionsList = document.createElement("ol");
-
-    question.options.forEach((option, optionIndex) => {
-      const item = document.createElement("li");
-
-      item.textContent =
-        `${String.fromCharCode(65 + optionIndex)}. ${option}`;
-
-      if (optionIndex === question.answerIndex) {
-        item.style.fontWeight = "800";
-      }
-
-      optionsList.appendChild(item);
-    });
-
-    optionsSection.append(
-      optionsHeading,
-      optionsList
-    );
-
-    card.appendChild(optionsSection);
-
-    addResultText(
-      card,
-      "Correct answer",
-      question.options[question.answerIndex]
-    );
-
-    addResultText(
-      card,
-      "Explanation",
-      question.explanation
-    );
-
-    addResultText(
-      card,
-      "Difficulty",
-      question.difficulty
-    );
-
-    addResultText(
-      card,
-      "Source",
-      question.sourceDetails
-    );
-
-    addResultText(
-      card,
-      "Syllabus objective",
-      question.syllabusObjective
-    );
-
-    questionList.appendChild(card);
-  });
-
-  questionList
-    .querySelectorAll('input[type="checkbox"]')
-    .forEach(checkbox => {
-      checkbox.addEventListener(
-        "change",
-        updateSelectionCount
-      );
-    });
-
-  updateSelectionCount();
-
-  resultsElement.hidden = false;
-}
-
-
-function getSelectedQuestions() {
-  const selectedIndexes = new Set(
-    [...questionList.querySelectorAll(
-      'input[type="checkbox"]:checked'
-    )].map(checkbox =>
-      Number(checkbox.dataset.questionIndex)
-    )
-  );
-
-  return generatedQuestions.filter(
-    (_, index) => selectedIndexes.has(index)
-  );
-}
-
-
-function updateSelectionCount() {
-  const selected = getSelectedQuestions();
-
-  selectionCount.textContent =
-    `${selected.length} of ${generatedQuestions.length} questions selected.`;
-
-  submitButton.hidden = selected.length === 0;
-}
-
-
-/* =========================================
-   SELECT ALL / DESELECT ALL
-========================================= */
-
-function setAllSelections(checked) {
-  questionList
-    .querySelectorAll('input[type="checkbox"]')
-    .forEach(checkbox => {
-      checkbox.checked = checked;
-    });
-
-  updateSelectionCount();
 }
 
 
@@ -786,51 +396,50 @@ function setAllSelections(checked) {
    GENERATE QUESTIONS
 ========================================= */
 
-async function generateQuestions() {
-  if (generationInProgress) return;
+elements.generate.addEventListener("click", async () => {
+  if (generationInProgress || !currentAdmin) return;
 
-  if (!isAuthorised()) {
-    setStatus(
-      "Administrator authentication is unavailable.",
-      "error"
-    );
-    return;
-  }
-
-  const material = getSelectedMaterial();
-
-  if (!material) {
-    setStatus(
-      "Select a published textbook first.",
-      "error"
-    );
-    return;
-  }
-
-  const subject = subjectInput.value.trim();
-  const topic = topicInput.value.trim();
-
+  const materialId = elements.material.value;
+  const subject = elements.subject.value.trim();
+  const topic = elements.topic.value.trim();
   const chapter =
-    chapterInput.value.trim() || topic;
+    elements.chapter.value.trim() || "Unspecified";
 
-  const count = Number(countInput.value);
-  const difficulty = Number(difficultyInput.value);
+  const count = Number(elements.count.value);
+  const difficulty = Number(elements.difficulty.value);
 
-  if (!subject || !topic || !chapter) {
+  if (!materialId) {
+    setStatus("Select a textbook first.", "error");
+    return;
+  }
+
+  if (!subject || subject.length > 100) {
     setStatus(
-      "Enter a subject, topic and chapter.",
+      "Enter a valid subject (maximum 100 characters).",
       "error"
     );
     return;
   }
 
-  if (
-    !Number.isInteger(count) ||
-    count < 1 ||
-    count > 100
-  ) {
+  if (!topic || topic.length > 200) {
     setStatus(
-      "Question count must be between 1 and 100.",
+      "Enter a valid topic (maximum 200 characters).",
+      "error"
+    );
+    return;
+  }
+
+  if (chapter.length > 200) {
+    setStatus(
+      "Chapter name must not exceed 200 characters.",
+      "error"
+    );
+    return;
+  }
+
+  if (!Number.isInteger(count) || count < 1 || count > 100) {
+    setStatus(
+      "Question count must be a whole number from 1 to 100.",
       "error"
     );
     return;
@@ -850,152 +459,393 @@ async function generateQuestions() {
 
   generationInProgress = true;
 
-  generateButton.disabled = true;
-  generateButton.textContent = "Processing Textbook...";
+  setBusy(
+    elements.generate,
+    true,
+    "Generating...",
+    "Generate Questions"
+  );
 
-  clearGeneratedQuestions();
+  elements.refresh.disabled = true;
+
+  clearCandidates();
+
+  setStatus(
+    "Retrieving extracted textbook content from Supabase...",
+    "warn"
+  );
 
   try {
+    const textbook = await retrieveTextbook(materialId);
+
+    const documentName = String(
+      textbook.material?.title ||
+      textbook.material?.original_filename ||
+      "Untitled textbook"
+    ).slice(0, 200);
+
+    const token = await getToken();
+
     setStatus(
-      "Retrieving extracted textbook content from Supabase..."
+      "Sending textbook content to HAI for question generation. This may take a little while...",
+      "warn"
     );
 
-    const extracted = await getExtractedText(material);
+    const response = await fetch(
+      `${HAI_API_URL}/textbooks/generate`,
+      {
+        method: "POST",
 
-    const documentTitle = getMaterialTitle(
-      extracted.metadata
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+
+        body: JSON.stringify({
+          text: textbook.text,
+          subject,
+          topic,
+          document: documentName,
+          chapter,
+          count,
+          difficulty
+        })
+      }
     );
 
-    setStatus(
-      "Sending textbook content to HAI. Processing knowledge..."
-    );
+    const data = await readResponse(response);
 
-    generateButton.textContent = "HAI Processing...";
-
-    const result = await requestHAIGeneration({
-      text: extracted.text,
-      subject,
-      topic,
-      document: documentTitle,
-      chapter,
-      count,
-      difficulty
-    });
-
-    if (
-      result.status !== "success" ||
-      !Array.isArray(result.questions)
-    ) {
+    if (!Array.isArray(data.questions)) {
       throw new Error(
-        result.message ||
-        "HAI returned an invalid generation result."
+        "HAI responded without a valid questions list."
       );
     }
 
-    const validQuestions = result.questions.filter(
-      validateGeneratedQuestion
+    candidates = data.questions.filter(question =>
+      question &&
+      typeof question.question === "string" &&
+      Array.isArray(question.options) &&
+      question.options.length === 4 &&
+      Number.isInteger(question.answerIndex) &&
+      question.answerIndex >= 0 &&
+      question.answerIndex <= 3
     );
 
-    if (validQuestions.length === 0) {
+    if (candidates.length === 0) {
       throw new Error(
-        "HAI did not produce any structurally valid questions."
+        "HAI did not return any valid four-option multiple-choice questions. Try another topic or textbook."
       );
     }
 
-    generatedQuestions = validQuestions;
+    selectedQuestions = new Set();
 
-    const statistics = result.statistics || {};
-
-    statisticsElement.replaceChildren();
-
-    const statisticsHeading = document.createElement("strong");
-    statisticsHeading.textContent = "Processing Results";
-
-    statisticsElement.appendChild(statisticsHeading);
-
-    const statisticsText = document.createElement("p");
-
-    statisticsText.className = "muted";
-
-    statisticsText.textContent = [
-      `Knowledge records: ${statistics.knowledge_records ?? "N/A"}`,
-      `Validation records: ${statistics.validation_records ?? "N/A"}`,
-      `Accepted relationships: ${statistics.accepted_relationships ?? "N/A"}`,
-      `Generated questions: ${statistics.generated_questions ?? validQuestions.length}`,
-      `Skipped relationships: ${statistics.skipped_relationships ?? "N/A"}`,
-      `Processing time: ${statistics.processing_seconds ?? "N/A"} seconds`
-    ].join("\n");
-
-    statisticsElement.appendChild(statisticsText);
-
-    statisticsElement.hidden = false;
-
-    renderQuestions();
+    displayStatistics(data.statistics || {});
+    renderCandidates();
 
     setStatus(
-      `${validQuestions.length} question(s) generated. Review and select the ones you want to submit.`,
+      `HAI generated ${candidates.length} valid question candidate${candidates.length === 1 ? "" : "s"}. Review them before submitting.`,
       "success"
     );
 
   } catch (error) {
-    console.error(
-      "HAI textbook generation failed:",
-      error
-    );
+    console.error("HAI generation failed:", error);
 
-    setStatus(
-      error.message ||
-      "Textbook question generation failed.",
-      "error"
-    );
+    let message =
+      error.message || "An unexpected generation error occurred.";
+
+    if (error instanceof TypeError) {
+      message =
+        "Could not reach Supabase or the HAI API. Check your internet connection and the backend deployment.";
+    }
+
+    setStatus(message, "error");
 
   } finally {
     generationInProgress = false;
 
-    generateButton.disabled = false;
-    generateButton.textContent = "Generate Questions";
+    setBusy(
+      elements.generate,
+      false,
+      "Generating...",
+      "Generate Questions"
+    );
+
+    elements.refresh.disabled = false;
   }
+});
+
+
+/* =========================================
+   GENERATION STATISTICS
+========================================= */
+
+function displayStatistics(statistics) {
+  elements.statistics.replaceChildren();
+
+  elements.statistics.appendChild(
+    createElement("h3", "", "Generation Statistics")
+  );
+
+  const entries = Object.entries(statistics);
+
+  if (entries.length === 0) {
+    elements.statistics.appendChild(
+      createElement("p", "muted", "No statistics were returned.")
+    );
+  } else {
+    entries.forEach(([key, value]) => {
+      const row = createElement(
+        "p",
+        "achievement-meta",
+        `${key.replace(/_/g, " ")}: ${
+          typeof value === "object"
+            ? JSON.stringify(value)
+            : String(value)
+        }`
+      );
+
+      elements.statistics.appendChild(row);
+    });
+  }
+
+  elements.statistics.hidden = false;
 }
 
 
 /* =========================================
-   SUBMIT SELECTED QUESTIONS
+   DISPLAY QUESTION CANDIDATES
 ========================================= */
 
-async function submitSelectedQuestions() {
-  if (submissionInProgress) return;
+function renderCandidates() {
+  elements.questionList.replaceChildren();
 
-  if (!isAuthorised()) {
+  candidates.forEach((candidate, index) => {
+    const card = createElement(
+      "article",
+      "achievement-item"
+    );
+
+    const top = createElement(
+      "div",
+      "achievement-top"
+    );
+
+    const title = createElement(
+      "strong",
+      "",
+      `Question ${index + 1}`
+    );
+
+    const checkboxLabel = createElement("label");
+
+    checkboxLabel.style.display = "flex";
+    checkboxLabel.style.alignItems = "center";
+    checkboxLabel.style.gap = "8px";
+    checkboxLabel.style.cursor = "pointer";
+
+    const checkbox = document.createElement("input");
+
+    checkbox.type = "checkbox";
+    checkbox.checked = selectedQuestions.has(index);
+    checkbox.style.width = "auto";
+    checkbox.style.margin = "0";
+    checkbox.setAttribute(
+      "aria-label",
+      `Select question ${index + 1}`
+    );
+
+    checkbox.addEventListener("change", () => {
+      if (checkbox.checked) {
+        selectedQuestions.add(index);
+      } else {
+        selectedQuestions.delete(index);
+      }
+
+      updateSelectionCount();
+    });
+
+    checkboxLabel.append(
+      checkbox,
+      document.createTextNode("Keep this question")
+    );
+
+    top.append(title, checkboxLabel);
+    card.appendChild(top);
+
+    card.appendChild(
+      createElement(
+        "p",
+        "",
+        candidate.question
+      )
+    );
+
+    const optionsList = document.createElement("ol");
+
+    candidate.options.forEach((option, optionIndex) => {
+      const item = createElement(
+        "li",
+        "",
+        `${String.fromCharCode(65 + optionIndex)}. ${option}`
+      );
+
+      if (optionIndex === candidate.answerIndex) {
+        item.style.color = "#9be6b1";
+        item.style.fontWeight = "700";
+      }
+
+      optionsList.appendChild(item);
+    });
+
+    card.appendChild(optionsList);
+
+    card.appendChild(
+      createElement(
+        "p",
+        "achievement-meta",
+        `Correct answer: ${String.fromCharCode(65 + candidate.answerIndex)}`
+      )
+    );
+
+    if (candidate.explanation) {
+      card.appendChild(
+        createElement(
+          "p",
+          "achievement-meta",
+          `Explanation: ${candidate.explanation}`
+        )
+      );
+    }
+
+    if (candidate.sourceDetails) {
+      card.appendChild(
+        createElement(
+          "p",
+          "achievement-meta",
+          `Source: ${candidate.sourceDetails}`
+        )
+      );
+    }
+
+    if (candidate.syllabusObjective) {
+      card.appendChild(
+        createElement(
+          "p",
+          "achievement-meta",
+          `Syllabus objective: ${candidate.syllabusObjective}`
+        )
+      );
+    }
+
+    card.appendChild(
+      createElement(
+        "p",
+        "achievement-meta",
+        `Difficulty: ${candidate.difficulty ?? "Not specified"}`
+      )
+    );
+
+    elements.questionList.appendChild(card);
+  });
+
+  elements.results.hidden = false;
+
+  updateSelectionCount();
+}
+
+
+/* =========================================
+   SELECT ALL / DESELECT ALL
+========================================= */
+
+elements.selectAll.addEventListener("click", () => {
+  candidates.forEach((_, index) => {
+    selectedQuestions.add(index);
+  });
+
+  renderCandidates();
+});
+
+elements.deselectAll.addEventListener("click", () => {
+  selectedQuestions.clear();
+  renderCandidates();
+});
+
+
+/* =========================================
+   SUBMIT SELECTED QUESTIONS TO FIREBASE
+========================================= */
+
+elements.submit.addEventListener("click", async () => {
+  if (
+    submissionInProgress ||
+    !currentAdmin ||
+    selectedQuestions.size === 0
+  ) {
+    return;
+  }
+
+  const selected = [...selectedQuestions]
+    .sort((a, b) => a - b)
+    .map(index => candidates[index])
+    .filter(Boolean);
+
+  if (selected.length === 0) {
+    setStatus("Select at least one valid question.", "error");
+    return;
+  }
+
+  if (selected.length > 100) {
     setStatus(
-      "Administrator access required.",
+      "A maximum of 100 questions can be submitted in one batch.",
       "error"
     );
     return;
   }
-
-  const selectedQuestions = getSelectedQuestions();
-
-  if (selectedQuestions.length === 0) {
-    setStatus(
-      "Select at least one question.",
-      "error"
-    );
-    return;
-  }
-
-  const confirmed = window.confirm(
-    `Submit ${selectedQuestions.length} selected question(s) to Firebase for administrator review? They will remain unverified.`
-  );
-
-  if (!confirmed) return;
 
   submissionInProgress = true;
 
-  submitButton.disabled = true;
-  submitButton.textContent = "Submitting...";
+  setBusy(
+    elements.submit,
+    true,
+    "Submitting...",
+    "Submit Selected Questions for Review"
+  );
+
+  elements.generate.disabled = true;
+  elements.refresh.disabled = true;
+
+  setStatus(
+    `Submitting ${selected.length} question${selected.length === 1 ? "" : "s"} to Firebase for review...`,
+    "warn"
+  );
 
   try {
-    const token = await getAdminToken();
+    const token = await getToken();
+
+    const questions = selected.map(question => ({
+      subject: String(question.subject || elements.subject.value).slice(0, 100),
+
+      topic: String(question.topic || elements.topic.value).slice(0, 200),
+
+      question: question.question,
+
+      difficulty: Number(question.difficulty),
+
+      options: question.options,
+
+      answerIndex: question.answerIndex,
+
+      explanation: String(question.explanation || ""),
+
+      sourceDetails: String(
+        question.sourceDetails || "Generated by HAI"
+      ),
+
+      syllabusObjective: String(
+        question.syllabusObjective || ""
+      )
+    }));
 
     const response = await fetch(
       `${HAI_API_URL}/questions/pending/batch`,
@@ -1007,138 +857,74 @@ async function submitSelectedQuestions() {
           "Authorization": `Bearer ${token}`
         },
 
-        body: JSON.stringify({
-          questions: selectedQuestions
-        })
+        body: JSON.stringify({ questions })
       }
     );
 
-    const result = await parseResponse(response);
+    const data = await readResponse(response);
 
     if (
-      result.status !== "success" ||
-      result.submitted_count !== selectedQuestions.length
+      typeof data.submitted_count !== "number" ||
+      data.submitted_count !== questions.length
     ) {
       throw new Error(
-        result.message ||
-        "Firebase did not confirm the complete submission."
+        "The server response did not confirm that every selected question was submitted."
       );
     }
 
-    clearGeneratedQuestions();
+    const submittedIndices = new Set(selectedQuestions);
+
+    candidates = candidates.filter(
+      (_, index) => !submittedIndices.has(index)
+    );
+
+    selectedQuestions.clear();
+
+    renderCandidates();
 
     setStatus(
-      `${result.submitted_count} question(s) submitted to Firebase for review. They are all unverified.`,
+      `${data.submitted_count} question${data.submitted_count === 1 ? "" : "s"} successfully submitted to Firebase. They are unverified and awaiting administrator review; they have not been published.`,
       "success"
     );
 
-  } catch (error) {
-    console.error(
-      "HAI question submission failed:",
-      error
-    );
+    if (candidates.length === 0) {
+      elements.results.hidden = true;
+      elements.statistics.hidden = true;
+    }
 
-    setStatus(
-      error.message ||
-      "Could not submit selected questions.",
-      "error"
-    );
+  } catch (error) {
+    console.error("HAI question submission failed:", error);
+
+    let message =
+      error.message || "Could not submit the selected questions.";
+
+    if (error instanceof TypeError) {
+      message =
+        "Could not reach the HAI API. Check your internet connection and backend availability.";
+    }
+
+    setStatus(message, "error");
 
   } finally {
     submissionInProgress = false;
 
-    submitButton.disabled = false;
-    submitButton.textContent =
-      "Submit Selected Questions for Review";
+    elements.generate.disabled = false;
+    elements.refresh.disabled = false;
+
+    setBusy(
+      elements.submit,
+      false,
+      "Submitting...",
+      "Submit Selected Questions for Review"
+    );
+
+    updateSelectionCount();
   }
-}
+});
 
 
 /* =========================================
-   EVENT LISTENERS
+   REFRESH TEXTBOOKS
 ========================================= */
 
-if (missingElements.length === 0) {
-
-  refreshButton.addEventListener(
-    "click",
-    loadMaterials
-  );
-
-  materialSelect.addEventListener(
-    "change",
-    populateMaterialDetails
-  );
-
-  generateButton.addEventListener(
-    "click",
-    generateQuestions
-  );
-
-  selectAllButton.addEventListener(
-    "click",
-    () => setAllSelections(true)
-  );
-
-  deselectAllButton.addEventListener(
-    "click",
-    () => setAllSelections(false)
-  );
-
-  submitButton.addEventListener(
-    "click",
-    submitSelectedQuestions
-  );
-
-  onAuthStateChanged(
-    auth,
-
-    async user => {
-      currentAdmin = null;
-
-      clearGeneratedQuestions();
-
-      if (!user) {
-        availableMaterials = [];
-
-        setStatus(
-          "Sign in as the administrator to use HAI.",
-          "error"
-        );
-
-        return;
-      }
-
-      if (user.uid !== ADMIN_UID) {
-        availableMaterials = [];
-
-        setStatus(
-          "Access denied. Administrator privileges required.",
-          "error"
-        );
-
-        return;
-      }
-
-      currentAdmin = user;
-
-      setStatus(
-        "Administrator verified. Loading published textbooks..."
-      );
-
-      await loadMaterials();
-    },
-
-    error => {
-      console.error(
-        "HAI authentication listener failed:",
-        error
-      );
-
-      setStatus(
-        "Could not verify administrator authentication.",
-        "error"
-      );
-    }
-  );
-}
+elements.refresh.addEventListener("click", loadMaterials);
