@@ -26,9 +26,9 @@
     <section class="intro">
       <h1>HAI Question Studio</h1>
       <p>
-        Generate questions from extracted textbooks, review and edit
-        every candidate, then approve the questions you want to send
-        to the question review queue.
+        Generate questions from extracted textbooks. Generated candidates
+        are saved privately as drafts and reviewed in Question Bank before
+        submission.
       </p>
     </section>
 
@@ -65,8 +65,12 @@
             <option value="">Loading textbooks...</option>
           </select>
 
-          <button id="refresh-materials" class="secondary-button"
-                  type="button" disabled>
+          <button
+            id="refresh-materials"
+            class="secondary-button"
+            type="button"
+            disabled
+          >
             Refresh textbooks
           </button>
         </div>
@@ -74,39 +78,66 @@
         <div class="form-grid">
           <div class="form-group">
             <label for="hai-subject">Subject</label>
-            <input id="hai-subject" maxlength="100"
-                   placeholder="e.g. Biology" required>
+            <input
+              id="hai-subject"
+              maxlength="100"
+              placeholder="e.g. Biology"
+              required
+            >
           </div>
 
           <div class="form-group">
             <label for="hai-topic">Topic</label>
-            <input id="hai-topic" maxlength="200"
-                   placeholder="e.g. Nutrition in Plants" required>
+            <input
+              id="hai-topic"
+              maxlength="200"
+              placeholder="e.g. Nutrition in Plants"
+              required
+            >
           </div>
         </div>
 
         <div class="form-group">
           <label for="hai-chapter">Chapter</label>
-          <input id="hai-chapter" maxlength="200"
-                 placeholder="Chapter name">
+          <input
+            id="hai-chapter"
+            maxlength="200"
+            placeholder="Chapter name"
+          >
         </div>
 
         <div class="form-grid">
           <div class="form-group">
             <label for="hai-count">Number of questions</label>
-            <input id="hai-count" type="number"
-                   min="1" max="100" step="1" value="10">
+            <input
+              id="hai-count"
+              type="number"
+              min="1"
+              max="100"
+              step="1"
+              value="10"
+            >
           </div>
 
           <div class="form-group">
             <label for="hai-difficulty">Difficulty (1–7)</label>
-            <input id="hai-difficulty" type="number"
-                   min="1" max="7" step="1" value="2">
+            <input
+              id="hai-difficulty"
+              type="number"
+              min="1"
+              max="7"
+              step="1"
+              value="2"
+            >
           </div>
         </div>
 
-        <button id="generate-button" class="primary-button"
-                type="button" disabled>
+        <button
+          id="generate-button"
+          class="primary-button"
+          type="button"
+          disabled
+        >
           Generate questions
         </button>
 
@@ -118,46 +149,29 @@
       </section>
 
       <section id="review-section" class="panel" hidden>
-        <div class="section-heading">
-          <div>
-            <h2>Question review</h2>
-            <p>
-              Edit each candidate before approving it. Only approved
-              questions will be submitted.
-            </p>
-          </div>
-        </div>
+        <h2>Drafts saved to Question Bank</h2>
 
-        <div class="review-actions">
-          <button id="approve-all-button" type="button">
-            Approve all
-          </button>
+        <p id="review-message" role="status" aria-live="polite"></p>
 
-          <button id="unapprove-all-button" type="button">
-            Unapprove all
-          </button>
-        </div>
-
-        <p id="approval-count" class="muted" aria-live="polite">
-          0 questions approved.
+        <p>
+          Open Question Bank to edit candidates, approve or reject them,
+          and submit approved questions to the pending review queue.
+          They are not automatically published.
         </p>
 
-        <div id="question-list" class="question-list"></div>
-
-        <div class="submit-area">
-          <button id="submit-button" class="primary-button"
-                  type="button" disabled>
-            Submit approved questions
-          </button>
-
-          <p id="submission-status" role="status" aria-live="polite"></p>
-        </div>
+        <a class="primary-button" href="question-bank.html">
+          Open Question Bank
+        </a>
       </section>
 
     </div>
   </main>
 
-  <script type="module" src="js/hai-studio.js?v=20261119-2"></script>
+  <script
+    type="module"
+    src="js/hai-studio.js?v=20261119-4"
+  ></script>
+
   <script type="module" src="js/faction-theme.js"></script>
 </body>
 </html>
