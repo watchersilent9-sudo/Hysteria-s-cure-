@@ -235,9 +235,7 @@
         content and prepare academic resources for HAI.
     </p>
 
-    <!-- ===================================================
-         UPLOAD ADMIN TEXTBOOK
-    ==================================================== -->
+    <!-- UPLOAD TEXTBOOK -->
 
     <section class="admin-section">
 
@@ -333,9 +331,7 @@
 
     </section>
 
-    <!-- ===================================================
-         MATERIAL LIBRARY
-    ==================================================== -->
+    <!-- MATERIAL LIBRARY -->
 
     <section class="admin-section">
 
@@ -374,15 +370,10 @@
 
         </div>
 
-        <div
-            id="materials-list"
-            role="region"
-            aria-live="polite">
-
+        <div id="materials-list" role="region" aria-live="polite">
             <p class="admin-notice">
                 Waiting to load materials...
             </p>
-
         </div>
 
         <p
@@ -395,9 +386,7 @@
 
     </section>
 
-    <!-- ===================================================
-         MANUAL QUESTION PREPARATION
-    ==================================================== -->
+    <!-- QUESTION PREVIEW -->
 
     <section class="admin-section">
 
@@ -534,9 +523,7 @@
 
     </section>
 
-    <!-- ===================================================
-         SHORTCUTS
-    ==================================================== -->
+    <!-- SHORTCUTS -->
 
     <section class="admin-section">
 
@@ -555,9 +542,7 @@
 
 <script type="module" src="js/faction-theme.js"></script>
 
-<!-- =====================================================
-     ADMIN AUTH + MATERIAL API
-====================================================== -->
+<!-- ADMIN AUTHENTICATION AND MATERIAL API -->
 
 <script type="module">
 
@@ -613,11 +598,10 @@ let allMaterials = [];
 let loadingMaterials = false;
 
 
-/* =====================================================
-   MESSAGE HELPERS
-====================================================== */
+/* MESSAGE HELPERS */
 
 function showNotice(element, text, isError = false) {
+
     element.hidden = false;
     element.textContent = text;
 
@@ -627,19 +611,15 @@ function showNotice(element, text, isError = false) {
 }
 
 function hideNotice(element) {
+
     element.hidden = true;
     element.textContent = "";
 }
 
 
-/* =====================================================
-   API REQUEST
-====================================================== */
+/* API REQUEST */
 
-async function materialRequest(
-    method = "GET",
-    body = null
-) {
+async function materialRequest(method = "GET", body = null) {
 
     if (!currentAdmin || currentAdmin.uid !== ADMIN_UID) {
         throw new Error("Administrator authentication required.");
@@ -655,10 +635,14 @@ async function materialRequest(
     let requestBody = body;
 
     if (body instanceof FormData) {
-        // Let the browser set the multipart boundary.
+
+        // Browser automatically supplies multipart boundary.
+
     } else if (body !== null) {
+
         headers["Content-Type"] = "application/json";
         requestBody = JSON.stringify(body);
+
     }
 
     const response = await fetch(MATERIALS_API, {
@@ -672,31 +656,37 @@ async function materialRequest(
     let result;
 
     try {
+
         result = JSON.parse(responseText);
+
     } catch {
+
         throw new Error(
             `Server returned an invalid response (${response.status}). ` +
             responseText.slice(0, 250)
         );
+
     }
 
     if (!response.ok || result.success === false) {
+
         throw new Error(
             result.error ||
             result.message ||
             `Request failed (${response.status}).`
         );
+
     }
 
     return result;
+
 }
 
 
-/* =====================================================
-   FORMATTERS
-====================================================== */
+/* FORMATTERS */
 
 function formatSize(bytes) {
+
     const size = Number(bytes || 0);
 
     if (size < 1024) {
@@ -708,9 +698,11 @@ function formatSize(bytes) {
     }
 
     return `${(size / 1024 / 1024).toFixed(2)} MB`;
+
 }
 
 function formatDate(value) {
+
     if (!value) return "Unknown date";
 
     const date = new Date(value);
@@ -720,9 +712,11 @@ function formatDate(value) {
     }
 
     return date.toLocaleString();
+
 }
 
 function createElement(tag, text = "", className = "") {
+
     const element = document.createElement(tag);
 
     element.textContent = text;
@@ -732,16 +726,17 @@ function createElement(tag, text = "", className = "") {
     }
 
     return element;
+
 }
 
 function normaliseStatus(status) {
+
     return String(status || "unknown").toLowerCase();
+
 }
 
 
-/* =====================================================
-   UPLOAD TEXTBOOK
-====================================================== */
+/* UPLOAD TEXTBOOK */
 
 uploadForm.addEventListener("submit", async event => {
 
@@ -766,33 +761,42 @@ uploadForm.addEventListener("submit", async event => {
 
 
     if (!title || !subject || !file) {
+
         showNotice(
             uploadMessage,
             "Please provide a title, subject and PDF file.",
             true
         );
+
         return;
+
     }
 
     if (file.size > 20 * 1024 * 1024) {
+
         showNotice(
             uploadMessage,
             "The PDF must not exceed 20 MB.",
             true
         );
+
         return;
+
     }
 
     if (
         file.type !== "application/pdf" &&
         !file.name.toLowerCase().endsWith(".pdf")
     ) {
+
         showNotice(
             uploadMessage,
             "Only PDF files are accepted.",
             true
         );
+
         return;
+
     }
 
 
@@ -845,9 +849,7 @@ uploadForm.addEventListener("submit", async event => {
 });
 
 
-/* =====================================================
-   LOAD MATERIALS
-====================================================== */
+/* LOAD MATERIALS */
 
 async function loadMaterials() {
 
@@ -900,9 +902,7 @@ async function loadMaterials() {
 }
 
 
-/* =====================================================
-   FILTER MATERIALS
-====================================================== */
+/* FILTER MATERIALS */
 
 searchInput.addEventListener("input", renderMaterials);
 
@@ -962,9 +962,7 @@ function renderMaterials() {
 }
 
 
-/* =====================================================
-   MATERIAL CARD
-====================================================== */
+/* MATERIAL CARD */
 
 function createMaterialCard(material) {
 
@@ -1055,21 +1053,18 @@ function createMaterialCard(material) {
                 materialsMessage,
                 `Extraction ${result.extractionStatus}. ` +
                 `${result.pageCount} pages, ` +
-                `${result.characterCount.toLocaleString()} characters.`
+                `${Number(result.characterCount || 0).toLocaleString()} characters.`
             );
 
-            // Update local material information.
-            material.extraction = result.extraction;
-
-            // Refresh information from the server.
             await loadMaterials();
 
-            // Show extracted text if returned.
             if (result.extractedText) {
+
                 showTextPreview(
                     material.title,
                     result.extractedText
                 );
+
             }
 
         } catch (error) {
@@ -1116,7 +1111,9 @@ function createMaterialCard(material) {
 
         try {
 
-            // Extraction endpoint returns full extractedText.
+            // Current backend uses the extraction endpoint
+            // to return the extracted text.
+
             const result = await materialRequest(
                 "POST",
                 {
@@ -1125,9 +1122,11 @@ function createMaterialCard(material) {
             );
 
             if (!result.extractedText) {
+
                 throw new Error(
                     "No extracted text was returned."
                 );
+
             }
 
             showTextPreview(
@@ -1271,14 +1270,14 @@ function createMaterialCard(material) {
     });
 
 
-    /* BUTTON VISIBILITY */
+    /* BUTTON VISIBILITY — CORRECTED */
 
     if (status === "pending") {
-    actions.append(
-        approveButton,
-        rejectButton
-    );
-}
+
+        actions.append(
+            approveButton,
+            rejectButton
+        );
 
     } else if (status === "published") {
 
@@ -1291,8 +1290,7 @@ function createMaterialCard(material) {
     } else if (status === "rejected") {
 
         actions.append(
-            approveButton,
-            extractButton
+            approveButton
         );
 
     } else {
@@ -1318,9 +1316,7 @@ function createMaterialCard(material) {
 }
 
 
-/* =====================================================
-   EXTRACTED TEXT PREVIEW
-====================================================== */
+/* EXTRACTED TEXT PREVIEW */
 
 function showTextPreview(title, text) {
 
@@ -1392,7 +1388,6 @@ function showTextPreview(title, text) {
     );
 
 
-    // Remove any older preview.
     const oldPreview =
         document.getElementById("text-preview-section");
 
@@ -1410,9 +1405,7 @@ function showTextPreview(title, text) {
 }
 
 
-/* =====================================================
-   REFRESH
-====================================================== */
+/* REFRESH */
 
 refreshButton.addEventListener(
     "click",
@@ -1420,51 +1413,70 @@ refreshButton.addEventListener(
 );
 
 
-/* =====================================================
-   AUTHENTICATION
-====================================================== */
+/* AUTHENTICATION */
 
-onAuthStateChanged(auth, user => {
+onAuthStateChanged(
+    auth,
 
-    currentAdmin = null;
+    async user => {
 
-    if (!user) {
+        currentAdmin = null;
 
-        window.location.replace("login.html");
+        if (!user) {
 
-        return;
+            accessMessage.hidden = false;
 
-    }
+            accessMessage.textContent =
+                "You are not logged in. Redirecting to login...";
 
-    if (user.uid !== ADMIN_UID) {
+            window.location.replace("login.html");
+
+            return;
+
+        }
+
+        if (user.uid !== ADMIN_UID) {
+
+            adminContent.hidden = true;
+
+            accessMessage.hidden = false;
+
+            accessMessage.textContent =
+                "Access denied. Administrator privileges required.";
+
+            return;
+
+        }
+
+        currentAdmin = user;
+
+        accessMessage.hidden = true;
+
+        adminContent.hidden = false;
+
+        await loadMaterials();
+
+    },
+
+    error => {
+
+        console.error("Firebase authentication error:", error);
 
         adminContent.hidden = true;
 
         accessMessage.hidden = false;
 
         accessMessage.textContent =
-            "Access denied. Administrator privileges required.";
-
-        return;
+            "Authentication failed: " +
+            (error.message || "Unknown Firebase error.");
 
     }
-
-    currentAdmin = user;
-
-    accessMessage.hidden = true;
-
-    adminContent.hidden = false;
-
-    loadMaterials();
-
-});
+);
 
 </script>
 
 
-<!-- =====================================================
-     QUESTION PREVIEW
-====================================================== -->
+<!-- QUESTION PREVIEW -->
 
 <script>
 
