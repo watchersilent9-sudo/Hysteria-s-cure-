@@ -1274,12 +1274,11 @@ function createMaterialCard(material) {
     /* BUTTON VISIBILITY */
 
     if (status === "pending") {
-
-        actions.append(
-            approveButton,
-            rejectButton,
-            extractButton
-        );
+    actions.append(
+        approveButton,
+        rejectButton
+    );
+}
 
     } else if (status === "published") {
 
