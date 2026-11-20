@@ -1,10 +1,17 @@
 /*
- * Hysteria's Cure — reliable question selector
- * Local questions remain available if Firebase is slow or unavailable.
+ * Hysteria's Cure — Firebase-first question selector
+ * Verified Firebase questions take priority.
+ * Local sample questions are used only when Firebase
+ * is unavailable or has no usable verified questions.
  */
+
 import { questionCatalogue } from "./question-catalogue.js";
 import { database } from "./firebase-client.js";
-import { get, ref } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-database.js";
+
+import {
+  get,
+  ref
+} from "https://www.gstatic.com/firebasejs/13.0.0/firebase-database.js";
 
 const FIREBASE_TIMEOUT_MS = 7000;
 
@@ -14,10 +21,12 @@ function normalize(value) {
 
 function shuffle(items) {
   const result = [...items];
+
   for (let i = result.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [result[i], result[j]] = [result[j], result[i]];
   }
+
   return result;
 }
 
@@ -30,7 +39,9 @@ function prepareQuestion(question, id = question?.id) {
     question: String(question?.question ?? ""),
     difficulty: Number(question?.difficulty ?? 1),
     type: question?.type || "multiple-choice",
-    options: Array.isArray(question?.options) ? question.options : [],
+    options: Array.isArray(question?.options)
+      ? question.options
+      : [],
     answerIndex: Number(question?.answerIndex ?? 0),
     explanation: String(question?.explanation ?? "")
   };
@@ -38,8 +49,7 @@ function prepareQuestion(question, id = question?.id) {
 
 function isUsableQuestion(question) {
   return Boolean(
-    question.verified === true &&
-    (question.reviewStatus === "published" || question.reviewStatus == null || question.reviewStatus === "approved") &&
+    question &&
     question.id &&
     question.subject.trim() &&
     question.topic.trim() &&
@@ -47,9 +57,12 @@ function isUsableQuestion(question) {
     Number.isInteger(question.difficulty) &&
     question.difficulty >= 1 &&
     question.difficulty <= 7 &&
+    question.type === "multiple-choice" &&
     question.options.length >= 2 &&
-    question.options.every(option =>
-      typeof option === "string" && option.trim().length > 0
+    question.options.every(
+      option =>
+        typeof option === "string" &&
+        option.trim().length > 0
     ) &&
     Number.isInteger(question.answerIndex) &&
     question.answerIndex >= 0 &&
@@ -57,20 +70,27 @@ function isUsableQuestion(question) {
   );
 }
 
-function combineQuestions(localQuestions, remoteQuestions = []) {
-  const combined = new Map();
+function getLocalQuestions() {
+  return questionCatalogue
+    .map(item => prepareQuestion(item))
+    .filter(isUsableQuestion);
+}
 
-  for (const item of localQuestions) {
-    const question = prepareQuestion(item);
-    if (isUsableQuestion(question)) combined.set(question.id, question);
+function getVerifiedRemoteQuestions(records) {
+  if (!records || typeof records !== "object") {
+    return [];
   }
 
-  for (const item of remoteQuestions) {
-    const question = prepareQuestion(item, item?.id);
-    if (isUsableQuestion(question)) combined.set(question.id, question);
-  }
+  return Object.entries(records)
+    .map(([id, item]) => {
+      if (!item || item.verified !== true) {
+        return null;
+      }
 
-  return [...combined.values()];
+      return prepareQuestion(item, item.id || id);
+    })
+    .filter(Boolean)
+    .filter(isUsableQuestion);
 }
 
 function validateOptions(options = {}) {
@@ -82,36 +102,82 @@ function validateOptions(options = {}) {
   if (!Number.isInteger(min) || min < 1 || min > 7) {
     throw new Error("Choose a star level from 1 to 7.");
   }
+
   if (!Number.isInteger(max) || max < 1 || max > 7) {
     throw new Error("Choose a star level from 1 to 7.");
   }
-  if (min > max) throw new Error("Minimum difficulty cannot exceed maximum difficulty.");
+
+  if (min > max) {
+    throw new Error(
+      "Minimum difficulty cannot exceed maximum difficulty."
+    );
+  }
+
   if (!Number.isFinite(count) || count < 1) {
     throw new Error("Choose at least one question.");
   }
+
   if (!["random", "progressive", "challenge"].includes(strategy)) {
     throw new Error("Choose a valid question order.");
   }
-  return { min, max, count: Math.min(100, Math.floor(count)), strategy };
+
+  return {
+    min,
+    max,
+    count: Math.min(100, Math.floor(count)),
+    strategy
+  };
 }
 
 function selectFromQuestions(questions, options = {}) {
   const { min, max, count, strategy } = validateOptions(options);
+
   const subject = normalize(options.subject);
   const topic = normalize(options.topic);
-  const excluded = new Set((options.excludeIds || []).map(String));
-  const types = Array.isArray(options.types) ? options.types : [];
+
+  const excluded = new Set(
+    (options.excludeIds || []).map(String)
+  );
+
+  const types = Array.isArray(options.types)
+    ? options.types
+    : [];
 
   const candidates = questions.filter(question => {
-    if (subject && !normalize(question.subject).includes(subject)) return false;
-    if (topic && !normalize(question.topic).includes(topic)) return false;
-    if (question.difficulty < min || question.difficulty > max) return false;
-    if (types.length && !types.includes(question.type)) return false;
-    if (excluded.has(String(question.id))) return false;
+    if (
+      subject &&
+      !normalize(question.subject).includes(subject)
+    ) {
+      return false;
+    }
+
+    if (
+      topic &&
+      !normalize(question.topic).includes(topic)
+    ) {
+      return false;
+    }
+
+    if (
+      question.difficulty < min ||
+      question.difficulty > max
+    ) {
+      return false;
+    }
+
+    if (types.length && !types.includes(question.type)) {
+      return false;
+    }
+
+    if (excluded.has(String(question.id))) {
+      return false;
+    }
+
     return true;
   });
 
   let selected = shuffle(candidates);
+
   if (strategy === "progressive") {
     selected.sort((a, b) => a.difficulty - b.difficulty);
   } else if (strategy === "challenge") {
@@ -121,44 +187,65 @@ function selectFromQuestions(questions, options = {}) {
   return selected.slice(0, count);
 }
 
+/**
+ * Local catalogue only.
+ * Used as a fallback when Firebase cannot provide questions.
+ */
 export function selectPracticeSet(options = {}) {
-  return selectFromQuestions(combineQuestions(questionCatalogue), options);
+  return selectFromQuestions(getLocalQuestions(), options);
 }
 
+/**
+ * Firebase-first question loading.
+ * Only verified Firebase questions are accepted.
+ */
 export async function selectPracticeSetAsync(options = {}) {
-  // The local catalogue is the guaranteed fallback; do not make the page
-  // depend on a successful Firebase response.
   let remoteQuestions = [];
 
   try {
-    const timeout = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error("Firebase question-bank request timed out.")), FIREBASE_TIMEOUT_MS);
+    const snapshot = await new Promise((resolve, reject) => {
+      const timeoutId = setTimeout(() => {
+        reject(
+          new Error("Firebase question-bank request timed out.")
+        );
+      }, FIREBASE_TIMEOUT_MS);
+
+      get(ref(database, "questionBank"))
+        .then(result => {
+          clearTimeout(timeoutId);
+          resolve(result);
+        })
+        .catch(error => {
+          clearTimeout(timeoutId);
+          reject(error);
+        });
     });
 
-    const snapshot = await Promise.race([
-      get(ref(database, "questionBank")),
-      timeout
-    ]);
-
     if (snapshot.exists()) {
-      const records = snapshot.val();
-      if (records && typeof records === "object") {
-        remoteQuestions = Object.entries(records).map(([id, question]) => ({
-          ...(question || {}),
-          id
-        }));
-      }
+      remoteQuestions = getVerifiedRemoteQuestions(snapshot.val());
     }
+
   } catch (error) {
-    console.warn("Using local questions because Firebase could not be loaded:", error);
+    console.warn(
+      "Firebase question bank unavailable. Using local fallback:",
+      error
+    );
   }
 
-  return selectFromQuestions(
-    combineQuestions(questionCatalogue, remoteQuestions),
-    options
+  if (remoteQuestions.length > 0) {
+    return selectFromQuestions(remoteQuestions, options);
+  }
+
+  console.warn(
+    "No usable verified Firebase questions found. Using local sample questions."
   );
+
+  return selectFromQuestions(getLocalQuestions(), options);
 }
 
+/**
+ * Statistics for the local catalogue.
+ */
 export function getCatalogueStats() {
   const ids = new Set();
   const duplicateIds = [];
@@ -166,9 +253,16 @@ export function getCatalogueStats() {
   const difficulties = {};
 
   for (const question of questionCatalogue) {
-    subjects[question.subject] = (subjects[question.subject] || 0) + 1;
-    difficulties[question.difficulty] = (difficulties[question.difficulty] || 0) + 1;
-    if (ids.has(question.id)) duplicateIds.push(question.id);
+    subjects[question.subject] =
+      (subjects[question.subject] || 0) + 1;
+
+    difficulties[question.difficulty] =
+      (difficulties[question.difficulty] || 0) + 1;
+
+    if (ids.has(question.id)) {
+      duplicateIds.push(question.id);
+    }
+
     ids.add(question.id);
   }
 
