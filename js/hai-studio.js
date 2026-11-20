@@ -77,6 +77,10 @@ let generationInProgress = false;
 let apiAvailable = false;
 
 
+/* =========================================================
+   MESSAGE DISPLAY
+========================================================= */
+
 function setMessage(node, message, type = "normal") {
   node.textContent = message;
 
@@ -94,6 +98,10 @@ function busy(button, state, busyText, normalText) {
   button.textContent = state ? busyText : normalText;
 }
 
+
+/* =========================================================
+   ADMIN AUTHENTICATION
+========================================================= */
 
 function isAdmin() {
   return !!(
@@ -144,6 +152,10 @@ async function getToken(forceRefresh = false) {
 }
 
 
+/* =========================================================
+   SERVER RESPONSE HANDLING
+========================================================= */
+
 async function readResponse(response) {
   let data;
 
@@ -183,6 +195,10 @@ async function requestJSON(url, options, service) {
 }
 
 
+/* =========================================================
+   SUPABASE TEXTBOOK SERVICE
+========================================================= */
+
 async function supabaseRequest(method, body = null) {
   const token = await getToken();
 
@@ -209,10 +225,19 @@ async function supabaseRequest(method, body = null) {
 }
 
 
+/* =========================================================
+   LOAD TEXTBOOKS
+========================================================= */
+
 async function loadMaterials() {
   if (!isAdmin()) return;
 
-  busy(el.refresh, true, "Loading...", "Refresh textbooks");
+  busy(
+    el.refresh,
+    true,
+    "Loading...",
+    "Refresh textbooks"
+  );
 
   el.material.disabled = true;
 
@@ -289,11 +314,8 @@ async function loadMaterials() {
 
 
 /* =========================================================
-   HAI CONNECTION CHECK
-   Accepts the actual HAI health response:
-   { status: "healthy", ... }
-   Also supports { status: "online", ... }
-   ========================================================= */
+   HAI CONNECTION CHECK — CORRECTED DIAGNOSTIC VERSION
+========================================================= */
 
 async function checkHAI(showMessage = true) {
   el.apiCheck.disabled = true;
@@ -308,26 +330,49 @@ async function checkHAI(showMessage = true) {
 
   try {
     const response = await fetch(
-      `${HAI_API_URL}/health`,
+      `${HAI_API_URL}/health?t=${Date.now()}`,
       {
         cache: "no-store"
       }
     );
 
-    const data = await readResponse(response);
+    /* Read the raw response first.
+       This lets us see errors even if the server
+       returns unexpected JSON or plain text. */
 
-    // FIX: The HAI health endpoint does not require success:true.
-    // A valid healthy/online status is sufficient.
+    const raw = await response.text();
+
+    let data;
+
+    try {
+      data = JSON.parse(raw);
+    } catch {
+      throw new Error(
+        `HTTP ${response.status}. Non-JSON response: ${raw.slice(0, 300)}`
+      );
+    }
+
+    if (!response.ok) {
+      throw new Error(
+        `HTTP ${response.status}: ${raw.slice(0, 300)}`
+      );
+    }
+
+    /* Your Render health endpoint returns "healthy".
+       It does NOT necessarily return success:true.
+       Therefore success:true must not be required. */
+
+    const accepted =
+      data.status === "healthy" ||
+      data.status === "online";
+
     apiAvailable =
-      (
-        data.status === "healthy" ||
-        data.status === "online"
-      ) &&
+      accepted &&
       data.success !== false;
 
     if (!apiAvailable) {
       throw new Error(
-        "HAI server returned an unexpected health response."
+        `HTTP ${response.status}. Received: ${JSON.stringify(data).slice(0, 500)}`
       );
     }
 
@@ -348,6 +393,11 @@ async function checkHAI(showMessage = true) {
       "error"
     );
 
+    console.error(
+      "HAI health diagnostic:",
+      error
+    );
+
     return false;
 
   } finally {
@@ -356,6 +406,10 @@ async function checkHAI(showMessage = true) {
   }
 }
 
+
+/* =========================================================
+   RETRIEVE TEXTBOOK CONTENT
+========================================================= */
 
 async function retrieveTextbook(materialId) {
   const data = await supabaseRequest(
@@ -393,10 +447,15 @@ async function retrieveTextbook(materialId) {
 }
 
 
+/* =========================================================
+   GENERATION STATISTICS
+========================================================= */
+
 function displayStatistics(stats) {
   el.statistics.replaceChildren();
 
   const heading = document.createElement("h3");
+
   heading.textContent = "Generation statistics";
 
   el.statistics.append(heading);
@@ -428,16 +487,22 @@ function displayStatistics(stats) {
 }
 
 
+/* =========================================================
+   SAVE GENERATED QUESTIONS AS PRIVATE DRAFTS
+========================================================= */
+
 async function persistDrafts(generated, metadata) {
   const patch = {};
   const now = Date.now();
 
-  const batchId =
-    push(ref(database, "haiQuestionDraftBatches")).key;
+  const batchId = push(
+    ref(database, "haiQuestionDraftBatches")
+  ).key;
 
   generated.forEach(question => {
-    const id =
-      push(ref(database, "haiQuestionDrafts")).key;
+    const id = push(
+      ref(database, "haiQuestionDrafts")
+    ).key;
 
     patch[`haiQuestionDrafts/${id}`] = {
       id,
@@ -520,29 +585,35 @@ async function persistDrafts(generated, metadata) {
 
 
 /* =========================================================
-   EVENT LISTENERS
-   ========================================================= */
+   LOGOUT
+========================================================= */
 
+el.logout.addEventListener(
+  "click",
+  async () => {
+    el.logout.disabled = true;
 
-el.logout.addEventListener("click", async () => {
-  el.logout.disabled = true;
+    try {
+      await signOut(auth);
 
-  try {
-    await signOut(auth);
+      window.location.replace("login.html");
 
-    window.location.replace("login.html");
+    } catch (e) {
+      setMessage(
+        el.pageMessage,
+        `Logout failed: ${e.message}`,
+        "error"
+      );
 
-  } catch (e) {
-    setMessage(
-      el.pageMessage,
-      `Logout failed: ${e.message}`,
-      "error"
-    );
-
-    el.logout.disabled = false;
+      el.logout.disabled = false;
+    }
   }
-});
+);
 
+
+/* =========================================================
+   BUTTON EVENTS
+========================================================= */
 
 el.apiCheck.addEventListener(
   "click",
@@ -555,6 +626,10 @@ el.refresh.addEventListener(
   loadMaterials
 );
 
+
+/* =========================================================
+   FORM INPUT EVENTS
+========================================================= */
 
 [
   el.material,
@@ -576,280 +651,296 @@ el.refresh.addEventListener(
 });
 
 
-el.material.addEventListener("change", () => {
-  const m = materials.find(
-    x => x.id === el.material.value
-  );
-
-  if (!m) {
-    updateGenerateButton();
-    return;
-  }
-
-  el.subject.value =
-    String(m.subject || "").slice(0, 100);
-
-  el.topic.value =
-    String(m.topic || m.title || "").slice(0, 200);
-
-  el.chapter.value = "";
-
-  setMessage(
-    el.generationStatus,
-    "Textbook selected. Confirm the subject and topic.",
-    "success"
-  );
-
-  updateGenerateButton();
-});
-
-
 /* =========================================================
-   QUESTION GENERATION
-   ========================================================= */
+   TEXTBOOK SELECTION
+========================================================= */
 
-
-el.generate.addEventListener("click", async () => {
-  if (!updateGenerateButton()) {
-    setMessage(
-      el.generationStatus,
-      "Complete all required settings first.",
-      "error"
+el.material.addEventListener(
+  "change",
+  () => {
+    const m = materials.find(
+      x => x.id === el.material.value
     );
 
-    return;
-  }
-
-  generationInProgress = true;
-
-  updateGenerateButton();
-
-  el.refresh.disabled = true;
-
-  el.statistics.hidden = true;
-  el.review.hidden = true;
-
-  const meta = {
-    materialId: el.material.value,
-
-    subject: el.subject.value.trim(),
-    topic: el.topic.value.trim(),
-
-    chapter:
-      el.chapter.value.trim() || "Unspecified",
-
-    count: Number(el.count.value),
-    difficulty: Number(el.difficulty.value)
-  };
-
-
-  try {
-    setMessage(
-      el.generationStatus,
-      "Checking HAI server..."
-    );
-
-    if (!await checkHAI(false)) {
-      throw new Error(
-        "HAI is not reachable. Check the server first."
-      );
+    if (!m) {
+      updateGenerateButton();
+      return;
     }
 
+    el.subject.value = String(
+      m.subject || ""
+    ).slice(0, 100);
 
-    setMessage(
-      el.generationStatus,
-      "Retrieving extracted textbook content..."
-    );
-
-    const textbook =
-      await retrieveTextbook(meta.materialId);
-
-    meta.document = String(
-      textbook.material?.title ||
-      textbook.material?.original_filename ||
-      "Untitled textbook"
+    el.topic.value = String(
+      m.topic || m.title || ""
     ).slice(0, 200);
 
-
-    const token = await getToken(true);
-
+    el.chapter.value = "";
 
     setMessage(
       el.generationStatus,
-      "Generating candidates. This may take a while..."
-    );
-
-
-    const data = await requestJSON(
-      `${HAI_API_URL}/textbooks/generate`,
-      {
-        method: "POST",
-
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-
-        body: JSON.stringify({
-          text: textbook.text,
-
-          subject: meta.subject,
-          topic: meta.topic,
-
-          document: meta.document,
-          chapter: meta.chapter,
-
-          count: meta.count,
-          difficulty: meta.difficulty
-        })
-      },
-      "HAI generation API"
-    );
-
-
-    if (!Array.isArray(data.questions)) {
-      throw new Error(
-        "HAI returned an invalid questions list."
-      );
-    }
-
-
-    const valid = data.questions
-      .filter(q =>
-        q &&
-        typeof q.question === "string" &&
-        Array.isArray(q.options) &&
-        q.options.length === 4 &&
-        Number.isInteger(q.answerIndex) &&
-        q.answerIndex >= 0 &&
-        q.answerIndex <= 3 &&
-        q.options.every(o => String(o).trim())
-      )
-      .map(q => ({
-        ...q,
-
-        question: String(q.question),
-
-        options: q.options.map(String),
-
-        answerIndex: q.answerIndex,
-
-        explanation: String(
-          q.explanation || ""
-        ),
-
-        difficulty: Number(
-          q.difficulty || meta.difficulty
-        )
-      }));
-
-
-    if (!valid.length) {
-      throw new Error(
-        "HAI returned no valid four-option questions."
-      );
-    }
-
-
-    displayStatistics(
-      data.statistics || {}
-    );
-
-
-    setMessage(
-      el.generationStatus,
-      `Generated ${valid.length} valid candidates. Saving them to Firebase drafts...`
-    );
-
-
-    const saved =
-      await persistDrafts(valid, meta);
-
-
-    el.review.hidden = false;
-
-    el.reviewMessage.textContent =
-      `${saved.count} candidates saved as private drafts (Batch ${saved.batchId}). Open Question Bank → HAI Generated Questions to edit, approve, or reject them. They are not published.`;
-
-
-    setMessage(
-      el.generationStatus,
-      `${saved.count} candidates saved successfully. Review them in Question Bank.`,
+      "Textbook selected. Confirm the subject and topic.",
       "success"
     );
 
-
-  } catch (error) {
-    console.error(
-      "Generation/save error:",
-      error
-    );
-
-    setMessage(
-      el.generationStatus,
-      error.message || "Generation failed.",
-      "error"
-    );
-
-
-  } finally {
-    generationInProgress = false;
-
-    el.refresh.disabled = false;
-
     updateGenerateButton();
   }
-});
+);
 
 
 /* =========================================================
-   AUTHENTICATION
-   ========================================================= */
+   GENERATE QUESTIONS
+========================================================= */
 
+el.generate.addEventListener(
+  "click",
+  async () => {
+    if (!updateGenerateButton()) {
+      setMessage(
+        el.generationStatus,
+        "Complete all required settings first.",
+        "error"
+      );
 
-onAuthStateChanged(auth, async user => {
-  currentAdmin = null;
+      return;
+    }
 
-  el.review.hidden = true;
-  el.statistics.hidden = true;
+    generationInProgress = true;
 
+    updateGenerateButton();
 
-  if (!user) {
-    el.content.hidden = true;
+    el.refresh.disabled = true;
 
-    window.location.replace("login.html");
+    el.statistics.hidden = true;
+    el.review.hidden = true;
 
-    return;
+    const meta = {
+      materialId: el.material.value,
+
+      subject: el.subject.value.trim(),
+      topic: el.topic.value.trim(),
+
+      chapter: el.chapter.value.trim() || "Unspecified",
+
+      count: Number(el.count.value),
+      difficulty: Number(el.difficulty.value)
+    };
+
+    try {
+      /* First check the HAI server */
+
+      setMessage(
+        el.generationStatus,
+        "Checking HAI server..."
+      );
+
+      if (!await checkHAI(false)) {
+        throw new Error(
+          "HAI is not reachable. Check the server first."
+        );
+      }
+
+      /* Retrieve textbook extraction */
+
+      setMessage(
+        el.generationStatus,
+        "Retrieving extracted textbook content..."
+      );
+
+      const textbook = await retrieveTextbook(
+        meta.materialId
+      );
+
+      meta.document = String(
+        textbook.material?.title ||
+        textbook.material?.original_filename ||
+        "Untitled textbook"
+      ).slice(0, 200);
+
+      /* Obtain a fresh Firebase token */
+
+      const token = await getToken(true);
+
+      /* Send generation request */
+
+      setMessage(
+        el.generationStatus,
+        "Generating candidates. This may take a while..."
+      );
+
+      const data = await requestJSON(
+        `${HAI_API_URL}/textbooks/generate`,
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+          },
+
+          body: JSON.stringify({
+            text: textbook.text,
+
+            subject: meta.subject,
+            topic: meta.topic,
+
+            document: meta.document,
+            chapter: meta.chapter,
+
+            count: meta.count,
+            difficulty: meta.difficulty
+          })
+        },
+        "HAI generation API"
+      );
+
+      /* Validate returned questions */
+
+      if (!Array.isArray(data.questions)) {
+        throw new Error(
+          "HAI returned an invalid questions list."
+        );
+      }
+
+      const valid = data.questions
+        .filter(
+          q =>
+            q &&
+            typeof q.question === "string" &&
+            Array.isArray(q.options) &&
+            q.options.length === 4 &&
+            Number.isInteger(q.answerIndex) &&
+            q.answerIndex >= 0 &&
+            q.answerIndex <= 3 &&
+            q.options.every(
+              o => String(o).trim()
+            )
+        )
+        .map(
+          q => ({
+            ...q,
+
+            question: String(q.question),
+
+            options: q.options.map(String),
+
+            answerIndex: q.answerIndex,
+
+            explanation: String(
+              q.explanation || ""
+            ),
+
+            difficulty: Number(
+              q.difficulty || meta.difficulty
+            )
+          })
+        );
+
+      if (!valid.length) {
+        throw new Error(
+          "HAI returned no valid four-option questions."
+        );
+      }
+
+      /* Show generation statistics */
+
+      displayStatistics(
+        data.statistics || {}
+      );
+
+      /* Save as private Firebase drafts */
+
+      setMessage(
+        el.generationStatus,
+        `Generated ${valid.length} valid candidates. Saving them to Firebase drafts...`
+      );
+
+      const saved = await persistDrafts(
+        valid,
+        meta
+      );
+
+      /* Show review information */
+
+      el.review.hidden = false;
+
+      el.reviewMessage.textContent =
+        `${saved.count} candidates saved as private drafts (Batch ${saved.batchId}). Open Question Bank → HAI Generated Questions to edit, approve, or reject them. They are not published.`;
+
+      setMessage(
+        el.generationStatus,
+        `${saved.count} candidates saved successfully. Review them in Question Bank.`,
+        "success"
+      );
+
+    } catch (error) {
+      console.error(
+        "Generation/save error:",
+        error
+      );
+
+      setMessage(
+        el.generationStatus,
+        error.message || "Generation failed.",
+        "error"
+      );
+
+    } finally {
+      generationInProgress = false;
+
+      el.refresh.disabled = false;
+
+      updateGenerateButton();
+    }
   }
+);
 
 
-  if (user.uid !== ADMIN_UID) {
-    el.content.hidden = true;
+/* =========================================================
+   AUTHENTICATION STATE
+========================================================= */
+
+onAuthStateChanged(
+  auth,
+  async user => {
+    currentAdmin = null;
+
+    el.review.hidden = true;
+    el.statistics.hidden = true;
+
+    if (!user) {
+      el.content.hidden = true;
+
+      window.location.replace("login.html");
+
+      return;
+    }
+
+    if (user.uid !== ADMIN_UID) {
+      el.content.hidden = true;
+
+      setMessage(
+        el.pageMessage,
+        "Access denied. Administrator privileges are required.",
+        "error"
+      );
+
+      return;
+    }
+
+    currentAdmin = user;
+
+    el.content.hidden = false;
+    el.pageMessage.hidden = true;
 
     setMessage(
-      el.pageMessage,
-      "Access denied. Administrator privileges are required.",
-      "error"
+      el.generationStatus,
+      "Administrator verified. Loading textbooks...",
+      "success"
     );
 
-    return;
+    await loadMaterials();
+
+    updateGenerateButton();
   }
-
-
-  currentAdmin = user;
-
-  el.content.hidden = false;
-  el.pageMessage.hidden = true;
-
-
-  setMessage(
-    el.generationStatus,
-    "Administrator verified. Loading textbooks...",
-    "success"
-  );
-
-
-  await loadMaterials();
-
-  updateGenerateButton();
-});
+);
