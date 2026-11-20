@@ -290,7 +290,9 @@ async function loadMaterials() {
 
 /* =========================================================
    HAI CONNECTION CHECK
-   FIXED: Supports both "healthy" and "online" server statuses.
+   Accepts the actual HAI health response:
+   { status: "healthy", ... }
+   Also supports { status: "online", ... }
    ========================================================= */
 
 async function checkHAI(showMessage = true) {
@@ -314,22 +316,14 @@ async function checkHAI(showMessage = true) {
 
     const data = await readResponse(response);
 
-    /*
-     * The previous check accepted only:
-     *     data.status === "healthy"
-     *
-     * The HAI server may instead return:
-     *     { success: true, status: "online" }
-     *
-     * Both valid statuses are now accepted.
-     */
-
+    // FIX: The HAI health endpoint does not require success:true.
+    // A valid healthy/online status is sufficient.
     apiAvailable =
-      data.success === true &&
       (
         data.status === "healthy" ||
         data.status === "online"
-      );
+      ) &&
+      data.success !== false;
 
     if (!apiAvailable) {
       throw new Error(
