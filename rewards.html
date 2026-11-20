@@ -950,11 +950,24 @@
     });
 
   </script>  <script type="module" src="js/faction-theme.js"></script>
-<!-- Monetag In-Page Push -->
+<!-- Monetag In-Page Advertisement -->
 <script>
 (function(s){
     s.dataset.zone='12281506';
     s.src='https://nap5k.com/tag.min.js';
+})(
+    [document.documentElement, document.body]
+    .filter(Boolean)
+    .pop()
+    .appendChild(document.createElement('script'))
+);
+</script>
+
+<!-- Monetag Vignette Advertisement -->
+<script>
+(function(s){
+    s.dataset.zone='12306705';
+    s.src='https://n6wxm.com/vignette.min.js';
 })(
     [document.documentElement, document.body]
     .filter(Boolean)
