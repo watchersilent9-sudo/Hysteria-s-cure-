@@ -734,9 +734,17 @@ form.addEventListener("submit", async event => {
   }
 
   const questionData = collectQuestionData();
-  if (!questionData) return;
+if (!questionData) return;
 
-  const now = Date.now();
+if (!field("verified").checked) {
+  showStatus(
+    "Mark this question as verified before saving it to the question bank.",
+    "error"
+  );
+  return;
+}
+
+const now = Date.now();
 
   const data = {
     type: "multiple-choice",
