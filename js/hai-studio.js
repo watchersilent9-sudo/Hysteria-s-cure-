@@ -1,4 +1,3 @@
-
 /* Hysteria's Cure — HAI Question Studio
  * Generates candidates and stores them as private Firebase drafts.
  * Reviewing/editing/approving drafts happens in Question Bank.
@@ -82,7 +81,7 @@ let apiAvailable = false;
 ========================================================= */
 
 function setMessage(node, message, type = "normal") {
-  node.textContent = message;
+  node.textContent = String(message ?? "");
 
   node.style.borderColor =
     type === "error"
@@ -96,6 +95,72 @@ function setMessage(node, message, type = "normal") {
 function busy(button, state, busyText, normalText) {
   button.disabled = state;
   button.textContent = state ? busyText : normalText;
+}
+
+
+/* =========================================================
+   ERROR CONVERSION — FIXED
+========================================================= */
+
+function getReadableError(value, depth = 0) {
+  if (depth > 5) {
+    return "Error details are too deeply nested.";
+  }
+
+  if (value instanceof Error) {
+    return value.message || value.name || "Unknown error";
+  }
+
+  if (typeof value === "string") {
+    return value;
+  }
+
+  if (typeof value === "number" || typeof value === "boolean") {
+    return String(value);
+  }
+
+  if (value == null) {
+    return "An unknown error occurred.";
+  }
+
+  if (Array.isArray(value)) {
+    return value
+      .map(item => getReadableError(item, depth + 1))
+      .filter(Boolean)
+      .join("\n");
+  }
+
+  if (typeof value === "object") {
+    const preferredFields = [
+      "detail",
+      "message",
+      "error",
+      "reason",
+      "description",
+      "hint"
+    ];
+
+    for (const field of preferredFields) {
+      if (value[field] != null) {
+        const result = getReadableError(
+          value[field],
+          depth + 1
+        );
+
+        if (result && result !== "[object Object]") {
+          return result;
+        }
+      }
+    }
+
+    try {
+      return JSON.stringify(value, null, 2);
+    } catch {
+      return "An error occurred, but its details could not be read.";
+    }
+  }
+
+  return String(value);
 }
 
 
@@ -153,26 +218,71 @@ async function getToken(forceRefresh = false) {
 
 
 /* =========================================================
-   SERVER RESPONSE HANDLING
+   SERVER RESPONSE HANDLING — FIXED
 ========================================================= */
 
 async function readResponse(response) {
+  let raw;
+
+  try {
+    raw = await response.text();
+  } catch {
+    throw new Error(
+      `Could not read server response (HTTP ${response.status}).`
+    );
+  }
+
+  if (!raw.trim()) {
+    if (!response.ok) {
+      throw new Error(
+        `Request failed (HTTP ${response.status}). Server returned an empty response.`
+      );
+    }
+
+    return {};
+  }
+
   let data;
 
   try {
-    data = await response.json();
+    data = JSON.parse(raw);
   } catch {
+    if (!response.ok) {
+      throw new Error(
+        `HTTP ${response.status}: ${raw.slice(0, 1500)}`
+      );
+    }
+
     throw new Error(
-      `Unreadable server response (HTTP ${response.status}).`
+      `Server returned invalid JSON: ${raw.slice(0, 1500)}`
     );
   }
 
   if (!response.ok) {
+    const errorDetails =
+      data?.detail ??
+      data?.message ??
+      data?.error ??
+      data?.reason ??
+      data;
+
     throw new Error(
-      data?.detail ||
-      data?.message ||
-      data?.error ||
-      `Request failed (HTTP ${response.status}).`
+      `HTTP ${response.status}: ${getReadableError(errorDetails)}`
+    );
+  }
+
+  /* Catch error payloads returned with HTTP 200 */
+
+  if (data && data.success === false) {
+    const errorDetails =
+      data.detail ??
+      data.message ??
+      data.error ??
+      data.reason ??
+      data;
+
+    throw new Error(
+      getReadableError(errorDetails)
     );
   }
 
@@ -187,7 +297,7 @@ async function requestJSON(url, options, service) {
     response = await fetch(url, options);
   } catch (error) {
     throw new Error(
-      `${service} connection failed: ${error.message}`
+      `${service} connection failed: ${getReadableError(error)}`
     );
   }
 
@@ -249,7 +359,13 @@ async function loadMaterials() {
     const data = await supabaseRequest("GET");
 
     if (!data.success || !Array.isArray(data.materials)) {
-      throw new Error("Invalid textbook list returned.");
+      throw new Error(
+        getReadableError(
+          data.error ||
+          data.detail ||
+          "Invalid textbook list returned."
+        )
+      );
     }
 
     materials = data.materials.filter(
@@ -294,9 +410,11 @@ async function loadMaterials() {
 
     setMessage(
       el.generationStatus,
-      error.message,
+      getReadableError(error),
       "error"
     );
+
+    console.error("Textbook loading error:", error);
 
   } finally {
     el.material.disabled = false;
@@ -314,7 +432,7 @@ async function loadMaterials() {
 
 
 /* =========================================================
-   HAI CONNECTION CHECK — CORRECTED DIAGNOSTIC VERSION
+   HAI CONNECTION CHECK
 ========================================================= */
 
 async function checkHAI(showMessage = true) {
@@ -336,10 +454,6 @@ async function checkHAI(showMessage = true) {
       }
     );
 
-    /* Read the raw response first.
-       This lets us see errors even if the server
-       returns unexpected JSON or plain text. */
-
     const raw = await response.text();
 
     let data;
@@ -348,19 +462,15 @@ async function checkHAI(showMessage = true) {
       data = JSON.parse(raw);
     } catch {
       throw new Error(
-        `HTTP ${response.status}. Non-JSON response: ${raw.slice(0, 300)}`
+        `HTTP ${response.status}. Non-JSON response: ${raw.slice(0, 1500)}`
       );
     }
 
     if (!response.ok) {
       throw new Error(
-        `HTTP ${response.status}: ${raw.slice(0, 300)}`
+        `HTTP ${response.status}: ${raw.slice(0, 1500)}`
       );
     }
-
-    /* Your Render health endpoint returns "healthy".
-       It does NOT necessarily return success:true.
-       Therefore success:true must not be required. */
 
     const accepted =
       data.status === "healthy" ||
@@ -372,7 +482,7 @@ async function checkHAI(showMessage = true) {
 
     if (!apiAvailable) {
       throw new Error(
-        `HTTP ${response.status}. Received: ${JSON.stringify(data).slice(0, 500)}`
+        `Unexpected health response: ${getReadableError(data)}`
       );
     }
 
@@ -389,7 +499,7 @@ async function checkHAI(showMessage = true) {
 
     setMessage(
       el.apiStatus,
-      `Connection failed: ${error.message}`,
+      `Connection failed: ${getReadableError(error)}`,
       "error"
     );
 
@@ -419,7 +529,11 @@ async function retrieveTextbook(materialId) {
 
   if (!data.success || !data.extraction) {
     throw new Error(
-      "Supabase did not return extracted textbook content."
+      getReadableError(
+        data.error ||
+        data.detail ||
+        "Supabase did not return extracted textbook content."
+      )
     );
   }
 
@@ -601,7 +715,7 @@ el.logout.addEventListener(
     } catch (e) {
       setMessage(
         el.pageMessage,
-        `Logout failed: ${e.message}`,
+        `Logout failed: ${getReadableError(e)}`,
         "error"
       );
 
@@ -798,7 +912,12 @@ el.generate.addEventListener(
 
       if (!Array.isArray(data.questions)) {
         throw new Error(
-          "HAI returned an invalid questions list."
+          getReadableError(
+            data.error ||
+            data.detail ||
+            data.message ||
+            "HAI returned an invalid questions list."
+          )
         );
       }
 
@@ -874,28 +993,18 @@ el.generate.addEventListener(
       );
 
     } catch (error) {
-  console.error("Generation/save error:", error);
+      console.error(
+        "Generation/save error:",
+        error
+      );
 
-  let readableError = "Generation failed.";
+      const readableError = getReadableError(error);
 
-  if (typeof error === "string") {
-    readableError = error;
-  } else if (error instanceof Error) {
-    readableError = error.message;
-  } else if (error && typeof error === "object") {
-    readableError =
-      error.detail ||
-      error.message ||
-      error.error ||
-      error.reason ||
-      JSON.stringify(error);
-  }
-
-  setMessage(
-    el.generationStatus,
-    readableError,
-    "error"
-  );
+      setMessage(
+        el.generationStatus,
+        readableError,
+        "error"
+      );
 
     } finally {
       generationInProgress = false;
