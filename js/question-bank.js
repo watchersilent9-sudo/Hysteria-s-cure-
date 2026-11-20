@@ -1,65 +1,869 @@
-/* Hysteria's Cure — Question Bank manager (replacement) */
 import { auth, database } from "./firebase-client.js";
-import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
-import { ref, push, set, update, remove, onValue } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-database.js";
+
+import {
+  onAuthStateChanged,
+  signOut
+} from "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
+
+import {
+  ref,
+  push,
+  set,
+  update,
+  remove,
+  onValue
+} from "https://www.gstatic.com/firebasejs/13.0.0/firebase-database.js";
 
 const ADMIN_UID = "RtaLjBtKSUgRnWB7ag06CLRCStM2";
-const HAI_PENDING_URL = "https://hai-api-l7js.onrender.com/questions/pending";
-const MATERIALS_API_URL = "https://iltnklpuyifvnojiqrkh.supabase.co/functions/v1/manage-learning-materials";
-const EXTRACT_MATERIAL_URL = "https://iltnklpuyifvnojiqrkh.supabase.co/functions/v1/extract-materials-text";
-const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_wMSMx1WpGWn7Tk0zBUDAhg_Jlj8RWDO";
-const $ = id => document.getElementById(id);
-const nodes = ["app-content","admin-email","logout-button","question-form","form-heading","subject","topic","question","difficulty","sourceType","sourceDetails","syllabusObjective","option0","option1","option2","option3","answerIndex","verified","explanation","save-button","cancel-edit","status","search","question-count","question-list"];
-const missing = nodes.filter(id => !$(id));
-if (missing.length) throw new Error("Question Bank missing elements: " + missing.join(", "));
-let admin = null, bank = {}, editId = null, busy = false, stop = null;
+
+const HAI_PENDING_URL =
+  "https://hai-api-l7js.onrender.com/questions/pending";
+
+const MATERIALS_API_URL =
+  "https://iltnklpuyifvnojiqrkh.supabase.co/functions/v1/manage-learning-materials";
+
+const EXTRACT_MATERIAL_URL =
+  "https://iltnklpuyifvnojiqrkh.supabase.co/functions/v1/extract-materials-text";
+
+const SUPABASE_PUBLISHABLE_KEY =
+  "sb_publishable_wMSMx1WpGWn7Tk0zBUDAhg_Jlj8RWDO";
+
+// ==========================================
+// PAGE ELEMENTS
+// ==========================================
+
+const statusBox = document.getElementById("status");
+const appContent = document.getElementById("app-content");
+const form = document.getElementById("question-form");
+const formHeading = document.getElementById("form-heading");
+const saveButton = document.getElementById("save-button");
+const cancelButton = document.getElementById("cancel-edit");
+const questionList = document.getElementById("question-list");
+const questionCount = document.getElementById("question-count");
+const searchInput = document.getElementById("search");
+
 const materialUploadForm = document.getElementById("material-upload-form");
 const materialFileInput = document.getElementById("material-file");
 const uploadButton = document.getElementById("upload-button");
 const uploadStatus = document.getElementById("upload-status");
 const materialsList = document.getElementById("materials-list");
 const refreshMaterialsButton = document.getElementById("refresh-materials");
+
+let currentUser = null;
+let questions = {};
+let editingId = null;
+let stopListening = null;
+
+// ==========================================
+// HAI PENDING REVIEW BUTTON
+// ==========================================
+
 const pendingButton = document.createElement("button");
+
 pendingButton.type = "button";
 pendingButton.textContent = "Send to pending review";
 pendingButton.className = saveButton.className;
 pendingButton.style.marginLeft = "8px";
+
 saveButton.insertAdjacentElement("afterend", pendingButton);
-const esc = v => String(v ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-function message(text, error=false) { $("status").textContent=text; $("status").style.color=error?"var(--qb-danger)":"var(--qb-success)"; }
-function resetForm(){ $("question-form").reset(); $("difficulty").value="3"; $("answerIndex").value="0"; editId=null; $("form-heading").textContent="Add a question"; $("save-button").textContent="Save question"; $("cancel-edit").style.display="none"; }
-function validate(data){return data.subject&&data.topic&&data.question&&data.options.length===4&&data.options.every(o=>o.trim())&&data.explanation&&Number.isInteger(data.difficulty)&&data.difficulty>=1&&data.difficulty<=7&&Number.isInteger(data.answerIndex)&&data.answerIndex>=0&&data.answerIndex<=3;}
-function collect(){return {subject:$('subject').value.trim(),topic:$('topic').value.trim(),question:$('question').value.trim(),difficulty:Number($('difficulty').value),sourceType:$('sourceType').value,sourceDetails:$('sourceDetails').value.trim(),syllabusObjective:$('syllabusObjective').value.trim(),verified:$('verified').checked,options:[0,1,2,3].map(i=>$(`option${i}`).value.trim()),answerIndex:Number($('answerIndex').value),explanation:$('explanation').value.trim()};}
-function render(){const search=$('search').value.trim().toLowerCase();const entries=Object.entries(bank).filter(([id,q])=>q&&typeof q==='object'&&([id,q.subject,q.topic,q.question,...(q.options||[])].join(' ').toLowerCase().includes(search))).sort((a,b)=>String(b[1].createdAt||'').localeCompare(String(a[1].createdAt||'')));
-  $('question-count').textContent=`${entries.length} shown · ${Object.keys(bank).length} total`;
-  if(!entries.length){$('question-list').innerHTML='<div class="empty-list">No questions match your search.</div>';return;}
-  $('question-list').innerHTML=entries.map(([id,q])=>`<article class="qb-question" data-id="${esc(id)}" style="border:1px solid var(--qb-line);border-radius:13px;padding:13px;background:rgba(255,255,255,.025)"><div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px"><span class="section-tag">${esc(q.subject||'No subject')}</span><span class="section-tag">${esc(q.topic||'No topic')}</span><span class="section-tag">${esc(q.difficulty||'?')}★</span><span class="section-tag">${q.verified===true?'Published':'Unverified — not shown in practice'}</span></div><strong style="font-size:13px;line-height:1.5">${esc(q.question)}</strong><ol type="A" style="padding-left:22px;font-size:12px;line-height:1.7">${(q.options||[]).map((o,i)=>`<li ${i===Number(q.answerIndex)?'style="color:var(--qb-success);font-weight:700"':''}>${esc(o)}</li>`).join('')}</ol><p style="font-size:11px;color:var(--qb-muted);line-height:1.5">Explanation: ${esc(q.explanation||'—')}</p><div class="form-actions"><button class="btn edit-q" type="button">Edit</button><button class="btn btn-danger delete-q" type="button">Delete</button></div></article>`).join('');
-  $('question-list').querySelectorAll('.edit-q').forEach(btn=>btn.addEventListener('click',()=>{const id=btn.closest('[data-id]').dataset.id,q=bank[id];editId=id;$('subject').value=q.subject||'';$('topic').value=q.topic||'';$('question').value=q.question||'';$('difficulty').value=String(q.difficulty||3);$('sourceType').value=q.sourceType||'original';$('sourceDetails').value=q.sourceDetails||'';$('syllabusObjective').value=q.syllabusObjective||'';for(let i=0;i<4;i++)$(`option${i}`).value=q.options?.[i]||'';$('answerIndex').value=String(q.answerIndex||0);$('verified').checked=q.verified===true;$('explanation').value=q.explanation||'';$('form-heading').textContent='Edit question';$('save-button').textContent='Save changes';$('cancel-edit').style.display='inline-flex';message('Editing question. Review its publication status before saving.');$('question-form').scrollIntoView({behavior:'smooth',block:'start'});}));
-  $('question-list').querySelectorAll('.delete-q').forEach(btn=>btn.addEventListener('click',async()=>{const id=btn.closest('[data-id]').dataset.id;if(!confirm('Delete this question from the published bank?'))return;try{await remove(ref(database,`questionBank/${id}`));message('Question deleted.');}catch(e){message('Delete failed: '+e.message,true);} }));
+
+// ==========================================
+// GENERAL FUNCTIONS
+// ==========================================
+
+function showStatus(message, type = "") {
+  statusBox.textContent = message;
+  statusBox.className = type;
 }
-async function materialRequest(url,method="GET",body=null){
-  if(!admin||auth.currentUser?.uid!==ADMIN_UID)throw new Error("Administrator authentication required.");
-  const token=await auth.currentUser.getIdToken();
-  const headers={Authorization:`Bearer ${token}`,apikey:SUPABASE_PUBLISHABLE_KEY};
-  const options={method,headers};
-  if(body instanceof FormData)options.body=body;else if(body!==null){headers["Content-Type"]="application/json";options.body=JSON.stringify(body);}
-  const response=await fetch(url,options),text=await response.text();let result={};try{result=text?JSON.parse(text):{};}catch{result={message:text};}
-  if(!response.ok||result.success===false)throw new Error(result.message||result.error||`Request failed (${response.status}).`);
+
+function showUploadStatus(message, type = "") {
+  uploadStatus.textContent = message;
+  uploadStatus.className = type;
+}
+
+function escapeHTML(value) {
+  return String(value ?? "").replace(/[&<>"']/g, character => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  })[character]);
+}
+
+function field(id) {
+  return document.getElementById(id);
+}
+
+function resetForm() {
+  form.reset();
+  editingId = null;
+  formHeading.textContent = "Add a question";
+  saveButton.textContent = "Save question";
+  cancelButton.hidden = true;
+}
+
+function collectQuestionData() {
+  const options = [0, 1, 2, 3].map(i =>
+    field(`option${i}`).value.trim()
+  );
+
+  if (options.some(option => !option)) {
+    showStatus("Please fill in all four answer options.", "error");
+    return null;
+  }
+
+  const difficulty = Number(field("difficulty").value);
+  const answerIndex = Number(field("answerIndex").value);
+
+  if (!Number.isInteger(difficulty) || difficulty < 1 || difficulty > 7) {
+    showStatus("Choose a difficulty from 1 to 7.", "error");
+    return null;
+  }
+
+  if (!Number.isInteger(answerIndex) || answerIndex < 0 || answerIndex > 3) {
+    showStatus("Choose a valid correct answer.", "error");
+    return null;
+  }
+
+  const data = {
+    subject: field("subject").value.trim(),
+    topic: field("topic").value.trim(),
+    question: field("question").value.trim(),
+    difficulty,
+    options,
+    answerIndex,
+    explanation: field("explanation").value.trim(),
+    sourceDetails: field("sourceDetails").value.trim(),
+    syllabusObjective: field("syllabusObjective").value.trim()
+  };
+
+  if (!data.subject || !data.topic || !data.question || !data.explanation) {
+    showStatus("Complete all required fields.", "error");
+    return null;
+  }
+
+  return data;
+}
+
+// ==========================================
+// TEXTBOOK API REQUEST
+// ==========================================
+
+async function materialRequest(url, method = "GET", body = null) {
+  if (!currentUser || currentUser.uid !== ADMIN_UID) {
+    throw new Error("Administrator authentication required.");
+  }
+
+  const token = await currentUser.getIdToken();
+
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    apikey: SUPABASE_PUBLISHABLE_KEY
+  };
+
+  const options = { method, headers };
+
+  if (body instanceof FormData) {
+    options.body = body;
+  } else if (body !== null) {
+    headers["Content-Type"] = "application/json";
+    options.body = JSON.stringify(body);
+  }
+
+  const response = await fetch(url, options);
+  const responseText = await response.text();
+
+  let result = {};
+
+  try {
+    result = responseText ? JSON.parse(responseText) : {};
+  } catch {
+    result = { message: responseText };
+  }
+
+  if (!response.ok || result.success === false) {
+    throw new Error(
+      result.message ||
+      result.error ||
+      `Request failed (${response.status}).`
+    );
+  }
+
   return result;
 }
-function uploadMessage(text,error=false){if(!uploadStatus)return;uploadStatus.textContent=text;uploadStatus.className=error?"error":"success";}
-function renderMaterials(items){if(!Array.isArray(items)||!items.length){materialsList.innerHTML='<div class="empty-list">No textbooks uploaded yet.</div>';return;}
- materialsList.innerHTML=items.map(m=>{const e=m.extraction||{},status=m.status||"unknown",ex=e.extraction_status||"not extracted",size=(Number(m.file_size||0)/(1024*1024)).toFixed(2),date=m.created_at?new Date(m.created_at).toLocaleDateString():"Unknown";let action=status!=="published"?`<button class="btn btn-primary approve-material" data-id="${esc(m.id)}">Approve and extract</button>`:ex!=="completed"?`<button class="btn extract-material" data-id="${esc(m.id)}">Retry extraction</button>`:"";return `<article class="material-item" style="border:1px solid var(--qb-line);border-radius:13px;padding:13px;margin:10px 0"><h4>${esc(m.title||"Untitled material")}</h4><p class="draft-meta">Subject: ${esc(m.subject||"—")} · Topic: ${esc(m.topic||"—")}<br>File: ${esc(m.original_filename||"—")} · ${size} MB · ${esc(date)}<br>${e?`${Number(e.page_count||0)} pages · ${Number(e.character_count||0).toLocaleString()} characters`:"Text not extracted"}</p><span class="section-tag">Review: ${esc(status)}</span><span class="section-tag">Extraction: ${esc(ex)}</span>${e?.extraction_status==="needs_ocr"?'<p class="error">OCR may be required for this scanned document.</p>':''}<div class="form-actions">${action}</div></article>`;}).join("");
- materialsList.querySelectorAll(".approve-material").forEach(b=>b.addEventListener("click",()=>approveAndExtract(b.dataset.id,b)));
- materialsList.querySelectorAll(".extract-material").forEach(b=>b.addEventListener("click",()=>extractMaterial(b.dataset.id,b));
-}
-async function loadMaterials(){if(!materialsList)return;materialsList.innerHTML='<div class="empty-list">Loading textbook library...</div>';try{const result=await materialRequest(MATERIALS_API_URL);renderMaterials(result.materials||[]);}catch(e){materialsList.innerHTML=`<div class="empty-list">Could not load textbooks: ${esc(e.message)}</div>`;}}
-async function approveAndExtract(id,button){if(!confirm("Approve this textbook and begin extraction?"))return;button.disabled=true;button.textContent="Approving...";try{await materialRequest(MATERIALS_API_URL,"PATCH",{materialId:id});button.textContent="Extracting...";const result=await materialRequest(EXTRACT_MATERIAL_URL,"POST",{materialId:id}),e=result.extraction||{};uploadMessage(e.extractionStatus==="needs_ocr"?"Approved, but the text is sparse; OCR may be required.":`Text extraction completed (${Number(e.pageCount||0)} pages).`,e.extractionStatus==="needs_ocr");await loadMaterials();}catch(e){uploadMessage("Approval/extraction failed: "+e.message,true);await loadMaterials();}finally{button.disabled=false;}}
-async function extractMaterial(id,button){button.disabled=true;button.textContent="Extracting...";try{const result=await materialRequest(EXTRACT_MATERIAL_URL,"POST",{materialId:id}),e=result.extraction||{};uploadMessage(e.extractionStatus==="needs_ocr"?"Extraction finished; OCR may be required.":"Text extraction completed.",e.extractionStatus==="needs_ocr");await loadMaterials();}catch(e){uploadMessage("Extraction failed: "+e.message,true);await loadMaterials();}finally{button.disabled=false;}}
-materialUploadForm?.addEventListener("submit",async e=>{e.preventDefault();if(!admin){uploadMessage("Administrator access required.",true);return;}const file=materialFileInput.files?.[0];if(!file){uploadMessage("Choose a PDF first.",true);return;}if(file.type!=="application/pdf"||!file.name.toLowerCase().endsWith(".pdf")){uploadMessage("Only PDF files are accepted.",true);return;}if(file.size<1||file.size>20*1024*1024){uploadMessage("File must be between 1 byte and 20 MB.",true);return;}const fd=new FormData();fd.append("title",document.getElementById("material-title").value.trim());fd.append("subject",document.getElementById("material-subject").value.trim());fd.append("topic",document.getElementById("material-topic").value.trim());fd.append("submission_notes",document.getElementById("material-notes").value.trim());fd.append("file",file);uploadButton.disabled=true;uploadMessage("Uploading securely...");try{const result=await materialRequest(MATERIALS_API_URL,"POST",fd);uploadMessage(result.message||"Textbook uploaded; awaiting review.");materialUploadForm.reset();await loadMaterials();}catch(err){uploadMessage("Upload failed: "+err.message,true);}finally{uploadButton.disabled=false;}});
-refreshMaterialsButton?.addEventListener("click",loadMaterials);
 
-onAuthStateChanged(auth,user=>{admin=user&&user.uid===ADMIN_UID?user:null;if(!admin){$('app-content').style.display='none';if(stop){stop();stop=null;}if(!user)location.replace('login.html');return;}$('app-content').style.display='block';$('admin-email').textContent=user.email||'Administrator';loadMaterials();if(stop)stop();stop=onValue(ref(database,'questionBank'),snap=>{bank=snap.val()||{};render();},err=>message('Question bank load failed: '+err.message,true));});
-$('question-form').addEventListener('submit',async e=>{e.preventDefault();if(!admin||busy)return;const data=collect();if(!validate(data)){message('Complete all fields and ensure four non-empty options, a valid answer, and difficulty 1–7.',true);return;}busy=true;$('save-button').disabled=true;try{const now=Date.now();if(editId){const old=bank[editId]||{};if(data.verified){await update(ref(database,`questionBank/${editId}`),{...data,verified:true,reviewStatus:'published',updatedAt:now,updatedBy:admin.uid});}else{const pendingId=push(ref(database,'pendingQuestions')).key;await update(ref(database),{[`pendingQuestions/${pendingId}`]:{...data,sourceType:data.sourceType||'original',verified:false,reviewStatus:'pending_review',createdAt:old.createdAt||now,submittedAt:now,updatedAt:now,createdBy:admin.uid,source:'manual-edit'},[`questionBank/${editId}`]:null});}message('Question updated.');}else if(data.verified){const id=push(ref(database,'questionBank')).key;await set(ref(database,`questionBank/${id}`),{...data,id,sourceType:data.sourceType||'original',verified:true,reviewStatus:'published',createdAt:now,updatedAt:now,createdBy:admin.uid});message('Published question saved.');}else{const id=push(ref(database,'pendingQuestions')).key;await set(ref(database,`pendingQuestions/${id}`),{...data,id,verified:false,reviewStatus:'pending_review',createdAt:now,submittedAt:now,updatedAt:now,createdBy:admin.uid,source:'manual'});message('Saved to the private review queue; students cannot see it.');}resetForm();}catch(err){message('Save failed: '+err.message,true);}finally{busy=false;$('save-button').disabled=false;}});
-pendingButton.addEventListener("click",async()=>{if(!admin)return;const data=collect();if(!data)return;pendingButton.disabled=true;saveButton.disabled=true;try{const token=await auth.currentUser.getIdToken(true);const response=await fetch(HAI_PENDING_URL,{method:"POST",headers:{"Content-Type":"application/json",Authorization:`Bearer ${token}`},body:JSON.stringify(data)});let result={};try{result=await response.json();}catch{}if(!response.ok)throw new Error(result.detail||result.message||`HTTP ${response.status}`);if(result.status==="duplicate_detected"){message("A similar question already exists; it was not submitted.",true);return;}message("Question sent to private final-review queue. It is not published.");resetForm();}catch(e){message("Pending submission failed: "+e.message,true);}finally{pendingButton.disabled=false;saveButton.disabled=false;}});
-$('cancel-edit').addEventListener('click',resetForm);$('search').addEventListener('input',render);$('logout-button').addEventListener('click',async()=>{try{await signOut(auth);location.replace('login.html');}catch(e){message('Logout failed: '+e.message,true);}});
+// ==========================================
+// TEXTBOOK LIBRARY DISPLAY
+// ==========================================
+
+function renderMaterials(materials) {
+  if (!Array.isArray(materials) || materials.length === 0) {
+    materialsList.innerHTML = `
+      <div class="empty-list">
+        No textbooks have been uploaded yet.
+      </div>
+    `;
+    return;
+  }
+
+  materialsList.innerHTML = materials.map(material => {
+    const extraction = material.extraction;
+    const reviewStatus = material.status || "unknown";
+    const extractionStatus =
+      extraction?.extraction_status || "not extracted";
+
+    const reviewClass =
+      reviewStatus === "published" ? "success" : "pending";
+
+    const extractionClass =
+      extractionStatus === "completed"
+        ? "success"
+        : extractionStatus === "needs_ocr"
+          ? "pending"
+          : extractionStatus === "failed"
+            ? "error"
+            : "";
+
+    const sizeMB = (
+      Number(material.file_size || 0) / (1024 * 1024)
+    ).toFixed(2);
+
+    const createdDate = material.created_at
+      ? new Date(material.created_at).toLocaleDateString()
+      : "Unknown date";
+
+    const extractionDetails = extraction
+      ? `${Number(extraction.page_count || 0)} pages · ${
+          Number(extraction.character_count || 0).toLocaleString()
+        } characters`
+      : "Text has not been extracted.";
+
+    let actionButton = "";
+
+    if (reviewStatus !== "published") {
+      actionButton = `
+        <button type="button"
+          class="btn btn-primary approve-material"
+          data-id="${escapeHTML(material.id)}">
+          Approve and extract
+        </button>
+      `;
+    } else if (extractionStatus !== "completed") {
+      actionButton = `
+        <button type="button"
+          class="btn extract-material"
+          data-id="${escapeHTML(material.id)}">
+          Retry extraction
+        </button>
+      `;
+    }
+
+    return `
+      <article class="material-item">
+        <h4>${escapeHTML(material.title)}</h4>
+
+        <div class="material-meta">
+          Subject: ${escapeHTML(material.subject)}<br>
+          Topic: ${escapeHTML(material.topic || "Not specified")}<br>
+          File: ${escapeHTML(material.original_filename)}<br>
+          Size: ${sizeMB} MB · Uploaded: ${escapeHTML(createdDate)}
+        </div>
+
+        <div>
+          <span class="material-status ${reviewClass}">
+            Review: ${escapeHTML(reviewStatus)}
+          </span>
+
+          <span class="material-status ${extractionClass}">
+            Extraction: ${escapeHTML(extractionStatus)}
+          </span>
+        </div>
+
+        <p class="material-meta">
+          ${escapeHTML(extractionDetails)}
+        </p>
+
+        <div class="material-actions">
+          ${actionButton}
+        </div>
+      </article>
+    `;
+  }).join("");
+
+  materialsList.querySelectorAll(".approve-material").forEach(button => {
+    button.addEventListener("click", () => {
+      approveAndExtract(button.dataset.id, button);
+    });
+  });
+
+  materialsList.querySelectorAll(".extract-material").forEach(button => {
+    button.addEventListener("click", () => {
+      extractMaterial(button.dataset.id, button);
+    });
+  });
+}
+
+async function loadMaterials() {
+  if (!materialsList) return;
+
+  materialsList.innerHTML = `
+    <div class="empty-list">Loading textbook library...</div>
+  `;
+
+  try {
+    const result = await materialRequest(MATERIALS_API_URL);
+
+    renderMaterials(result.materials || []);
+
+  } catch (error) {
+    console.error("Material loading error:", error);
+
+    materialsList.innerHTML = `
+      <div class="empty-list">
+        Could not load textbooks: ${escapeHTML(error.message)}
+      </div>
+    `;
+  }
+}
+
+// ==========================================
+// UPLOAD TEXTBOOK
+// ==========================================
+
+materialUploadForm.addEventListener("submit", async event => {
+  event.preventDefault();
+
+  if (!currentUser || currentUser.uid !== ADMIN_UID) {
+    showUploadStatus("Administrator access required.", "error");
+    return;
+  }
+
+  const file = materialFileInput.files[0];
+
+  if (!file) {
+    showUploadStatus("Choose a PDF file first.", "error");
+    return;
+  }
+
+  if (
+    file.type !== "application/pdf" ||
+    !file.name.toLowerCase().endsWith(".pdf")
+  ) {
+    showUploadStatus("Only PDF files are accepted.", "error");
+    return;
+  }
+
+  if (file.size === 0 || file.size > 20 * 1024 * 1024) {
+    showUploadStatus("The PDF must be between 1 byte and 20 MB.", "error");
+    return;
+  }
+
+  const formData = new FormData();
+
+  formData.append("title", field("material-title").value.trim());
+  formData.append("subject", field("material-subject").value.trim());
+  formData.append("topic", field("material-topic").value.trim());
+  formData.append(
+    "submission_notes",
+    field("material-notes").value.trim()
+  );
+  formData.append("file", file);
+
+  uploadButton.disabled = true;
+  showUploadStatus("Uploading textbook securely...");
+
+  try {
+    const result = await materialRequest(
+      MATERIALS_API_URL,
+      "POST",
+      formData
+    );
+
+    showUploadStatus(
+      result.message || "Textbook uploaded successfully.",
+      "success"
+    );
+
+    materialUploadForm.reset();
+    await loadMaterials();
+
+  } catch (error) {
+    console.error("Textbook upload error:", error);
+
+    showUploadStatus(
+      `Upload failed: ${error.message}`,
+      "error"
+    );
+
+  } finally {
+    uploadButton.disabled = false;
+  }
+});
+
+// ==========================================
+// APPROVE AND EXTRACT
+// ==========================================
+
+async function approveAndExtract(materialId, button) {
+  if (!confirm("Approve this textbook and begin text extraction?")) {
+    return;
+  }
+
+  button.disabled = true;
+  button.textContent = "Approving...";
+
+  try {
+    await materialRequest(
+      MATERIALS_API_URL,
+      "PATCH",
+      { materialId }
+    );
+
+    button.textContent = "Extracting text...";
+
+    const result = await materialRequest(
+      EXTRACT_MATERIAL_URL,
+      "POST",
+      { materialId }
+    );
+
+    const extraction = result.extraction || {};
+
+    if (extraction.extractionStatus === "needs_ocr") {
+      showUploadStatus(
+        "Textbook approved. Extraction found too little text; OCR may be needed.",
+        "error"
+      );
+    } else {
+      showUploadStatus(
+        `Text extraction completed. ${Number(
+          extraction.pageCount || 0
+        )} pages processed.`,
+        "success"
+      );
+    }
+
+    await loadMaterials();
+
+  } catch (error) {
+    console.error("Approval/extraction error:", error);
+
+    showUploadStatus(
+      `Processing failed: ${error.message}. Refresh the library to check the textbook status.`,
+      "error"
+    );
+
+    await loadMaterials();
+
+  } finally {
+    button.disabled = false;
+  }
+}
+
+// ==========================================
+// RETRY EXTRACTION
+// ==========================================
+
+async function extractMaterial(materialId, button) {
+  button.disabled = true;
+  button.textContent = "Extracting...";
+
+  try {
+    const result = await materialRequest(
+      EXTRACT_MATERIAL_URL,
+      "POST",
+      { materialId }
+    );
+
+    const extraction = result.extraction || {};
+
+    if (extraction.extractionStatus === "needs_ocr") {
+      showUploadStatus(
+        "Extraction finished, but OCR may be required.",
+        "error"
+      );
+    } else {
+      showUploadStatus(
+        "Text extraction completed successfully.",
+        "success"
+      );
+    }
+
+    await loadMaterials();
+
+  } catch (error) {
+    console.error("Extraction retry error:", error);
+
+    showUploadStatus(
+      `Extraction failed: ${error.message}`,
+      "error"
+    );
+
+    await loadMaterials();
+
+  } finally {
+    button.disabled = false;
+  }
+}
+
+// ==========================================
+// TEXTBOOK REFRESH
+// ==========================================
+
+refreshMaterialsButton.addEventListener("click", loadMaterials);
+
+// ==========================================
+// QUESTION EDITING
+// ==========================================
+
+function beginEditing(id) {
+  const question = questions[id];
+  if (!question) return;
+
+  editingId = id;
+
+  field("subject").value = question.subject || "";
+  field("topic").value = question.topic || "";
+  field("question").value = question.question || "";
+  field("difficulty").value = String(question.difficulty ?? 1);
+  field("sourceType").value = question.sourceType || "sample";
+  field("sourceDetails").value = question.sourceDetails || "";
+  field("syllabusObjective").value = question.syllabusObjective || "";
+
+  const options = Array.isArray(question.options) ? question.options : [];
+
+  for (let i = 0; i < 4; i++) {
+    field(`option${i}`).value = options[i] || "";
+  }
+
+  field("answerIndex").value = String(question.answerIndex ?? 0);
+  field("explanation").value = question.explanation || "";
+  field("verified").checked = question.verified === true;
+
+  formHeading.textContent = "Edit question";
+  saveButton.textContent = "Update question";
+  cancelButton.hidden = false;
+
+  form.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+// ==========================================
+// QUESTION DISPLAY
+// ==========================================
+
+function renderQuestions() {
+  const query = searchInput.value.trim().toLowerCase();
+
+  const entries = Object.entries(questions).filter(([, question]) => {
+    const text = [
+      question.subject,
+      question.topic,
+      question.question,
+      question.sourceType,
+      question.sourceDetails
+    ].join(" ").toLowerCase();
+
+    return text.includes(query);
+  });
+
+  questionCount.textContent =
+    `${entries.length} question${entries.length === 1 ? "" : "s"} shown`;
+
+  if (entries.length === 0) {
+    questionList.innerHTML = `
+      <div class="empty-list">
+        No questions found. Add one using the form above.
+      </div>
+    `;
+    return;
+  }
+
+  questionList.innerHTML = entries.map(([id, question]) => {
+    const options = Array.isArray(question.options) ? question.options : [];
+    const letters = ["A", "B", "C", "D"];
+
+    const optionHTML = options.map((option, index) => `
+      <li>
+        ${letters[index] || index + 1}.
+        ${escapeHTML(option)}
+        ${Number(question.answerIndex) === index ? " — Correct answer" : ""}
+      </li>
+    `).join("");
+
+    return `
+      <article class="question-card">
+        <span class="tag">${escapeHTML(question.subject || "No subject")}</span>
+        <span class="tag">${escapeHTML(question.topic || "No topic")}</span>
+        <span class="tag">Difficulty ${escapeHTML(question.difficulty ?? "?")}/7</span>
+        <span class="tag">${question.verified === true ? "Verified" : "Unverified"}</span>
+
+        <h3>${escapeHTML(question.question || "Untitled question")}</h3>
+
+        <ol class="option-list" type="A">
+          ${optionHTML}
+        </ol>
+
+        <p><strong>Explanation:</strong>
+          ${escapeHTML(question.explanation || "No explanation supplied.")}
+        </p>
+
+        <p class="hint">
+          Source: ${escapeHTML(question.sourceType || "unspecified")}
+          ${question.sourceDetails
+            ? " — " + escapeHTML(question.sourceDetails)
+            : ""}
+        </p>
+
+        ${question.syllabusObjective ? `
+          <p class="hint">
+            Syllabus objective: ${escapeHTML(question.syllabusObjective)}
+          </p>
+        ` : ""}
+
+        <div class="actions">
+          <button type="button" class="btn edit-button"
+            data-id="${escapeHTML(id)}">Edit</button>
+
+          <button type="button" class="btn btn-danger delete-button"
+            data-id="${escapeHTML(id)}">Delete</button>
+        </div>
+      </article>
+    `;
+  }).join("");
+
+  questionList.querySelectorAll(".edit-button").forEach(button => {
+    button.addEventListener("click", () => beginEditing(button.dataset.id));
+  });
+
+  questionList.querySelectorAll(".delete-button").forEach(button => {
+    button.addEventListener("click", async () => {
+      const id = button.dataset.id;
+      const question = questions[id];
+
+      if (!question) return;
+      if (!confirm("Delete this question permanently?")) return;
+
+      button.disabled = true;
+
+      try {
+        await remove(ref(database, `questionBank/${id}`));
+
+        if (editingId === id) resetForm();
+
+        showStatus("Question deleted.", "success");
+
+      } catch (error) {
+        console.error(error);
+
+        showStatus(
+          "Could not delete the question. Check your connection and Firebase permissions.",
+          "error"
+        );
+
+        button.disabled = false;
+      }
+    });
+  });
+}
+
+// ==========================================
+// AUTHENTICATION AND FIREBASE LISTENER
+// ==========================================
+
+onAuthStateChanged(auth, user => {
+  if (stopListening) {
+    stopListening();
+    stopListening = null;
+  }
+
+  currentUser = user;
+
+  if (!user) {
+    appContent.style.display = "none";
+    showStatus("Please sign in with the authorised administrator account.");
+    window.location.replace("login.html");
+    return;
+  }
+
+  if (user.uid !== ADMIN_UID) {
+    appContent.style.display = "none";
+
+    showStatus(
+      "Access denied. This account is not authorised to manage questions.",
+      "error"
+    );
+
+    return;
+  }
+
+  appContent.style.display = "block";
+  field("admin-email").textContent = user.email || "Administrator";
+
+  showStatus("Administrator access confirmed.", "success");
+
+  loadMaterials();
+
+  stopListening = onValue(
+    ref(database, "questionBank"),
+    snapshot => {
+      questions = snapshot.val() || {};
+      renderQuestions();
+    },
+    error => {
+      console.error(error);
+
+      showStatus(
+        "Could not load questions. Check Firebase Realtime Database rules and your connection.",
+        "error"
+      );
+    }
+  );
+});
+
+// ==========================================
+// SAVE OR UPDATE QUESTION
+// ==========================================
+
+form.addEventListener("submit", async event => {
+  event.preventDefault();
+
+  if (!currentUser || currentUser.uid !== ADMIN_UID) {
+    showStatus("You are not authorised to save questions.", "error");
+    return;
+  }
+
+  const questionData = collectQuestionData();
+  if (!questionData) return;
+
+  const now = Date.now();
+
+  const data = {
+    type: "multiple-choice",
+    ...questionData,
+    sourceType: field("sourceType").value,
+    verified: field("verified").checked,
+    updatedAt: now,
+    updatedBy: currentUser.uid
+  };
+
+  saveButton.disabled = true;
+
+  try {
+    if (editingId) {
+      await update(ref(database, `questionBank/${editingId}`), data);
+      showStatus("Question updated successfully.", "success");
+
+    } else {
+      const newQuestionRef = push(ref(database, "questionBank"));
+
+      await set(newQuestionRef, {
+        ...data,
+        id: newQuestionRef.key,
+        createdAt: now,
+        createdBy: currentUser.uid
+      });
+
+      showStatus("Question saved successfully.", "success");
+    }
+
+    resetForm();
+
+  } catch (error) {
+    console.error(error);
+
+    showStatus(
+      "Saving failed. Check your internet connection, signed-in account and Firebase rules.",
+      "error"
+    );
+
+  } finally {
+    saveButton.disabled = false;
+  }
+});
+
+// ==========================================
+// SEND QUESTION TO HAI PENDING API
+// ==========================================
+
+pendingButton.addEventListener("click", async () => {
+  if (!currentUser || currentUser.uid !== ADMIN_UID) {
+    showStatus("You are not authorised to submit questions.", "error");
+    return;
+  }
+
+  const questionData = collectQuestionData();
+  if (!questionData) return;
+
+  pendingButton.disabled = true;
+  saveButton.disabled = true;
+
+  try {
+    const idToken = await currentUser.getIdToken();
+
+    const response = await fetch(HAI_PENDING_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`
+      },
+      body: JSON.stringify(questionData)
+    });
+
+    const responseText = await response.text();
+
+    let result = {};
+
+    try {
+      result = responseText ? JSON.parse(responseText) : {};
+    } catch {
+      result = { detail: responseText };
+    }
+
+    if (!response.ok) {
+      throw new Error(
+        result.detail ||
+        result.message ||
+        `Server rejected the request (${response.status}).`
+      );
+    }
+
+    showStatus(
+      "Question submitted successfully. It is awaiting administrator review.",
+      "success"
+    );
+
+    resetForm();
+
+  } catch (error) {
+    console.error("HAI pending submission error:", error);
+
+    showStatus(
+      `Submission failed: ${error.message}`,
+      "error"
+    );
+
+  } finally {
+    pendingButton.disabled = false;
+    saveButton.disabled = false;
+  }
+});
+
+// ==========================================
+// OTHER CONTROLS
+// ==========================================
+
+cancelButton.addEventListener("click", resetForm);
+
+searchInput.addEventListener("input", renderQuestions);
+
+field("logout-button").addEventListener("click", async () => {
+  try {
+    await signOut(auth);
+    window.location.replace("login.html");
+
+  } catch (error) {
+    console.error(error);
+    showStatus("Could not sign out. Please try again.", "error");
+  }
+});
