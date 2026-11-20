@@ -874,16 +874,28 @@ el.generate.addEventListener(
       );
 
     } catch (error) {
-      console.error(
-        "Generation/save error:",
-        error
-      );
+  console.error("Generation/save error:", error);
 
-      setMessage(
-        el.generationStatus,
-        error.message || "Generation failed.",
-        "error"
-      );
+  let readableError = "Generation failed.";
+
+  if (typeof error === "string") {
+    readableError = error;
+  } else if (error instanceof Error) {
+    readableError = error.message;
+  } else if (error && typeof error === "object") {
+    readableError =
+      error.detail ||
+      error.message ||
+      error.error ||
+      error.reason ||
+      JSON.stringify(error);
+  }
+
+  setMessage(
+    el.generationStatus,
+    readableError,
+    "error"
+  );
 
     } finally {
       generationInProgress = false;
