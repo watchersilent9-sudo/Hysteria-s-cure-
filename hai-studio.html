@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#171525">
+  <title>HAI Question Studio | Hysteria's Cure</title>
+  <link rel="stylesheet" href="css/faction-themes.css">
+  <link rel="stylesheet" href="css/hai-studio.css">
+</head>
+<body>
+  <header>
+    <div class="brand">HYSTERIA'S <span>CURE</span> — <span>HAI STUDIO</span></div>
+    <nav><a href="admin.html">Admin Panel</a><button id="logout-button" type="button">Log out</button></nav>
+  </header>
+  <main>
+    <section class="intro">
+      <h1>HAI Question Studio</h1>
+      <p>Generate questions from extracted textbooks. Generated candidates are saved privately as drafts and reviewed in Question Bank before submission.</p>
+    </section>
+    <p id="page-message" role="status" aria-live="polite">Verifying administrator access...</p>
+    <div id="studio-content" hidden>
+      <section class="panel">
+        <div class="section-heading"><div><h2>HAI server connection</h2><p>Check whether the generation service is reachable.</p></div><button id="check-api-button" type="button">Check connection</button></div>
+        <p id="api-status" role="status" aria-live="polite">Connection has not been checked.</p>
+      </section>
+      <section class="panel">
+        <h2>Generation settings</h2>
+        <div class="form-group"><label for="hai-material">Published textbook</label><select id="hai-material" disabled required><option value="">Loading textbooks...</option></select><button id="refresh-materials" class="secondary-button" type="button" disabled>Refresh textbooks</button></div>
+        <div class="form-grid"><div class="form-group"><label for="hai-subject">Subject</label><input id="hai-subject" maxlength="100" placeholder="e.g. Biology" required></div><div class="form-group"><label for="hai-topic">Topic</label><input id="hai-topic" maxlength="200" placeholder="e.g. Nutrition in Plants" required></div></div>
+        <div class="form-group"><label for="hai-chapter">Chapter</label><input id="hai-chapter" maxlength="200" placeholder="Chapter name"></div>
+        <div class="form-grid"><div class="form-group"><label for="hai-count">Number of questions</label><input id="hai-count" type="number" min="1" max="100" step="1" value="10"></div><div class="form-group"><label for="hai-difficulty">Difficulty (1–7)</label><input id="hai-difficulty" type="number" min="1" max="7" step="1" value="2"></div></div>
+        <button id="generate-button" class="primary-button" type="button" disabled>Generate questions</button>
+        <p id="generation-status" role="status" aria-live="polite">Waiting for administrator authentication.</p>
+        <div id="generation-statistics" class="statistics" hidden></div>
+      </section>
+      <section id="review-section" class="panel" hidden>
+        <h2>Drafts saved to Question Bank</h2>
+        <p id="review-message" role="status" aria-live="polite"></p>
+        <p>Open Question Bank to edit candidates, approve or reject them, and submit approved questions to the pending review queue.</p>
+        <a class="primary-button" href="question-bank.html">Open Question Bank</a>
+      </section>
+    </div>
+  </main>
+  <script type="module" src="js/hai-studio.js?v=20261119-3"></script>
+  <script type="module" src="js/faction-theme.js"></script>
+</body>
+</html>

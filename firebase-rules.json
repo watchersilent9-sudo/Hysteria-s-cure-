@@ -1,0 +1,72 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "users": {
+      ".read": "auth != null && auth.uid === 'RtaLjBtKSUgRnWB7ag06CLRCStM2'",
+      "$uid": {
+        ".read": "auth != null && (auth.uid === $uid || auth.uid === 'RtaLjBtKSUgRnWB7ag06CLRCStM2')",
+        ".write": "auth != null && auth.uid === $uid && !data.exists() && newData.hasChildren(['displayName', 'faction', 'createdAt']) && newData.child('displayName').isString() && newData.child('faction').isString() && (newData.child('faction').val() === 'readers' || newData.child('faction').val() === 'gamers' || newData.child('faction').val() === 'movie-lovers' || newData.child('faction').val() === 'independent') && newData.child('createdAt').isString() && !newData.child('progress').exists() && !newData.child('mistakes').exists() && !newData.child('personalLibrary').exists()",
+        "progress": {
+          ".write": "auth != null && auth.uid === $uid"
+        },
+        "mistakes": {
+          "$mistakeId": {
+            ".write": "auth != null && auth.uid === $uid"
+          }
+        },
+        "personalLibrary": {
+          ".read": "auth != null && auth.uid === $uid",
+          ".write": "auth != null && auth.uid === $uid"
+        }
+      }
+    },
+    "admins": {
+      ".read": "auth != null && auth.uid === 'RtaLjBtKSUgRnWB7ag06CLRCStM2'",
+      "$uid": {
+        ".read": "auth != null && (auth.uid === $uid || auth.uid === 'RtaLjBtKSUgRnWB7ag06CLRCStM2')",
+        ".write": "auth != null && auth.uid === 'RtaLjBtKSUgRnWB7ag06CLRCStM2'"
+      }
+    },
+    "questionBank": {
+      ".read": "auth != null",
+      ".write": "auth != null && auth.uid === 'RtaLjBtKSUgRnWB7ag06CLRCStM2'",
+      "$questionId": {
+        ".validate": "newData.hasChildren(['subject', 'topic', 'question', 'options', 'answerIndex', 'explanation', 'verified']) && newData.child('verified').val() === true"
+      }
+    },
+    "haiQuestionDrafts": {
+      ".read": "auth != null && auth.uid === 'RtaLjBtKSUgRnWB7ag06CLRCStM2'",
+      ".write": "auth != null && auth.uid === 'RtaLjBtKSUgRnWB7ag06CLRCStM2'"
+    },
+    "haiQuestionDraftBatches": {
+      ".read": "auth != null && auth.uid === 'RtaLjBtKSUgRnWB7ag06CLRCStM2'",
+      ".write": "auth != null && auth.uid === 'RtaLjBtKSUgRnWB7ag06CLRCStM2'"
+    },
+    "rewardRequests": {
+      "$uid": {
+        ".read": "auth != null && (auth.uid === $uid || auth.uid === 'RtaLjBtKSUgRnWB7ag06CLRCStM2')",
+        "$requestId": {
+          ".write": "auth != null && auth.uid === $uid && !data.exists() && newData.hasChildren(['rewardId', 'rewardName', 'pointsCost', 'status', 'createdAt']) && newData.child('rewardId').isString() && newData.child('rewardId').val().length > 0 && newData.child('rewardId').val().length <= 80 && newData.child('rewardName').isString() && newData.child('rewardName').val().length > 0 && newData.child('rewardName').val().length <= 120 && newData.child('pointsCost').isNumber() && newData.child('pointsCost').val() > 0 && newData.child('pointsCost').val() <= 1000000 && newData.child('status').val() === 'pending' && newData.child('createdAt').isNumber() && newData.child('createdAt').val() <= now",
+          ".validate": "newData.hasChildren(['rewardId', 'rewardName', 'pointsCost', 'status', 'createdAt'])"
+        }
+      }
+    },
+    "pendingQuestions": {
+      ".read": "auth != null && auth.uid === 'RtaLjBtKSUgRnWB7ag06CLRCStM2'",
+      ".write": "auth != null && auth.uid === 'RtaLjBtKSUgRnWB7ag06CLRCStM2'"
+    },
+    "pendingSubmissionBatches": {
+      ".read": "auth != null && auth.uid === 'RtaLjBtKSUgRnWB7ag06CLRCStM2'",
+      ".write": "auth != null && auth.uid === 'RtaLjBtKSUgRnWB7ag06CLRCStM2'"
+    },
+    "rejectedQuestions": {
+      ".read": "auth != null && auth.uid === 'RtaLjBtKSUgRnWB7ag06CLRCStM2'",
+      ".write": "auth != null && auth.uid === 'RtaLjBtKSUgRnWB7ag06CLRCStM2'"
+    },
+    "publishedReviewLog": {
+      ".read": "auth != null && auth.uid === 'RtaLjBtKSUgRnWB7ag06CLRCStM2'",
+      ".write": "auth != null && auth.uid === 'RtaLjBtKSUgRnWB7ag06CLRCStM2'"
+    }
+  }
+}
