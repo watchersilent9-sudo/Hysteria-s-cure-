@@ -1,0 +1,326 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#171525">
+
+  <title>HAI Review Studio | Hysteria's Cure</title>
+
+  <link rel="stylesheet" href="css/faction-themes.css">
+
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: var(--bg-primary, #11101b);
+      --panel: var(--bg-card, #1c1a2b);
+      --text: var(--text-primary, #f7f4ff);
+      --muted: var(--text-secondary, #b7b1ca);
+      --accent: var(--accent-bright, #c6a7ff);
+      --line: var(--border, rgba(255,255,255,.12));
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, sans-serif;
+    }
+
+    header {
+      padding: 18px 5%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 14px;
+      background: var(--panel);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brand { font-weight: 800; }
+    .brand span { color: var(--accent); }
+
+    a, button { font: inherit; }
+
+    a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    button {
+      cursor: pointer;
+      padding: 10px 14px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: #302b43;
+      color: var(--text);
+      font-weight: 650;
+    }
+
+    button:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+    }
+
+    main {
+      width: min(1100px, calc(100% - 30px));
+      margin: 35px auto;
+    }
+
+    .hero {
+      margin-bottom: 25px;
+    }
+
+    .hero h1 {
+      font-size: clamp(1.8rem, 5vw, 2.7rem);
+      margin: 0 0 8px;
+    }
+
+    .muted {
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin: 25px 0;
+    }
+
+    .stat, .section {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 15px;
+      padding: 18px;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 2rem;
+      color: var(--accent);
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+      margin: 20px 0;
+    }
+
+    .question-card {
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      margin: 13px 0;
+      overflow: hidden;
+      background: rgba(255,255,255,.025);
+    }
+
+    .question-card summary {
+      cursor: pointer;
+      padding: 16px;
+      list-style: none;
+    }
+
+    .question-card summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .question-card summary::after {
+      content: "+";
+      float: right;
+      color: var(--accent);
+      font-size: 1.2rem;
+      font-weight: bold;
+    }
+
+    .question-card[open] summary::after {
+      content: "−";
+    }
+
+    .card-heading {
+      font-weight: 750;
+      margin-bottom: 7px;
+    }
+
+    .card-meta {
+      font-size: .82rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .preview {
+      margin-top: 10px;
+      line-height: 1.5;
+      font-size: .92rem;
+    }
+
+    .card-content {
+      padding: 0 16px 18px;
+      border-top: 1px solid var(--line);
+    }
+
+    label {
+      display: block;
+      margin: 14px 0 6px;
+      font-size: .87rem;
+      font-weight: 650;
+    }
+
+    input, textarea, select {
+      display: block;
+      width: 100%;
+      padding: 11px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: #151321;
+      color: var(--text);
+      font: inherit;
+      font-size: .9rem;
+    }
+
+    textarea {
+      min-height: 75px;
+      resize: vertical;
+    }
+
+    .options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+      margin-top: 18px;
+    }
+
+    .save { background: #34304b; }
+    .approve {
+      background: #176b4a;
+      border-color: #238b62;
+    }
+
+    .reject {
+      background: #762e3b;
+      border-color: #a34655;
+    }
+
+    .notice {
+      padding: 13px;
+      border-radius: 10px;
+      margin: 15px 0;
+      background: rgba(255,255,255,.06);
+      line-height: 1.5;
+    }
+
+    .notice.error { border: 1px solid #a34655; }
+    .notice.success { border: 1px solid #238b62; }
+
+    .empty {
+      padding: 35px 15px;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    [hidden] { display: none !important; }
+
+    @media(max-width: 600px) {
+      .stats { grid-template-columns: 1fr 1fr; }
+      .options { grid-template-columns: 1fr; }
+      header { padding: 15px; }
+      .card-content { padding-inline: 12px; }
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <div class="brand">
+    HYSTERIA'S <span>CURE</span> · HAI REVIEW
+  </div>
+
+  <nav>
+    <a href="admin.html">Admin Dashboard</a>
+    &nbsp; · &nbsp;
+    <a href="question-bank.html">Question Bank</a>
+  </nav>
+</header>
+
+<main>
+
+  <section class="hero">
+    <p class="muted">HAI QUESTION MANAGEMENT</p>
+    <h1>Review Studio</h1>
+
+    <p class="muted">
+      Review, correct and approve HAI-generated questions
+      before they enter the student question bank.
+    </p>
+  </section>
+
+  <div id="access-message" class="notice">
+    Checking administrator access...
+  </div>
+
+  <div id="studio" hidden>
+
+    <section class="stats">
+      <div class="stat">
+        <strong id="pending-count">0</strong>
+        <span class="muted">Pending questions</span>
+      </div>
+
+      <div class="stat">
+        <strong id="visible-count">0</strong>
+        <span class="muted">Currently displayed</span>
+      </div>
+    </section>
+
+    <section class="section">
+
+      <h2>Final Approval Queue</h2>
+
+      <p class="muted">
+        Questions remain private until you approve and publish them.
+        Open a card to inspect or edit its contents.
+      </p>
+
+      <div class="toolbar">
+        <button id="show-all" type="button">
+          Show all
+        </button>
+
+        <button id="collapse-all" type="button">
+          Collapse all
+        </button>
+
+        <button id="refresh" type="button">
+          Refresh queue
+        </button>
+      </div>
+
+      <div id="queue-message" class="notice" hidden></div>
+
+      <div id="question-list">
+        <div class="empty">Loading questions...</div>
+      </div>
+
+    </section>
+
+  </div>
+
+</main>
+
+<script type="module" src="js/hai-review.js"></script>
+
+</body>
+</html>
