@@ -8,6 +8,7 @@ import {
 import {
   ref,
   onValue,
+  get,
   update,
   runTransaction,
   push
@@ -25,7 +26,7 @@ const list = $("question-list");
 let admin = null;
 let queue = {};
 let stopListener = null;
-let busy = new Set();
+const busy = new Set();
 
 
 // ------------------------------------------
@@ -43,14 +44,16 @@ function escapeHTML(value) {
 }
 
 function isAdmin() {
-  return Boolean(
-    admin &&
-    admin.uid === ADMIN_UID
-  );
+  return Boolean(admin && admin.uid === ADMIN_UID);
 }
 
 function notify(message, type = "") {
   const box = $("queue-message");
+
+  if (!box) {
+    console.error(message);
+    return;
+  }
 
   box.hidden = false;
   box.className = `notice ${type}`;
@@ -58,11 +61,11 @@ function notify(message, type = "") {
 }
 
 function validate(data) {
-  if (!data.subject || !data.topic)
-    return "Subject and topic are required.";
+  if (!data.subject) return "Subject is required.";
 
-  if (!data.question)
-    return "Question text is required.";
+  if (!data.topic) return "Topic is required.";
+
+  if (!data.question) return "Question text is required.";
 
   if (
     !Array.isArray(data.options) ||
@@ -80,8 +83,9 @@ function validate(data) {
     return "Choose a valid correct answer.";
   }
 
-  if (!data.explanation)
+  if (!data.explanation) {
     return "An explanation is required.";
+  }
 
   if (
     !Number.isInteger(data.difficulty) ||
@@ -94,6 +98,9 @@ function validate(data) {
   return null;
 }
 
+
+// CORRECTED DATA RETRIEVAL
+
 function getEditedData(card) {
   const options = [...card.querySelectorAll(".option")]
     .sort((a, b) =>
@@ -102,8 +109,9 @@ function getEditedData(card) {
     .map(input => input.value.trim());
 
   return {
-    subject: card.dataset.subject.trim(),
-    topic: card.dataset.topic.trim(),
+    subject: card.querySelector(".subject").value.trim(),
+
+    topic: card.querySelector(".topic").value.trim(),
 
     question: card.querySelector(".question").value.trim(),
 
@@ -147,21 +155,20 @@ function render() {
     list.innerHTML = `
       <div class="empty">
         <h3>Your review queue is empty.</h3>
-        <p>
-          No questions with pending_review status were found.
-        </p>
+        <p>No pending questions were found.</p>
       </div>
     `;
     return;
   }
 
   list.innerHTML = entries.map(([id, q], index) => `
-    <details class="question-card" data-id="${escapeHTML(id)}">
+    <details class="question-card"
+      data-id="${escapeHTML(id)}">
 
       <summary>
-
         <div class="card-heading">
-          ${index + 1}. ${escapeHTML(q.subject || "Unknown subject")}
+          ${index + 1}.
+          ${escapeHTML(q.subject || "Unknown subject")}
           · ${escapeHTML(q.topic || "Unknown topic")}
         </div>
 
@@ -175,22 +182,17 @@ function render() {
             String(q.question || "").slice(0, 160)
           )}${String(q.question || "").length > 160 ? "..." : ""}
         </div>
-
       </summary>
 
       <div class="card-content">
 
         <label>Subject</label>
-        <input
-          class="subject"
-          value="${escapeHTML(q.subject || "")}"
-        >
+        <input class="subject"
+          value="${escapeHTML(q.subject || "")}">
 
         <label>Topic</label>
-        <input
-          class="topic"
-          value="${escapeHTML(q.topic || "")}"
-        >
+        <input class="topic"
+          value="${escapeHTML(q.topic || "")}">
 
         <label>Question</label>
         <textarea class="question">${escapeHTML(q.question || "")}</textarea>
@@ -198,28 +200,21 @@ function render() {
         <label>Answer options</label>
 
         <div class="options">
-
           ${[0, 1, 2, 3].map(i => `
             <div>
               <label>Option ${"ABCD"[i]}</label>
-
-              <textarea
-                class="option"
-                data-index="${i}"
-              >${escapeHTML(q.options?.[i] || "")}</textarea>
+              <textarea class="option"
+                data-index="${i}">${escapeHTML(q.options?.[i] || "")}</textarea>
             </div>
           `).join("")}
-
         </div>
 
         <label>Correct answer</label>
 
         <select class="answer">
           ${["A", "B", "C", "D"].map((letter, i) => `
-            <option
-              value="${i}"
-              ${Number(q.answerIndex) === i ? "selected" : ""}
-            >
+            <option value="${i}"
+              ${Number(q.answerIndex) === i ? "selected" : ""}>
               ${letter}
             </option>
           `).join("")}
@@ -229,24 +224,23 @@ function render() {
         <textarea class="explanation">${escapeHTML(q.explanation || "")}</textarea>
 
         <label>Difficulty (1–7)</label>
-        <input
-          class="difficulty"
+        <input class="difficulty"
           type="number"
           min="1"
           max="7"
           step="1"
-          value="${escapeHTML(q.difficulty ?? 1)}"
-        >
+          value="${escapeHTML(q.difficulty ?? 1)}">
 
         <div class="card-meta">
-          ${Array.isArray(q.qualityIssues) && q.qualityIssues.length
-            ? `<strong>Quality warnings:</strong>
-               ${escapeHTML(q.qualityIssues.join(" · "))}`
-            : "No automatic quality warnings."}
+          ${
+            Array.isArray(q.qualityIssues) && q.qualityIssues.length
+              ? `<strong>Quality warnings:</strong>
+                 ${escapeHTML(q.qualityIssues.join(" · "))}`
+              : "No automatic quality warnings."
+          }
         </div>
 
         <div class="actions">
-
           <button class="save" type="button">
             Save corrections
           </button>
@@ -258,11 +252,9 @@ function render() {
           <button class="reject" type="button">
             Reject
           </button>
-
         </div>
 
       </div>
-
     </details>
   `).join("");
 }
@@ -280,6 +272,7 @@ async function reserveQuestion(id, action) {
 
   const result = await runTransaction(
     questionRef,
+
     current => {
       if (
         !current ||
@@ -295,17 +288,19 @@ async function reserveQuestion(id, action) {
         reservedAt: Date.now()
       };
     },
+
     { applyLocally: false }
   );
 
   if (!result.committed) {
     throw new Error(
-      "This question is no longer available for review."
+      "Question is no longer available for review."
     );
   }
 
   return result.snapshot.val();
 }
+
 
 async function releaseReservation(id, action) {
   const questionRef = ref(
@@ -313,8 +308,9 @@ async function releaseReservation(id, action) {
     `pendingQuestions/${id}`
   );
 
-  await runTransaction(
+  const result = await runTransaction(
     questionRef,
+
     current => {
       if (
         !current ||
@@ -327,13 +323,17 @@ async function releaseReservation(id, action) {
       const restored = { ...current };
 
       restored.reviewStatus = "pending_review";
+
       delete restored.reservedBy;
       delete restored.reservedAt;
 
       return restored;
     },
+
     { applyLocally: false }
   );
+
+  return result.committed;
 }
 
 
@@ -342,17 +342,22 @@ async function releaseReservation(id, action) {
 // ------------------------------------------
 
 async function saveCorrections(card, id, button) {
-  const data = getEditedData(card);
-  const error = validate(data);
+  if (busy.has(id)) return;
 
-  if (error) {
-    notify(error, "error");
-    return;
-  }
+  busy.add(id);
+  button.disabled = true;
 
   try {
-    busy.add(id);
-    button.disabled = true;
+    if (!isAdmin()) {
+      throw new Error("Administrator access is required.");
+    }
+
+    const data = getEditedData(card);
+    const error = validate(data);
+
+    if (error) {
+      throw new Error(error);
+    }
 
     const result = await runTransaction(
       ref(database, `pendingQuestions/${id}`),
@@ -385,12 +390,17 @@ async function saveCorrections(card, id, button) {
     }
 
     notify(
-      "Corrections saved. The question is still awaiting approval.",
+      "Corrections saved successfully.",
       "success"
     );
 
   } catch (error) {
-    notify("Save failed: " + error.message, "error");
+    console.error("Save error:", error);
+
+    notify(
+      "Save failed: " + error.message,
+      "error"
+    );
 
   } finally {
     busy.delete(id);
@@ -404,23 +414,36 @@ async function saveCorrections(card, id, button) {
 // ------------------------------------------
 
 async function approveQuestion(card, id, button) {
+  if (busy.has(id)) return;
+
   if (!confirm(
     "Publish this question to the student question bank?"
-  )) return;
-
-  const edited = getEditedData(card);
-  const error = validate(edited);
-
-  if (error) {
-    notify(error, "error");
+  )) {
     return;
   }
+
+  busy.add(id);
+  button.disabled = true;
 
   let reserved = false;
 
   try {
-    busy.add(id);
-    button.disabled = true;
+    if (!isAdmin()) {
+      throw new Error("Administrator access is required.");
+    }
+
+    // Retrieve and validate the edited question.
+
+    const edited = getEditedData(card);
+    const error = validate(edited);
+
+    if (error) {
+      throw new Error(error);
+    }
+
+    notify("Preparing question for publication...");
+
+    // Reserve the question.
 
     const original = await reserveQuestion(
       id,
@@ -429,26 +452,42 @@ async function approveQuestion(card, id, button) {
 
     reserved = true;
 
+    notify("Question reserved. Publishing...");
+
+    // Generate a new question bank ID.
+
     const publishedId = push(
       ref(database, "questionBank")
     ).key;
 
+    if (!publishedId) {
+      throw new Error("Could not generate a question ID.");
+    }
+
     const now = Date.now();
+
+    // Construct the final published question.
 
     const published = {
       ...original,
       ...edited,
 
       id: publishedId,
+
       type: "multiple-choice",
+
       verified: true,
 
       reviewStatus: "published",
+
       approvedAt: now,
       approvedBy: admin.uid,
+
       updatedAt: now,
       updatedBy: admin.uid
     };
+
+    // Publish and remove from pending queue together.
 
     const patch = {
       [`questionBank/${publishedId}`]: published,
@@ -470,32 +509,38 @@ async function approveQuestion(card, id, button) {
     reserved = false;
 
     notify(
-      "Question approved and published successfully.",
+      "SUCCESS! Question approved and published to the question bank.",
       "success"
     );
+
+    console.log("Published question:", publishedId);
 
   } catch (error) {
     console.error("Publication error:", error);
 
+    let message = "Publication failed: " + error.message;
+
     if (reserved) {
       try {
-        await releaseReservation(id, "publishing");
-      } catch (rollbackError) {
-        console.error(rollbackError);
-
-        notify(
-          "Publishing failed and the reservation could not be released. Check the question status before retrying.",
-          "error"
+        const released = await releaseReservation(
+          id,
+          "publishing"
         );
 
-        return;
+        if (!released) {
+          message +=
+            " The question reservation could not be restored. Check its Firebase status before retrying.";
+        }
+
+      } catch (rollbackError) {
+        console.error("Reservation recovery error:", rollbackError);
+
+        message +=
+          " Reservation recovery also failed. Check Firebase before retrying.";
       }
     }
 
-    notify(
-      "Publication failed: " + error.message,
-      "error"
-    );
+    notify(message, "error");
 
   } finally {
     busy.delete(id);
@@ -509,15 +554,23 @@ async function approveQuestion(card, id, button) {
 // ------------------------------------------
 
 async function rejectQuestion(card, id, button) {
+  if (busy.has(id)) return;
+
   if (!confirm(
     "Reject and archive this question? It will not be published."
-  )) return;
+  )) {
+    return;
+  }
+
+  busy.add(id);
+  button.disabled = true;
 
   let reserved = false;
 
   try {
-    busy.add(id);
-    button.disabled = true;
+    if (!isAdmin()) {
+      throw new Error("Administrator access is required.");
+    }
 
     const original = await reserveQuestion(
       id,
@@ -544,25 +597,33 @@ async function rejectQuestion(card, id, button) {
     reserved = false;
 
     notify(
-      "Question rejected and archived.",
+      "Question rejected and archived successfully.",
       "success"
     );
 
   } catch (error) {
     console.error("Rejection error:", error);
 
+    let message = "Rejection failed: " + error.message;
+
     if (reserved) {
       try {
-        await releaseReservation(id, "rejecting");
+        const released = await releaseReservation(
+          id,
+          "rejecting"
+        );
+
+        if (!released) {
+          message += " Check the question status in Firebase.";
+        }
+
       } catch (rollbackError) {
         console.error(rollbackError);
+        message += " Reservation recovery failed.";
       }
     }
 
-    notify(
-      "Rejection failed: " + error.message,
-      "error"
-    );
+    notify(message, "error");
 
   } finally {
     busy.delete(id);
@@ -577,21 +638,25 @@ async function rejectQuestion(card, id, button) {
 
 list.addEventListener("click", async event => {
   const button = event.target.closest("button");
+
   if (!button) return;
 
   const card = button.closest(".question-card");
+
   if (!card) return;
 
   const id = card.dataset.id;
 
-  if (!isAdmin() || busy.has(id)) return;
+  if (!id || !isAdmin() || busy.has(id)) return;
 
   if (button.classList.contains("save")) {
     await saveCorrections(card, id, button);
+    return;
   }
 
   if (button.classList.contains("approve")) {
     await approveQuestion(card, id, button);
+    return;
   }
 
   if (button.classList.contains("reject")) {
@@ -624,24 +689,22 @@ $("collapse-all").addEventListener("click", () => {
 $("refresh").addEventListener("click", async () => {
   if (!isAdmin()) return;
 
-  notify("Refreshing the review queue...");
-  
-  // Re-read the database without creating another listener.
-  try {
-    const { get } = await import(
-      "https://www.gstatic.com/firebasejs/13.0.0/firebase-database.js"
-    );
+  notify("Refreshing review queue...");
 
+  try {
     const snapshot = await get(
       ref(database, "pendingQuestions")
     );
 
     queue = snapshot.val() || {};
+
     render();
 
     notify("Review queue refreshed.", "success");
 
   } catch (error) {
+    console.error("Refresh error:", error);
+
     notify(
       "Refresh failed: " + error.message,
       "error"
@@ -697,6 +760,8 @@ onAuthStateChanged(auth, user => {
     },
 
     error => {
+      console.error("Firebase queue error:", error);
+
       notify(
         "Firebase queue error: " + error.message,
         "error"
