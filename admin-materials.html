@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -219,10 +220,11 @@
     </div>
 </header>
 
-<p id="admin-access-message"
-   class="admin-notice"
-   role="status"
-   aria-live="polite">
+<p
+    id="admin-access-message"
+    class="admin-notice"
+    role="status"
+    aria-live="polite">
     Verifying administrator access...
 </p>
 
@@ -231,11 +233,11 @@
     <h1>Admin Materials Management</h1>
 
     <p class="muted">
-        Manage learning materials, approve submissions, extract textbook
-        content and prepare academic resources for HAI.
+        Upload learning materials, manage textbook submissions,
+        extract textbook content and prepare academic resources for HAI.
     </p>
 
-    <!-- UPLOAD TEXTBOOK -->
+    <!-- TEXTBOOK UPLOAD -->
 
     <section class="admin-section">
 
@@ -258,8 +260,7 @@
                         id="upload-title"
                         required
                         maxlength="250"
-                        placeholder="e.g. Comprehensive Biology"
-                    >
+                        placeholder="e.g. Comprehensive Biology">
                 </div>
 
                 <div class="admin-field">
@@ -286,8 +287,7 @@
                     <input
                         type="text"
                         id="upload-topic"
-                        placeholder="e.g. Waves"
-                    >
+                        placeholder="e.g. Waves">
                 </div>
 
             </div>
@@ -297,8 +297,7 @@
 
                 <textarea
                     id="upload-notes"
-                    placeholder="Additional information about this textbook..."
-                ></textarea>
+                    placeholder="Additional information about this textbook..."></textarea>
             </div>
 
             <div class="admin-field">
@@ -308,8 +307,7 @@
                     type="file"
                     id="upload-file"
                     accept=".pdf,application/pdf"
-                    required
-                >
+                    required>
             </div>
 
             <button
@@ -331,15 +329,15 @@
 
     </section>
 
-    <!-- MATERIAL LIBRARY -->
+    <!-- TEXTBOOK LIBRARY -->
 
     <section class="admin-section">
 
         <h2>Textbook Library</h2>
 
         <p class="muted">
-            View all materials, inspect their status and extract textbook
-            contents for use by HAI.
+            View materials, inspect their status, extract textbook
+            contents and manage their publication.
         </p>
 
         <div class="pending-toolbar">
@@ -349,8 +347,7 @@
                 <input
                     id="material-search"
                     type="search"
-                    placeholder="Search title, subject or topic..."
-                >
+                    placeholder="Search title, subject or topic...">
 
                 <select id="material-status-filter">
                     <option value="all">All statuses</option>
@@ -386,144 +383,7 @@
 
     </section>
 
-    <!-- QUESTION PREVIEW -->
-
-    <section class="admin-section">
-
-        <h2>Question Preview</h2>
-
-        <p class="muted">
-            Prepare and preview a question. This form currently previews
-            content only; it does not publish questions to the Question Bank.
-        </p>
-
-        <div class="admin-grid">
-
-            <div class="admin-field">
-                <label for="subject">Subject</label>
-
-                <select id="subject">
-                    <option value="">Choose subject</option>
-                    <option>Biology</option>
-                    <option>Chemistry</option>
-                    <option>Mathematics</option>
-                    <option>Physics</option>
-                    <option>English Language</option>
-                    <option>Other</option>
-                </select>
-            </div>
-
-            <div class="admin-field">
-                <label for="topic">Topic</label>
-
-                <input
-                    id="topic"
-                    type="text"
-                    placeholder="e.g. Excretion"
-                >
-            </div>
-
-            <div class="admin-field">
-                <label for="difficulty">Star difficulty</label>
-
-                <select id="difficulty">
-                    <option value="">Choose difficulty</option>
-                    <option value="1">1 — Foundation recall</option>
-                    <option value="2">2 — Understanding</option>
-                    <option value="3">3 — Application</option>
-                    <option value="4">4 — Analysis</option>
-                    <option value="5">5 — Multi-concept</option>
-                    <option value="6">6 — Advanced reasoning</option>
-                    <option value="7">7 — Mastery</option>
-                </select>
-            </div>
-
-        </div>
-
-        <div class="admin-field">
-            <label for="question-text">Question</label>
-
-            <textarea
-                id="question-text"
-                placeholder="Enter the question">
-            </textarea>
-        </div>
-
-        <div class="admin-grid">
-
-            <div class="admin-field">
-                <label for="option-a">Option A</label>
-                <input id="option-a" type="text">
-            </div>
-
-            <div class="admin-field">
-                <label for="option-b">Option B</label>
-                <input id="option-b" type="text">
-            </div>
-
-            <div class="admin-field">
-                <label for="option-c">Option C</label>
-                <input id="option-c" type="text">
-            </div>
-
-            <div class="admin-field">
-                <label for="option-d">Option D</label>
-                <input id="option-d" type="text">
-            </div>
-
-        </div>
-
-        <div class="admin-grid">
-
-            <div class="admin-field">
-                <label for="correct-answer">Correct answer</label>
-
-                <select id="correct-answer">
-                    <option value="">Choose answer</option>
-                    <option value="0">A</option>
-                    <option value="1">B</option>
-                    <option value="2">C</option>
-                    <option value="3">D</option>
-                </select>
-            </div>
-
-            <div class="admin-field">
-                <label for="source-type">Source type</label>
-
-                <select id="source-type">
-                    <option value="original">Original question</option>
-                    <option value="past-question">Past question</option>
-                    <option value="textbook">Textbook-based</option>
-                </select>
-            </div>
-
-        </div>
-
-        <div class="admin-field">
-            <label for="explanation">Explanation</label>
-
-            <textarea
-                id="explanation"
-                placeholder="Explain why the answer is correct">
-            </textarea>
-        </div>
-
-        <button
-            type="button"
-            class="admin-button"
-            id="preview-question">
-            Preview Question
-        </button>
-
-        <div
-            id="question-preview"
-            class="admin-notice"
-            hidden>
-        </div>
-
-    </section>
-
-    <!-- SHORTCUTS -->
+    <!-- MANAGEMENT SHORTCUTS -->
 
     <section class="admin-section">
 
@@ -541,8 +401,6 @@
 </main>
 
 <script type="module" src="js/faction-theme.js"></script>
-
-<!-- ADMIN AUTHENTICATION AND MATERIAL API -->
 
 <script type="module">
 
@@ -600,10 +458,10 @@ let loadingMaterials = false;
 
 /* MESSAGE HELPERS */
 
-function showNotice(element, text, isError = false) {
+function showNotice(element, message, isError = false) {
 
     element.hidden = false;
-    element.textContent = text;
+    element.textContent = message;
 
     element.style.borderColor = isError
         ? "#c75b68"
@@ -635,14 +493,10 @@ async function materialRequest(method = "GET", body = null) {
     let requestBody = body;
 
     if (body instanceof FormData) {
-
-        // Browser automatically supplies multipart boundary.
-
+        // Browser supplies the multipart boundary automatically.
     } else if (body !== null) {
-
         headers["Content-Type"] = "application/json";
         requestBody = JSON.stringify(body);
-
     }
 
     const response = await fetch(MATERIALS_API, {
@@ -656,30 +510,23 @@ async function materialRequest(method = "GET", body = null) {
     let result;
 
     try {
-
         result = JSON.parse(responseText);
-
     } catch {
-
         throw new Error(
             `Server returned an invalid response (${response.status}). ` +
             responseText.slice(0, 250)
         );
-
     }
 
     if (!response.ok || result.success === false) {
-
         throw new Error(
             result.error ||
             result.message ||
             `Request failed (${response.status}).`
         );
-
     }
 
     return result;
-
 }
 
 
@@ -698,7 +545,6 @@ function formatSize(bytes) {
     }
 
     return `${(size / 1024 / 1024).toFixed(2)} MB`;
-
 }
 
 function formatDate(value) {
@@ -712,7 +558,6 @@ function formatDate(value) {
     }
 
     return date.toLocaleString();
-
 }
 
 function createElement(tag, text = "", className = "") {
@@ -726,13 +571,10 @@ function createElement(tag, text = "", className = "") {
     }
 
     return element;
-
 }
 
 function normaliseStatus(status) {
-
     return String(status || "unknown").toLowerCase();
-
 }
 
 
@@ -761,42 +603,33 @@ uploadForm.addEventListener("submit", async event => {
 
 
     if (!title || !subject || !file) {
-
         showNotice(
             uploadMessage,
             "Please provide a title, subject and PDF file.",
             true
         );
-
         return;
-
     }
 
     if (file.size > 20 * 1024 * 1024) {
-
         showNotice(
             uploadMessage,
             "The PDF must not exceed 20 MB.",
             true
         );
-
         return;
-
     }
 
     if (
         file.type !== "application/pdf" &&
         !file.name.toLowerCase().endsWith(".pdf")
     ) {
-
         showNotice(
             uploadMessage,
             "Only PDF files are accepted.",
             true
         );
-
         return;
-
     }
 
 
@@ -815,10 +648,7 @@ uploadForm.addEventListener("submit", async event => {
 
     try {
 
-        const result = await materialRequest(
-            "POST",
-            formData
-        );
+        const result = await materialRequest("POST", formData);
 
         showNotice(
             uploadMessage,
@@ -856,7 +686,6 @@ async function loadMaterials() {
     if (loadingMaterials) return;
 
     loadingMaterials = true;
-
     refreshButton.disabled = true;
 
     materialsList.textContent = "Loading textbook library...";
@@ -894,7 +723,6 @@ async function loadMaterials() {
     } finally {
 
         loadingMaterials = false;
-
         refreshButton.disabled = false;
 
     }
@@ -905,7 +733,6 @@ async function loadMaterials() {
 /* FILTER MATERIALS */
 
 searchInput.addEventListener("input", renderMaterials);
-
 statusFilter.addEventListener("change", renderMaterials);
 
 
@@ -942,21 +769,14 @@ function renderMaterials() {
 
 
     if (filtered.length === 0) {
-
         materialsList.textContent =
             "No materials match your search or filter.";
-
         return;
-
     }
 
 
     filtered.forEach(material => {
-
-        materialsList.appendChild(
-            createMaterialCard(material)
-        );
-
+        materialsList.appendChild(createMaterialCard(material));
     });
 
 }
@@ -967,7 +787,6 @@ function renderMaterials() {
 function createMaterialCard(material) {
 
     const card = document.createElement("article");
-
     card.className = "material-card";
 
 
@@ -1017,7 +836,6 @@ function createMaterialCard(material) {
 
 
     const actions = document.createElement("div");
-
     actions.className = "material-actions";
 
 
@@ -1025,28 +843,22 @@ function createMaterialCard(material) {
 
     const extractButton = createElement(
         "button",
-        extraction
-            ? "Re-extract Text"
-            : "Extract Text",
+        extraction ? "Re-extract Text" : "Extract Text",
         "admin-button"
     );
 
     extractButton.type = "button";
 
-
     extractButton.addEventListener("click", async () => {
 
         extractButton.disabled = true;
-
         extractButton.textContent = "Extracting...";
 
         try {
 
             const result = await materialRequest(
                 "POST",
-                {
-                    materialId: material.id
-                }
+                { materialId: material.id }
             );
 
             showNotice(
@@ -1059,12 +871,10 @@ function createMaterialCard(material) {
             await loadMaterials();
 
             if (result.extractedText) {
-
                 showTextPreview(
                     material.title,
                     result.extractedText
                 );
-
             }
 
         } catch (error) {
@@ -1100,33 +910,31 @@ function createMaterialCard(material) {
 
     viewButton.disabled =
         !extraction ||
-        extraction.extraction_status !== "completed";
+        String(extraction.extraction_status).toLowerCase() !== "completed";
 
 
     viewButton.addEventListener("click", async () => {
 
         viewButton.disabled = true;
-
         viewButton.textContent = "Loading text...";
 
         try {
 
-            // Current backend uses the extraction endpoint
-            // to return the extracted text.
+            /*
+             * Preserve the existing API contract.
+             * The current endpoint is used to retrieve the
+             * extracted text for this material.
+             */
 
             const result = await materialRequest(
                 "POST",
-                {
-                    materialId: material.id
-                }
+                { materialId: material.id }
             );
 
             if (!result.extractedText) {
-
                 throw new Error(
                     "No extracted text was returned."
                 );
-
             }
 
             showTextPreview(
@@ -1161,6 +969,17 @@ function createMaterialCard(material) {
     );
 
     approveButton.type = "button";
+
+
+    /* REJECT BUTTON */
+
+    const rejectButton = createElement(
+        "button",
+        "Reject",
+        "admin-button reject-button"
+    );
+
+    rejectButton.type = "button";
 
 
     approveButton.addEventListener("click", async () => {
@@ -1211,17 +1030,6 @@ function createMaterialCard(material) {
     });
 
 
-    /* REJECT BUTTON */
-
-    const rejectButton = createElement(
-        "button",
-        "Reject",
-        "admin-button reject-button"
-    );
-
-    rejectButton.type = "button";
-
-
     rejectButton.addEventListener("click", async () => {
 
         const confirmed = confirm(
@@ -1270,7 +1078,7 @@ function createMaterialCard(material) {
     });
 
 
-    /* BUTTON VISIBILITY — CORRECTED */
+    /* BUTTON VISIBILITY */
 
     if (status === "pending") {
 
@@ -1289,9 +1097,7 @@ function createMaterialCard(material) {
 
     } else if (status === "rejected") {
 
-        actions.append(
-            approveButton
-        );
+        actions.append(approveButton);
 
     } else {
 
@@ -1323,11 +1129,14 @@ function showTextPreview(title, text) {
     const previewSection = document.createElement("section");
 
     previewSection.className = "admin-section";
+    previewSection.id = "text-preview-section";
+
 
     const heading = createElement(
         "h2",
         `Extracted Text — ${title}`
     );
+
 
     const closeButton = createElement(
         "button",
@@ -1376,7 +1185,6 @@ function showTextPreview(title, text) {
     const pre = document.createElement("pre");
 
     pre.className = "extracted-preview";
-
     pre.textContent = text;
 
 
@@ -1391,9 +1199,9 @@ function showTextPreview(title, text) {
     const oldPreview =
         document.getElementById("text-preview-section");
 
-    if (oldPreview) oldPreview.remove();
-
-    previewSection.id = "text-preview-section";
+    if (oldPreview) {
+        oldPreview.remove();
+    }
 
     adminContent.appendChild(previewSection);
 
@@ -1407,10 +1215,7 @@ function showTextPreview(title, text) {
 
 /* REFRESH */
 
-refreshButton.addEventListener(
-    "click",
-    loadMaterials
-);
+refreshButton.addEventListener("click", loadMaterials);
 
 
 /* AUTHENTICATION */
@@ -1451,7 +1256,6 @@ onAuthStateChanged(
         currentAdmin = user;
 
         accessMessage.hidden = true;
-
         adminContent.hidden = false;
 
         await loadMaterials();
@@ -1463,7 +1267,6 @@ onAuthStateChanged(
         console.error("Firebase authentication error:", error);
 
         adminContent.hidden = true;
-
         accessMessage.hidden = false;
 
         accessMessage.textContent =
@@ -1472,128 +1275,6 @@ onAuthStateChanged(
 
     }
 );
-
-</script>
-
-
-<!-- QUESTION PREVIEW -->
-
-<script>
-
-const previewButton =
-    document.getElementById("preview-question");
-
-const preview =
-    document.getElementById("question-preview");
-
-
-previewButton.addEventListener("click", () => {
-
-    const subject =
-        document.getElementById("subject").value;
-
-    const topic =
-        document.getElementById("topic").value.trim();
-
-    const difficulty =
-        document.getElementById("difficulty").value;
-
-    const question =
-        document.getElementById("question-text").value.trim();
-
-
-    const options = [
-        document.getElementById("option-a").value.trim(),
-        document.getElementById("option-b").value.trim(),
-        document.getElementById("option-c").value.trim(),
-        document.getElementById("option-d").value.trim()
-    ];
-
-
-    const answer =
-        document.getElementById("correct-answer").value;
-
-    const explanation =
-        document.getElementById("explanation").value.trim();
-
-
-    if (
-        !subject ||
-        !topic ||
-        !difficulty ||
-        !question ||
-        options.some(option => !option) ||
-        answer === "" ||
-        !explanation
-    ) {
-
-        preview.hidden = false;
-
-        preview.textContent =
-            "Complete all question fields before previewing.";
-
-        return;
-
-    }
-
-
-    preview.replaceChildren();
-
-
-    const heading = document.createElement("h3");
-
-    heading.textContent =
-        `${subject} — ${topic}`;
-
-    preview.appendChild(heading);
-
-
-    const prompt = document.createElement("p");
-
-    prompt.textContent = question;
-
-    preview.appendChild(prompt);
-
-
-    options.forEach((option, index) => {
-
-        const line = document.createElement("p");
-
-        line.textContent =
-            `${String.fromCharCode(65 + index)}. ${option}`;
-
-        preview.appendChild(line);
-
-    });
-
-
-    const difficultyLine = document.createElement("p");
-
-    difficultyLine.textContent =
-        `Star difficulty: ${difficulty}`;
-
-    preview.appendChild(difficultyLine);
-
-
-    const answerLine = document.createElement("p");
-
-    answerLine.textContent =
-        `Correct answer: ${String.fromCharCode(65 + Number(answer))}`;
-
-    preview.appendChild(answerLine);
-
-
-    const explanationLine = document.createElement("p");
-
-    explanationLine.textContent =
-        `Explanation: ${explanation}`;
-
-    preview.appendChild(explanationLine);
-
-
-    preview.hidden = false;
-
-});
 
 </script>
 
