@@ -18,9 +18,7 @@
       --accent: var(--accent-bright, #c6a7ff);
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -41,17 +39,10 @@
       background: var(--bg-secondary, var(--background));
     }
 
-    .brand {
-      font-weight: 800;
-      font-size: 1.05rem;
-    }
+    .brand { font-weight: 800; font-size: 1.05rem; }
+    .brand span { color: var(--accent); }
 
-    .brand span {
-      color: var(--accent);
-    }
-
-    button,
-    .action {
+    button, .action {
       border: 0;
       border-radius: 10px;
       padding: 12px 16px;
@@ -60,7 +51,6 @@
       cursor: pointer;
       text-decoration: none;
       display: inline-block;
-      transition: background-color .2s ease, color .2s ease;
     }
 
     button {
@@ -74,25 +64,7 @@
       color: #fff;
     }
 
-    .action:hover {
-      background: var(--accent);
-      color: var(--bg-primary, #11101b);
-    }
-
-    button:disabled {
-      opacity: .6;
-      cursor: wait;
-    }
-
-    .danger-button {
-      border-color: #a94d5b;
-      color: #ffb5bd;
-    }
-
-    .small-button {
-      padding: 7px 10px;
-      font-size: .85rem;
-    }
+    button:disabled { opacity: .6; cursor: wait; }
 
     main {
       width: min(calc(100% - 32px), 1000px);
@@ -107,9 +79,22 @@
       margin-bottom: 24px;
     }
 
-    h1,
-    h2 {
-      margin-top: 0;
+    h1, h2 { margin-top: 0; }
+
+    .muted {
+      color: var(--muted);
+      font-size: .9rem;
+      line-height: 1.6;
+    }
+
+    #page-message,
+    #achievement-message {
+      padding: 14px;
+      border-radius: 10px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      margin-bottom: 20px;
+      overflow-wrap: anywhere;
     }
 
     .admin-nav {
@@ -146,9 +131,7 @@
       line-height: 1.6;
     }
 
-    .form-group {
-      margin-bottom: 16px;
-    }
+    .form-group { margin-bottom: 16px; }
 
     label {
       display: block;
@@ -157,9 +140,7 @@
       font-size: .9rem;
     }
 
-    input,
-    select,
-    textarea {
+    input, select, textarea {
       width: 100%;
       padding: 12px;
       border-radius: 10px;
@@ -169,39 +150,7 @@
       font: inherit;
     }
 
-    input[type="checkbox"] {
-      width: auto;
-      padding: 0;
-    }
-
-    textarea {
-      resize: vertical;
-      min-height: 80px;
-    }
-
-    .muted {
-      color: var(--muted);
-      font-size: .9rem;
-      line-height: 1.6;
-    }
-
-    #page-message {
-      padding: 14px;
-      border-radius: 10px;
-      background: var(--panel);
-      border: 1px solid var(--border);
-      margin-bottom: 20px;
-    }
-
-    #form-message,
-    #achievement-message,
-    #hai-generation-status {
-      margin-top: 16px;
-      padding: 12px;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      overflow-wrap: anywhere;
-    }
+    textarea { resize: vertical; min-height: 80px; }
 
     .achievement-list {
       display: grid;
@@ -253,11 +202,16 @@
       margin-left: 6px;
     }
 
-    .badge-active {
-      color: #9be6b1;
+    .badge-active { color: #9be6b1; }
+    .badge-inactive { color: #ffb5bd; }
+
+    .small-button {
+      padding: 7px 10px;
+      font-size: .85rem;
     }
 
-    .badge-inactive {
+    .danger-button {
+      border-color: #a94d5b;
       color: #ffb5bd;
     }
 
@@ -267,74 +221,15 @@
       gap: 10px;
     }
 
-    .ai-result-section {
-      padding: 14px 0;
-      border-bottom: 1px solid var(--border);
-      overflow-wrap: anywhere;
-    }
-
-    .ai-result-section:last-child {
-      border-bottom: 0;
-    }
-
-    .ai-result-section p {
-      white-space: pre-wrap;
-      overflow-wrap: anywhere;
-      line-height: 1.6;
-    }
-
-    .ai-result-section li {
-      margin-bottom: 8px;
-      line-height: 1.5;
-    }
-
-    .hai-question {
-      line-height: 1.7;
-      overflow-wrap: anywhere;
-    }
-
-    .hai-options {
-      padding-left: 24px;
-      line-height: 1.8;
-    }
-
-    .hai-correct-answer {
-      color: #9be6b1;
-      font-weight: 700;
-    }
-
-    .hai-selection-label {
-      display: flex;
-      align-items: center;
-      gap: 9px;
-      cursor: pointer;
-    }
-
-    .hai-selection-label input {
-      width: auto;
-      margin: 0;
-    }
-
-    [hidden] {
-      display: none !important;
-    }
+    [hidden] { display: none !important; }
 
     @media (max-width: 600px) {
-      .panel {
-        padding: 18px;
-      }
-
-      main {
-        margin-top: 24px;
-      }
+      .panel { padding: 18px; }
+      main { margin-top: 24px; }
     }
 
     @media (prefers-reduced-motion: reduce) {
-      *,
-      *::before,
-      *::after {
-        transition: none !important;
-      }
+      *, *::before, *::after { transition: none !important; }
     }
   </style>
 </head>
@@ -352,9 +247,7 @@
         Student Dashboard
       </a>
 
-      <button id="logout-button" type="button">
-        Log out
-      </button>
+      <button id="logout-button" type="button">Log out</button>
     </div>
   </header>
 
@@ -365,367 +258,45 @@
 
     <div id="admin-content" hidden>
 
-      <!-- ADMINISTRATION NAVIGATION -->
       <section class="panel">
         <h1>Administration</h1>
 
         <p class="muted">
-          Manage questions, learning materials, student accounts, and rewards.
+          Manage the platform, learning resources, students, and HAI.
+          Each management system has its own dedicated page.
         </p>
 
         <div class="admin-nav">
 
-          <a class="admin-card" href="admin.html">
-            <h3>Question Management</h3>
-            <p>Create and publish questions to the question bank.</p>
+          <a class="admin-card" href="hai-studio.html">
+            <h3>HAI Question Studio</h3>
+            <p>Generate textbook questions, review candidates, and submit them for approval.</p>
           </a>
 
           <a class="admin-card" href="admin-materials.html">
             <h3>Learning Materials</h3>
-            <p>Open the page for managing learning resources.</p>
+            <p>Upload textbooks, extract their contents, and manage publication.</p>
           </a>
 
           <a class="admin-card" href="admin-users.html">
             <h3>Student Management</h3>
-            <p>Open the student and faction management page.</p>
+            <p>Manage student accounts and faction information.</p>
           </a>
 
           <a class="admin-card" href="pages.html">
             <h3>Page Directory</h3>
-            <p>Find the other student and administration pages.</p>
-          </a>
-          <a class="admin-card" href="hai-studio.html">
-  <h3>HAI Question Studio</h3>
-  <p>Generate, edit, approve and submit textbook questions.</p>
+            <p>Access the other student and administration pages.</p>
           </a>
 
         </div>
       </section>
 
-
-      <!-- HAI TEXTBOOK QUESTION GENERATOR -->
-      <section class="panel" id="ai-question-generator">
-
-        <h2>HAI — Textbook Question Generator</h2>
-
-        <p class="muted">
-          Generate multiple-choice questions from published textbooks
-          using HAI's knowledge-processing engines. Every generated
-          question must be reviewed before submission to the question bank.
-        </p>
-
-        <div class="form-group">
-          <label for="hai-material">Published Textbook</label>
-
-          <select id="hai-material" required disabled>
-            <option value="">Waiting for administrator authentication...</option>
-          </select>
-
-          <button
-            id="hai-refresh-materials"
-            type="button"
-            class="small-button"
-            style="margin-top:8px;"
-            disabled>
-            Refresh Textbooks
-          </button>
-        </div>
-
-        <div class="form-group">
-          <label for="hai-subject">Subject</label>
-
-          <input
-            id="hai-subject"
-            type="text"
-            maxlength="100"
-            required
-            placeholder="e.g. Biology">
-        </div>
-
-        <div class="form-group">
-          <label for="hai-topic">Topic</label>
-
-          <input
-            id="hai-topic"
-            type="text"
-            maxlength="200"
-            required
-            placeholder="e.g. Nutrition in Plants">
-        </div>
-
-        <div class="form-group">
-          <label for="hai-chapter">Chapter</label>
-
-          <input
-            id="hai-chapter"
-            type="text"
-            maxlength="200"
-            placeholder="Chapter name">
-        </div>
-
-        <div class="form-group">
-          <label for="hai-count">Number of Questions</label>
-
-          <input
-            id="hai-count"
-            type="number"
-            min="1"
-            max="100"
-            step="1"
-            value="10"
-            required>
-        </div>
-
-        <div class="form-group">
-          <label for="hai-difficulty">Difficulty (1–7)</label>
-
-          <input
-            id="hai-difficulty"
-            type="number"
-            min="1"
-            max="7"
-            step="1"
-            value="2"
-            required>
-
-          <p class="muted">
-            Levels 1–3 use basic question templates.
-            Levels 4–7 use understanding question templates.
-          </p>
-        </div>
-
-        <button
-          id="hai-generate-button"
-          class="action"
-          type="button"
-          disabled>
-          Generate Questions
-        </button>
-
-        <p
-          id="hai-generation-status"
-          role="status"
-          aria-live="polite">
-          Waiting for administrator authentication.
-        </p>
-
-        <!-- GENERATION STATISTICS -->
-        <div
-          id="hai-generation-statistics"
-          hidden
-          class="achievement-item">
-        </div>
-
-        <!-- GENERATED QUESTION REVIEW -->
-        <div id="hai-generation-results" hidden>
-
-          <hr style="border:0;border-top:1px solid var(--border);margin:24px 0;">
-
-          <h3>Generated Questions</h3>
-
-          <p class="muted">
-            Review each generated question and its answer.
-            Select only the questions you want to submit for review.
-          </p>
-
-          <div class="form-actions" style="margin-bottom:14px;">
-
-            <button
-              id="hai-select-all"
-              type="button"
-              class="small-button">
-              Select All
-            </button>
-
-            <button
-              id="hai-deselect-all"
-              type="button"
-              class="small-button">
-              Deselect All
-            </button>
-
-          </div>
-
-          <div
-            id="hai-question-list"
-            class="achievement-list">
-          </div>
-
-          <p
-            id="hai-selection-count"
-            class="muted"
-            aria-live="polite">
-            0 questions selected.
-          </p>
-
-          <button
-            id="hai-submit-button"
-            class="action"
-            type="button"
-            hidden>
-            Submit Selected Questions for Review
-          </button>
-
-        </div>
-      </section>
-
-
-      <!-- MANUAL QUESTION MANAGEMENT -->
-      <section class="panel">
-        <h2>Add New Question</h2>
-
-        <p class="muted">
-          Add a question directly to the global question repository.
-        </p>
-
-        <form id="add-question-form">
-
-          <div class="form-group">
-            <label for="q-id">Question ID</label>
-
-            <input
-              type="text"
-              id="q-id"
-              required
-              pattern="[A-Za-z0-9_-]+"
-              maxlength="100"
-              placeholder="e.g. math_001">
-          </div>
-
-          <div class="form-group">
-            <label for="q-subject">Subject</label>
-
-            <input
-              type="text"
-              id="q-subject"
-              required
-              maxlength="100"
-              placeholder="e.g. Mathematics, Biology">
-          </div>
-
-          <div class="form-group">
-            <label for="q-topic">Topic</label>
-
-            <input
-              type="text"
-              id="q-topic"
-              required
-              maxlength="150"
-              placeholder="e.g. Algebra, Excretion">
-          </div>
-
-          <div class="form-group">
-            <label for="q-difficulty">Difficulty (1 to 7)</label>
-
-            <input
-              type="number"
-              id="q-difficulty"
-              min="1"
-              max="7"
-              step="1"
-              value="1"
-              required>
-          </div>
-
-          <div class="form-group">
-            <label for="q-text">Question Text</label>
-
-            <textarea
-              id="q-text"
-              required
-              maxlength="10000"
-              placeholder="Type the question here..."></textarea>
-          </div>
-
-          <div class="form-group">
-            <label>Options (at least 2, up to 4)</label>
-
-            <input
-              type="text"
-              class="q-option"
-              aria-label="Option A"
-              placeholder="Option A"
-              maxlength="2000"
-              required
-              style="margin-bottom:8px;">
-
-            <input
-              type="text"
-              class="q-option"
-              aria-label="Option B"
-              placeholder="Option B"
-              maxlength="2000"
-              required
-              style="margin-bottom:8px;">
-
-            <input
-              type="text"
-              class="q-option"
-              aria-label="Option C"
-              placeholder="Option C"
-              maxlength="2000"
-              style="margin-bottom:8px;">
-
-            <input
-              type="text"
-              class="q-option"
-              aria-label="Option D"
-              placeholder="Option D"
-              maxlength="2000">
-          </div>
-
-          <div class="form-group">
-            <label for="q-answer-index">
-              Correct Answer Index (0 = A, 1 = B, 2 = C, 3 = D)
-            </label>
-
-            <input
-              type="number"
-              id="q-answer-index"
-              min="0"
-              max="3"
-              step="1"
-              value="0"
-              required>
-          </div>
-
-          <div class="form-group">
-            <label for="q-explanation">
-              Explanation (Optional)
-            </label>
-
-            <textarea
-              id="q-explanation"
-              maxlength="10000"
-              placeholder="Explain why the correct answer is right..."></textarea>
-          </div>
-
-          <button
-            id="publish-button"
-            type="submit"
-            class="action">
-            Publish Question
-          </button>
-
-          <p
-            id="form-message"
-            role="status"
-            aria-live="polite"
-            hidden>
-          </p>
-
-        </form>
-      </section>
-
-
-      <!-- ACHIEVEMENT MANAGEMENT -->
       <section class="panel" id="achievement-management">
-
         <h2>Achievement Management</h2>
 
         <p class="muted">
           Create and manage achievement definitions for the rewards system.
-          IDs must be unique. Bonus points are stored here as configuration;
+          IDs must be unique. Bonus points are stored as configuration;
           student unlocking and payouts must be connected separately.
         </p>
 
@@ -733,55 +304,33 @@
 
           <div class="form-group">
             <label for="achievement-id">Achievement ID</label>
-
-            <input
-              id="achievement-id"
-              type="text"
-              required
-              pattern="[A-Za-z0-9_-]+"
-              maxlength="80"
+            <input id="achievement-id" type="text" required
+              pattern="[A-Za-z0-9_-]+" maxlength="80"
               placeholder="e.g. first_100_questions">
-
-            <p class="muted">
-              Use a stable ID. Changing it creates a different achievement.
-            </p>
+            <p class="muted">Use a stable ID. Changing it creates a different achievement.</p>
           </div>
 
           <div class="form-group">
             <label for="achievement-title">Title</label>
-
-            <input
-              id="achievement-title"
-              type="text"
-              required
-              maxlength="100"
-              placeholder="e.g. Hundred Club">
+            <input id="achievement-title" type="text" required
+              maxlength="100" placeholder="e.g. Hundred Club">
           </div>
 
           <div class="form-group">
             <label for="achievement-description">Description</label>
-
-            <textarea
-              id="achievement-description"
-              required
+            <textarea id="achievement-description" required
               maxlength="500"
               placeholder="What must a student do to earn it?"></textarea>
           </div>
 
           <div class="form-group">
             <label for="achievement-icon">Icon or emoji</label>
-
-            <input
-              id="achievement-icon"
-              type="text"
-              maxlength="20"
-              placeholder="🏆"
-              value="🏆">
+            <input id="achievement-icon" type="text"
+              maxlength="20" placeholder="🏆" value="🏆">
           </div>
 
           <div class="form-group">
             <label for="achievement-requirement">Unlock Requirement</label>
-
             <select id="achievement-requirement" required>
               <option value="answered">Questions answered</option>
               <option value="correct">Correct answers</option>
@@ -793,35 +342,19 @@
 
           <div class="form-group">
             <label for="achievement-target">Target</label>
-
-            <input
-              id="achievement-target"
-              type="number"
-              min="1"
-              step="1"
-              value="10"
-              required>
-
-            <p class="muted">
-              For accuracy, enter a percentage from 1 to 100.
-            </p>
+            <input id="achievement-target" type="number"
+              min="1" step="1" value="10" required>
+            <p class="muted">For accuracy, enter a percentage from 1 to 100.</p>
           </div>
 
           <div class="form-group">
             <label for="achievement-bonus">Bonus Points</label>
-
-            <input
-              id="achievement-bonus"
-              type="number"
-              min="0"
-              step="1"
-              value="0"
-              required>
+            <input id="achievement-bonus" type="number"
+              min="0" step="1" value="0" required>
           </div>
 
           <div class="form-group">
             <label for="achievement-active">Status</label>
-
             <select id="achievement-active" required>
               <option value="true">Active</option>
               <option value="false">Inactive</option>
@@ -829,55 +362,32 @@
           </div>
 
           <div class="form-actions">
-
-            <button
-              id="achievement-save"
-              class="action"
-              type="submit">
+            <button id="achievement-save" class="action" type="submit">
               Save Achievement
             </button>
-
-            <button
-              id="achievement-cancel"
-              type="button"
-              hidden>
+            <button id="achievement-cancel" type="button" hidden>
               Cancel Editing
             </button>
-
           </div>
 
-          <p
-            id="achievement-message"
-            role="status"
-            aria-live="polite"
-            hidden>
-          </p>
-
+          <p id="achievement-message" role="status"
+             aria-live="polite" hidden></p>
         </form>
 
         <hr style="border:0;border-top:1px solid var(--border);margin:24px 0;">
 
         <h2>Existing Achievements</h2>
-
         <p class="muted">
-          Changes appear here when Firebase updates. Deactivating an
-          achievement keeps its definition but marks it inactive.
+          Deactivating an achievement keeps its definition but marks it inactive.
         </p>
 
-        <div
-          id="achievement-list"
-          class="achievement-list"
-          aria-live="polite">
+        <div id="achievement-list" class="achievement-list" aria-live="polite">
           <p class="muted">Loading achievements...</p>
         </div>
-
       </section>
-
     </div>
   </main>
 
-
-  <!-- EXISTING ADMIN FUNCTIONS -->
   <script type="module">
     import { auth, database } from "./js/firebase-client.js";
 
@@ -901,10 +411,6 @@
     const adminContent = document.getElementById("admin-content");
     const logoutButton = document.getElementById("logout-button");
 
-    const addForm = document.getElementById("add-question-form");
-    const publishButton = document.getElementById("publish-button");
-    const formMessage = document.getElementById("form-message");
-
     const achievementForm = document.getElementById("achievement-form");
     const achievementMessage = document.getElementById("achievement-message");
     const achievementList = document.getElementById("achievement-list");
@@ -922,13 +428,6 @@
         auth.currentUser.uid === ADMIN_UID &&
         currentAdmin.uid === ADMIN_UID
       );
-    }
-
-    function showFormMessage(message, isError = false) {
-      formMessage.hidden = false;
-      formMessage.textContent = message;
-      formMessage.style.borderColor =
-        isError ? "#ff7777" : "var(--border)";
     }
 
     function showAchievementMessage(message, isError = false) {
@@ -978,7 +477,7 @@
           String(a.title || a.id).localeCompare(String(b.title || b.id))
         );
 
-      if (achievements.length === 0) {
+      if (!achievements.length) {
         achievementList.innerHTML =
           '<p class="muted">No achievements yet. Create one using the form above.</p>';
         return;
@@ -1017,19 +516,15 @@
 
             <div class="achievement-actions">
               <button type="button" class="small-button"
-                      data-achievement-edit="${id}">
-                Edit
-              </button>
+                data-achievement-edit="${id}">Edit</button>
 
               <button type="button" class="small-button"
-                      data-achievement-toggle="${id}">
+                data-achievement-toggle="${id}">
                 ${active ? "Deactivate" : "Activate"}
               </button>
 
               <button type="button" class="small-button danger-button"
-                      data-achievement-delete="${id}">
-                Delete
-              </button>
+                data-achievement-delete="${id}">Delete</button>
             </div>
           </article>
         `;
@@ -1037,17 +532,13 @@
     }
 
     function loadAchievements() {
-      if (stopAchievementListener) {
-        stopAchievementListener();
-      }
+      if (stopAchievementListener) stopAchievementListener();
 
       const achievementsRef = ref(database, "rewardSystem/achievements");
 
       stopAchievementListener = onValue(
         achievementsRef,
-        snapshot => {
-          renderAchievementList(snapshot.val());
-        },
+        snapshot => renderAchievementList(snapshot.val()),
         error => {
           console.error("Could not load achievements:", error);
           achievementList.innerHTML =
@@ -1056,38 +547,25 @@
       );
     }
 
-    // CREATE AND EDIT ACHIEVEMENTS
     achievementForm.addEventListener("submit", async event => {
       event.preventDefault();
 
       if (!requireAdmin()) {
-        showAchievementMessage(
-          "You are not authorised to manage achievements.",
-          true
-        );
+        showAchievementMessage("You are not authorised to manage achievements.", true);
         return;
       }
 
       const id = document.getElementById("achievement-id").value.trim();
       const title = document.getElementById("achievement-title").value.trim();
-      const description =
-        document.getElementById("achievement-description").value.trim();
-      const icon =
-        document.getElementById("achievement-icon").value.trim() || "🏆";
-      const requirement =
-        document.getElementById("achievement-requirement").value;
-      const target =
-        Number(document.getElementById("achievement-target").value);
-      const bonusPoints =
-        Number(document.getElementById("achievement-bonus").value);
-      const active =
-        document.getElementById("achievement-active").value === "true";
+      const description = document.getElementById("achievement-description").value.trim();
+      const icon = document.getElementById("achievement-icon").value.trim() || "🏆";
+      const requirement = document.getElementById("achievement-requirement").value;
+      const target = Number(document.getElementById("achievement-target").value);
+      const bonusPoints = Number(document.getElementById("achievement-bonus").value);
+      const active = document.getElementById("achievement-active").value === "true";
 
       if (!/^[A-Za-z0-9_-]+$/.test(id)) {
-        showAchievementMessage(
-          "The ID may contain only letters, numbers, underscores, and hyphens.",
-          true
-        );
+        showAchievementMessage("The ID may contain only letters, numbers, underscores, and hyphens.", true);
         return;
       }
 
@@ -1099,24 +577,17 @@
         !Number.isInteger(bonusPoints) ||
         bonusPoints < 0
       ) {
-        showAchievementMessage(
-          "Enter a title, description, valid positive target, and non-negative whole-number bonus.",
-          true
-        );
+        showAchievementMessage("Enter a title, description, valid positive target, and non-negative whole-number bonus.", true);
         return;
       }
 
       if (requirement === "accuracy" && target > 100) {
-        showAchievementMessage(
-          "Accuracy target must be between 1 and 100.",
-          true
-        );
+        showAchievementMessage("Accuracy target must be between 1 and 100.", true);
         return;
       }
 
       achievementSave.disabled = true;
-      achievementSave.textContent =
-        editingAchievementId ? "Updating..." : "Saving...";
+      achievementSave.textContent = editingAchievementId ? "Updating..." : "Saving...";
 
       try {
         const itemRef = ref(database, `rewardSystem/achievements/${id}`);
@@ -1124,16 +595,13 @@
         const existing = existingSnapshot.val() || {};
 
         if (!editingAchievementId && existingSnapshot.exists()) {
-          showAchievementMessage(
-            "That achievement ID already exists. Choose a different ID or edit the existing achievement.",
-            true
-          );
+          showAchievementMessage("That achievement ID already exists. Choose a different ID or edit the existing achievement.", true);
           return;
         }
 
         const now = new Date().toISOString();
 
-        const payload = {
+        await set(itemRef, {
           id,
           title,
           description,
@@ -1146,9 +614,7 @@
           createdBy: existing.createdBy || currentAdmin.uid,
           updatedAt: now,
           updatedBy: currentAdmin.uid
-        };
-
-        await set(itemRef, payload);
+        });
 
         showAchievementMessage(
           editingAchievementId
@@ -1160,14 +626,12 @@
 
       } catch (error) {
         console.error("Failed to save achievement:", error);
-        showAchievementMessage(
-          "Could not save achievement. Check Firebase Database Rules and your connection.",
-          true
-        );
+        showAchievementMessage("Could not save achievement. Check Firebase Database Rules and your connection.", true);
       } finally {
         achievementSave.disabled = false;
-        achievementSave.textContent =
-          editingAchievementId ? "Update Achievement" : "Save Achievement";
+        achievementSave.textContent = editingAchievementId
+          ? "Update Achievement"
+          : "Save Achievement";
       }
     });
 
@@ -1176,7 +640,6 @@
       achievementMessage.hidden = true;
     });
 
-    // EDIT, ACTIVATE, DEACTIVATE, AND DELETE
     achievementList.addEventListener("click", async event => {
       const editButton = event.target.closest("[data-achievement-edit]");
       const toggleButton = event.target.closest("[data-achievement-toggle]");
@@ -1185,10 +648,7 @@
       if (!editButton && !toggleButton && !deleteButton) return;
 
       if (!requireAdmin()) {
-        showAchievementMessage(
-          "You are not authorised to manage achievements.",
-          true
-        );
+        showAchievementMessage("You are not authorised to manage achievements.", true);
         return;
       }
 
@@ -1203,10 +663,7 @@
         const snapshot = await get(itemRef);
 
         if (!snapshot.exists()) {
-          showAchievementMessage(
-            "This achievement no longer exists. The list will refresh.",
-            true
-          );
+          showAchievementMessage("This achievement no longer exists. The list will refresh.", true);
           return;
         }
 
@@ -1217,29 +674,18 @@
 
           document.getElementById("achievement-id").value = id;
           document.getElementById("achievement-id").disabled = true;
-          document.getElementById("achievement-title").value =
-            item.title || "";
-          document.getElementById("achievement-description").value =
-            item.description || "";
-          document.getElementById("achievement-icon").value =
-            item.icon || "🏆";
-          document.getElementById("achievement-requirement").value =
-            item.requirement || "answered";
-          document.getElementById("achievement-target").value =
-            Number(item.target) || 1;
-          document.getElementById("achievement-bonus").value =
-            Number(item.bonusPoints) || 0;
-          document.getElementById("achievement-active").value =
-            item.active === true ? "true" : "false";
+          document.getElementById("achievement-title").value = item.title || "";
+          document.getElementById("achievement-description").value = item.description || "";
+          document.getElementById("achievement-icon").value = item.icon || "🏆";
+          document.getElementById("achievement-requirement").value = item.requirement || "answered";
+          document.getElementById("achievement-target").value = Number(item.target) || 1;
+          document.getElementById("achievement-bonus").value = Number(item.bonusPoints) || 0;
+          document.getElementById("achievement-active").value = item.active === true ? "true" : "false";
 
           achievementSave.textContent = "Update Achievement";
           achievementCancel.hidden = false;
 
-          achievementForm.scrollIntoView({
-            behavior: "smooth",
-            block: "start"
-          });
-
+          achievementForm.scrollIntoView({ behavior: "smooth", block: "start" });
           showAchievementMessage(`Editing "${item.title || id}".`);
           return;
         }
@@ -1266,23 +712,16 @@
 
           await remove(itemRef);
 
-          if (editingAchievementId === id) {
-            resetAchievementForm();
-          }
-
+          if (editingAchievementId === id) resetAchievementForm();
           showAchievementMessage("Achievement deleted.");
         }
 
       } catch (error) {
         console.error("Achievement action failed:", error);
-        showAchievementMessage(
-          "That action failed. Check Firebase Database Rules and your connection.",
-          true
-        );
+        showAchievementMessage("That action failed. Check Firebase Database Rules and your connection.", true);
       }
     });
 
-    // AUTHENTICATION AND ADMIN ACCESS
     onAuthStateChanged(auth, user => {
       currentAdmin = null;
 
@@ -1298,8 +737,7 @@
 
       if (user.uid !== ADMIN_UID) {
         pageMessage.hidden = false;
-        pageMessage.textContent =
-          "Access denied. Administrator privileges required.";
+        pageMessage.textContent = "Access denied. Administrator privileges required.";
         pageMessage.style.borderColor = "#ff5555";
         adminContent.hidden = true;
         return;
@@ -1312,130 +750,6 @@
       loadAchievements();
     });
 
-    // MANUAL QUESTION PUBLISHING
-    addForm.addEventListener("submit", async event => {
-      event.preventDefault();
-
-      if (!requireAdmin()) {
-        showFormMessage(
-          "You are not authorised to publish questions.",
-          true
-        );
-        return;
-      }
-
-      const id = document.getElementById("q-id").value.trim();
-      const subject = document.getElementById("q-subject").value.trim();
-      const topic = document.getElementById("q-topic").value.trim();
-      const difficulty =
-        Number(document.getElementById("q-difficulty").value);
-      const questionText =
-        document.getElementById("q-text").value.trim();
-
-      const optionInputs = [...document.querySelectorAll(".q-option")];
-
-      const options = optionInputs
-        .map(input => input.value.trim())
-        .filter(value => value !== "");
-
-      const answerIndex =
-        Number(document.getElementById("q-answer-index").value);
-
-      const explanation =
-        document.getElementById("q-explanation").value.trim();
-
-      if (!/^[A-Za-z0-9_-]+$/.test(id)) {
-        showFormMessage(
-          "Use only letters, numbers, underscores, and hyphens in the question ID.",
-          true
-        );
-        return;
-      }
-
-      if (
-        difficulty < 1 ||
-        difficulty > 7 ||
-        !Number.isInteger(difficulty)
-      ) {
-        showFormMessage(
-          "Difficulty must be a whole number from 1 to 7.",
-          true
-        );
-        return;
-      }
-
-      if (options.length < 2 || options.length > 4) {
-        showFormMessage(
-          "Provide between two and four non-empty options.",
-          true
-        );
-        return;
-      }
-
-      if (
-        !Number.isInteger(answerIndex) ||
-        answerIndex < 0 ||
-        answerIndex >= options.length
-      ) {
-        showFormMessage(
-          "The correct answer must point to an option that contains text.",
-          true
-        );
-        return;
-      }
-
-      publishButton.disabled = true;
-      publishButton.textContent = "Publishing...";
-      showFormMessage("Publishing question...");
-
-      try {
-        const questionRef = ref(database, `questionBank/${id}`);
-        const existingSnapshot = await get(questionRef);
-
-        if (existingSnapshot.exists()) {
-          showFormMessage(
-            "That question ID already exists. Choose a new ID to avoid overwriting it.",
-            true
-          );
-          return;
-        }
-
-        await set(questionRef, {
-          id,
-          subject,
-          topic,
-          difficulty,
-          question: questionText,
-          options,
-          answerIndex,
-          explanation,
-          verified: true,
-          createdAt: new Date().toISOString(),
-          createdBy: currentAdmin.uid
-        });
-
-        showFormMessage(
-          "Question saved to Firebase. Confirm that it appears in the question bank."
-        );
-
-        addForm.reset();
-        document.getElementById("q-difficulty").value = "1";
-        document.getElementById("q-answer-index").value = "0";
-
-      } catch (error) {
-        console.error("Failed to publish question:", error);
-
-        showFormMessage(
-          "Could not publish the question. Firebase permissions or connectivity may be the cause.",
-          true
-        );
-      } finally {
-        publishButton.disabled = false;
-        publishButton.textContent = "Publish Question";
-      }
-    });
-
-    // LOG OUT
     logoutButton.addEventListener("click", async () => {
       logoutButton.disabled = true;
 
@@ -1444,22 +758,13 @@
         window.location.replace("login.html");
       } catch (error) {
         console.error("Logout failed:", error);
-
         pageMessage.hidden = false;
-        pageMessage.textContent =
-          "Could not log out. Please check your connection and try again.";
-
+        pageMessage.textContent = "Could not log out. Please check your connection and try again.";
         logoutButton.disabled = false;
       }
     });
   </script>
 
-
-  <!-- HAI TEXTBOOK GENERATOR -->
-  <script type="module" src="js/admin-ai.js"></script>
-
-  <!-- EXISTING THEME CONTROLLER -->
   <script type="module" src="js/faction-theme.js"></script>
-
 </body>
 </html>
