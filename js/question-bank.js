@@ -1,3 +1,4 @@
+
 /* Hysteria's Cure — Question Bank manager (replacement) */
 
 import { auth, database } from "./firebase-client.js";
@@ -22,9 +23,6 @@ import {
 } from "./algorithm-collapse.js";
 
 const ADMIN_UID = "RtaLjBtKSUgRnWB7ag06CLRCStM2";
-
-const HAI_PENDING_URL =
-  "https://hai-api-l7js.onrender.com/questions/pending";
 
 const MATERIALS_API_URL =
   "https://iltnklpuyifvnojiqrkh.supabase.co/functions/v1/manage-learning-materials";
@@ -97,10 +95,18 @@ const materialsList =
 const refreshMaterialsButton =
   document.getElementById("refresh-materials");
 
+/*
+ * Separate action for adding questions to HAI Generated Questions.
+ *
+ * This writes to haiQuestionDrafts.
+ * It does NOT write to pendingQuestions.
+ * It does NOT publish to questionBank.
+ */
+
 const pendingButton = document.createElement("button");
 
 pendingButton.type = "button";
-pendingButton.textContent = "Send to pending review";
+pendingButton.textContent = "Add to Pending Questions";
 pendingButton.className = $("save-button").className;
 pendingButton.style.marginLeft = "8px";
 
@@ -672,6 +678,8 @@ function uploadMessage(text, error = false) {
 }
 
 function renderMaterials(items) {
+  if (!materialsList) return;
+
   if (!Array.isArray(items) || !items.length) {
     materialsList.innerHTML =
       '<div class="empty-list">No textbooks uploaded yet.</div>';
@@ -1065,6 +1073,12 @@ onAuthStateChanged(auth, user => {
 
 /*
  * Save and update questions.
+ *
+ * Existing behaviour is retained:
+ * - Verified new questions go to questionBank.
+ * - Unverified new questions go to pendingQuestions.
+ * - Editing a published question without verification moves it
+ *   to pendingQuestions.
  */
 
 $("question-form").addEventListener(
@@ -1195,77 +1209,80 @@ $("question-form").addEventListener(
 );
 
 /*
- * Send a question to HAI's private pending-review queue.
+ * Add a question to HAI Generated Questions — PENDING QUESTIONS.
+ *
+ * IMPORTANT:
+ * This writes to haiQuestionDrafts.
+ *
+ * It does NOT:
+ * - Submit to the final approval queue.
+ * - Write to pendingQuestions.
+ * - Publish to questionBank.
+ *
+ * The HAI draft-review module displays this record because:
+ * status = "pending"
+ * approved = false
  */
 
 pendingButton.addEventListener(
   "click",
   async () => {
-    if (!admin) return;
+    if (!admin || busy) return;
 
     const data = collect();
 
-    if (!data) return;
+    if (!validate(data)) {
+      message(
+        "Complete all fields, four options, explanation and difficulty before adding.",
+        true
+      );
 
+      return;
+    }
+
+    const now = Date.now();
+
+    busy = true;
     pendingButton.disabled = true;
     $("save-button").disabled = true;
 
     try {
-      const token =
-        await auth.currentUser.getIdToken(true);
-
-      const response = await fetch(
-        HAI_PENDING_URL,
-        {
-          method: "POST",
-
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`
-          },
-
-          body: JSON.stringify(data)
-        }
+      const draftRef = push(
+        ref(database, "haiQuestionDrafts")
       );
 
-      let result = {};
+      await set(draftRef, {
+        ...data,
 
-      try {
-        result = await response.json();
-      } catch {
-        // Keep the default empty result.
-      }
+        id: draftRef.key,
 
-      if (!response.ok) {
-        throw new Error(
-          result.detail ||
-          result.message ||
-          `HTTP ${response.status}`
-        );
-      }
+        status: "pending",
+        approved: false,
 
-      if (result.status === "duplicate_detected") {
-        message(
-          "A similar question already exists; it was not submitted.",
-          true
-        );
+        source: "question-bank-manual",
+        document: data.sourceDetails ||
+          "Manual Question Bank entry",
 
-        return;
-      }
+        createdAt: now,
+        updatedAt: now,
+        createdBy: admin.uid
+      });
 
       message(
-        "Question sent to private final-review queue. It is not published."
+        "Question added to HAI PENDING QUESTIONS. It has not entered final approval or been published."
       );
 
       resetForm();
 
     } catch (error) {
       message(
-        "Pending submission failed: " + error.message,
+        "Could not add question to HAI Pending Questions: " +
+        error.message,
         true
       );
 
     } finally {
+      busy = false;
       pendingButton.disabled = false;
       $("save-button").disabled = false;
     }
